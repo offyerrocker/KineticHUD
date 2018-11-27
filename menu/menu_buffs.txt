@@ -1,0 +1,24 @@
+{
+	"menu_id" : "khud_menu_buffs",
+	"parent_menu_id" : "khud_menu_panels",
+	"title" : "khud_menu_buffs_title",
+	"description" : "khud_menu_buffs_desc",
+	"priority" : 9,
+	"items" : [
+		{
+			"type" : "toggle",
+			"id" : "id_khud_show_buffs_master",
+			"title" : "khud_show_buffs_master_title",
+			"description" : "khud_show_buffs_master_desc",
+			"callback" : "callback_khud_show_buffs_master",
+			"value" : "show_buffs_master"
+		},
+		{
+			"type" : "button",
+			"id" : "id_khud_customize_buffs",
+			"title" : "khud_customize_buffs_title",
+			"description" : "khud_customize_buffs_desc",
+			"callback" : "callback_khud_customize_buffs"
+		}
+	]
+}

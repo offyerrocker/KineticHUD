@@ -1,0 +1,181 @@
+--todo get voice commands list from json file
+--todo figure out how to localize voice command names? nah let translators deal with that
+--
+Hooks:PostHook(HUDChat,"_layout_input_panel","khud_layout_chat_input",function(self)
+	local input_panel = self._input_panel
+
+	self._input_panel:set_y(370) 
+--sloppy fix til i revisit hudchat
+end)
+Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
+	self._input_panel:child("input_bg"):set_gradient_points({
+		0,
+		Color.white:with_alpha(0),
+		0.2,
+		Color.white:with_alpha(0.25),
+		1,
+		Color.white:with_alpha(0)
+	})
+end)
+
+Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
+	self._panel:set_x(self._hud_panel:w() - self._panel_width)
+	self._panel:child("output_panel"):set_x(self._panel:w() - self._output_width)
+	self._panel:set_y(0)--!
+	self._panel:set_h(400)
+--	self._panel:set_valign("top")
+	self._input_panel:child("input_bg"):set_gradient_points({
+		0,
+		Color.white:with_alpha(0),
+		0.8, --formerly 0.2
+		Color.white:with_alpha(0.25),
+		1,
+		Color.white:with_alpha(0)
+	})
+--	self._input_panel:child("input_bg"):set_x(0)
+	--
+	local debug_chat = self._panel:rect({
+		name = "debug_chat",
+		visible = false,
+		color = Color.red:with_alpha(0.3),
+		layer = 0
+	})--]]
+	
+	local qchat = self._panel:panel({
+		name = "quickchat_panel",
+		layer = 1,
+		x = 100,
+		visible = false --should start out false
+	})
+	local y_margin = 5
+	local x_margin = 10
+	local y_offset = 128
+	local fontsize = 18
+	qchat:text({
+		name = "quickchat_title",
+		align = "left",
+		font = "fonts/font_medium_mf",
+		font_size = 24,
+		blend_mode = "normal",
+		x = x_margin,--self._panel:w() / 2,
+		y = y_offset + y_margin,
+		layer = 1,
+		visible = true,
+		text = "VOICE COMMANDS", --todo loc manager
+		Color = Color.white
+	})
+	qchat:bitmap({
+		name = "quickchat_bg",
+		w = 170 + x_margin,
+		h = 135 + y_margin,
+		y = y_offset,
+		layer = 0,
+		texture = "guis/textures/pd2/hud_tabs",
+		texture_rect = {84,0,44,32},
+		color = Color.white * 0.75
+	})
+	
+	for i = 1, 4 do --or 14
+		qchat:text({
+			name = "quickchat_entry_" .. tostring(i),
+			align = "left",
+			vertical = "top",
+			font = "fonts/font_medium_mf",
+--			font = "fonts/font_small_mf",--font_euro_stencil",
+			font_size = fontsize,
+			blend_mode = "normal",
+			x = x_margin,
+			y = y_offset + ((y_margin + fontsize) * (i + 1)),
+			layer = 1,
+			visible = true,
+			text = tostring(i),
+			Color = Color.white
+		})
+	end
+end)
+
+function HUDChat:hide_quickchat_menu()--instant hide, no fade anim
+	local qchat = self._panel:child("quickchat_panel")
+	qchat:hide()
+end --not currently called anywhere
+
+function HUDChat:refresh_quickchat_menu(selected)
+	selected = selected or 1
+	local qchat = self._panel:child("quickchat_panel")
+	local this_panel,j
+	qchat:child("quickchat_title"):set_text("VOICE COMMANDS: [" .. tostring(selected) .. "]")
+	local category = KineticHUD:get_quickchat_focus()
+	local sel
+	if category then 
+		qchat:hide()
+		
+		local num = (4 * (category - 1)) + selected
+		
+		sel = KineticHUD.quickchat_defaults[num]
+		
+		if sel then 
+			if sel.sound then 
+				KineticHUD:play_criminal_sound(sel.sound)
+			end
+			if not KineticHUD:IsQuickChatNoText() and sel.text then 
+				managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or "Offline", "(Voice) " .. tostring(sel.text))
+			end
+			if sel.anim then 
+				KineticHUD:play_viewmodel_anim(sel.anim)
+			end
+		end
+
+		--do selected
+		KineticHUD:set_quickchat_focus() --resets to nil
+		return
+	else
+		KineticHUD.quickchat_start_t = Application:time()
+		qchat:show()
+		qchat:set_alpha(1)
+		KineticHUD:set_quickchat_focus(selected)
+	end
+	for i = 1, 4 do
+		j = (4 * (selected - 1)) + i
+		this_panel = qchat:child("quickchat_entry_" .. tostring(i))
+		this_panel:set_text(tostring(i) .. ". " .. (KineticHUD.quickchat_defaults[j] and KineticHUD.quickchat_defaults[j].name or "[EMPTY]"))--todo get preferences[j]
+	end
+end
+	
+				--[[
+function HUDChat:update_caret()
+	local text = self._input_panel:child("input_text")
+	local caret = self._input_panel:child("caret")
+	local s, e = text:selection()
+	local x, y, w, h = text:selection_rect()
+
+	if s == 0 and e == 0 then
+		x = text:align() == "center" and text:world_x() + text:w() / 2 or text:world_x()
+		y = text:world_y()
+	end
+
+	h = text:h()
+
+	if w < 3 then
+		w = 3
+	end
+
+	if not self._focus then
+		w = 0
+		h = 0
+	end
+
+	caret:set_world_shape(x, y + 2, w, h - 4)
+	self:set_blinking(s == e and self._focus)
+
+	local mid = 0.5--self._input_panel:child("input_bg"):w()
+
+	self._input_panel:child("input_bg"):set_gradient_points({
+		0,
+		Color.white:with_alpha(0),
+		mid,
+		Color.white:with_alpha(0.25),
+		1,
+		Color.white:with_alpha(0)
+	})
+end
+--]]
