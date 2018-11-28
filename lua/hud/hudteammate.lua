@@ -21,7 +21,6 @@ local max_tracked_sentryguns = 6
 local debug_panels_visible = false
 
 function HUDTeammate:_add_buff(id)
---	KineticHUD:c_log("Error! Called deprecated HUDTeammate:_add_buff")
 	local buffs_panel = self._khud_buffs_panel
 	local buff_data = managers.player:get_buff_data()[id]
 	local current_buffs = managers.player:get_buffs()
@@ -133,7 +132,6 @@ function HUDTeammate:_add_buff(id)
 end
 
 function HUDTeammate:_remove_buff(id)
---	KineticHUD:c_log("Error! Called deprecated HUDTeammate:_remove_buff")
 	local buffs_panel = self._khud_buffs_panel
 	if buffs_panel:child(id) then
 		buffs_panel:remove(buffs_panel:child(id))
@@ -324,13 +322,11 @@ function HUDTeammate:_set_khud_weapon_killcount(slot,count)
 end
 
 Hooks:PostHook(HUDTeammate,"set_weapon_selected","khud_set_weapon_selected",function(self,id,hud_icon)
-	if not self._main_player then return end
-	self:_set_khud_selected_weapon(id,hud_icon)
---		local panel_1 = is_secondary and secondary_weapon_panel:child("secondary_icon") or primary_weapon_panel:child("primary_icon")
---		local panel_2 = is_secondary and primary_weapon_panel:child("primary_icon") or secondary_weapon_panel:child("secondary_icon")
---		panel_1:set_image(managers.blackmarket:get_weapon_icon_path(id1))
---		panel_1:set_visible(true)
---		panel_2:set_image(managers.blackmarket:get_weapon_icon_path(id2))
+	if self._main_player then
+		self:_set_khud_selected_weapon(id,hud_icon)
+	else
+		--nothing
+	end
 end)
 
 function HUDTeammate:_set_khud_weapon_icons(slot) --todo set primary/secondary weapon icon by passed id, else set both icons
@@ -491,7 +487,7 @@ function HUDTeammate:_set_khud_stamina(stamina,max_stamina)
 
 end
 
---these functions use "old posthooks" because they set vanilla panels to visible/hidden
+--these functions use "old posthooks" because they can set vanilla panels to visible/hidden
 local orig_set_cable_tie = HUDTeammate.set_cable_tie
 function HUDTeammate:set_cable_tie(data,...)
 	if (self._main_player and not KineticHUD:HUD_Enabled_Player()) or not (self._main_player or KineticHUD:HUD_Enabled_Team()) then 
@@ -502,6 +498,8 @@ function HUDTeammate:set_cable_tie(data,...)
 		local cable_ties_icon = cable_ties_panel:child("ties_icon")
 		local icon_color = amount == 0 and Color(0.5, 1, 1, 1) or Color.white
 		
+		cable_ties_panel:set_visible(true)
+--		cable_ties_panel:child("ties_bg"):set_visible(true)
 		cable_ties_icon:set_color(icon_color)		
 		cable_ties_icon:set_image(icon, unpack(texture_rect))
 		cable_ties_icon:set_visible(true)
@@ -616,7 +614,6 @@ function HUDTeammate:add_special_equipment(data,...)
 --		return orig_add_eq(self,data)
 end
 
-
 local orig_set_eq_amount = HUDTeammate.set_special_equipment_amount
 function HUDTeammate:set_special_equipment_amount(equipment_id, amount,...)
 	if (self._main_player and not KineticHUD:HUD_Enabled_Player()) or not (self._main_player or KineticHUD:HUD_Enabled_Team()) then 
@@ -659,29 +656,22 @@ function HUDTeammate:remove_special_equipment(equipment,...)
 end
 
 local orig_layout_equips = HUDTeammate.layout_special_equipments
-function HUDTeammate:layout_special_equipments(...)--this shouldn't be called anymore but just in case
+function HUDTeammate:layout_special_equipments(...)
 	if (self._main_player and not KineticHUD:HUD_Enabled_Player()) or not (self._main_player or KineticHUD:HUD_Enabled_Team()) then 
 		return orig_layout_equips(self,...)
-	else --not used, obv, but would return original layout
+	else
 		local special_equipment = self._special_equipment
 		local parent_panel = self._khud_equipment_panel
 		local w = 32
 		for i, panel in ipairs(special_equipment) do
 			w = panel:w()
-			if not self._main_player then 
-				--todo animate 
-				panel:set_x(0 + ((pad_small + w) * (i + 0)))
-			else
-				panel:set_x(parent_panel:w() - ((pad_small + w) * i)) --align from right
-			end
+			panel:set_x(parent_panel:w() - ((pad_small + w) * i)) --align from right
 --			panel:set_y(0)
 		end
 	end
 end
 
-
-Hooks:PostHook(HUDTeammate,"set_state","khud_set_state",function(self,state) --todo reconfigure
-	--set hud elements hidden/shown at this point?
+Hooks:PostHook(HUDTeammate,"set_state","khud_set_state",function(self,state)
 	local visible_team = KineticHUD:HUD_Enabled_Team()
 	
 	local teammate_panel = self._panel
@@ -694,27 +684,28 @@ Hooks:PostHook(HUDTeammate,"set_state","khud_set_state",function(self,state) --t
 		
 	if not self._main_player then 
 		self._khud_weapons_panel:hide()
-		name:set_visible(visible_team)
-		name_bg:set_visible(visible_team)
-		callsign:set_visible(visible_team)
-		callsign_bg:set_visible(visible_team)
-		--local hud_panel = self._khud_player
+		name:set_visible(not visible_team)
+		name_bg:set_visible(not visible_team)
+		callsign:set_visible(not visible_team)
+		callsign_bg:set_visible(not visible_team)
 	end
 	
 	if is_player then
 		local visible_player = KineticHUD:HUD_Enabled_Player()
 		self._player_panel:set_visible(not visible_player)
 		self._khud_player:set_visible(visible_player)
+		self._khud_downcounter_panel:show()
+		self._khud_deployables_panel:show()
+		self._khud_grenades_panel:show()
+		self._khud_ties_panel:show()
 	else
---		if true then return end
-	--! temp disabled for development
 		self._khud_player:set_visible(visible_team)
 		self._player_panel:set_visible(not visible_team)
 		self._khud_downcounter_panel:hide()
 		self._khud_deployables_panel:hide()
 		self._khud_grenades_panel:hide()
 		self._khud_ties_panel:hide()
-	end--]]
+	end
 	
 end)
 
@@ -727,7 +718,13 @@ Hooks:PostHook(HUDTeammate,"set_callsign","khud_set_teammate_color",function(sel
 	self._khud_health_panel:child("hp_text"):set_color(tweak_data.chat_colors[id])
 end)
 
-Hooks:PostHook(HUDTeammate,"set_condition","khud_set_condition",function(self,icon_data, text) --overridden
+local orig_set_condition = HUDTeammate.set_condition
+function HUDTeammate:set_condition(icon_data,text,...)
+	if self._main_player and not KineticHUD:HUD_Enabled_Player() then 
+		return orig_set_condition(self,icon_data,text,...)
+	elseif not (self._main_player or KineticHUD:HUD_Enabled_Team()) then 
+		return orig_set_condition(self,icon_data,text,...)
+	end
 	local icon,texture_rect
 	local condition = self._khud_condition
 	local condition_icon = condition:child("condition_icon")
@@ -775,7 +772,7 @@ Hooks:PostHook(HUDTeammate,"set_condition","khud_set_condition",function(self,ic
 		icon, texture_rect = tweak_data.hud_icons:get_icon_data(icon_data)
 		condition_icon:set_image(icon, texture_rect[1], texture_rect[2], texture_rect[3], texture_rect[4])
 	end
-end)
+end
 
 Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
 	local hp_r = data.current / data.total
@@ -784,18 +781,12 @@ Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
 	if not health_panel then 
 		return 
 	end
-	if self._main_player or true then 
-		health_panel:child("bar_hp"):set_w(hp_r * health_panel:child("bar_hp_bg_panel"):w())
-		if revives then 
-			self._khud_downcounter_panel:child("text_revives"):set_text(tostring(revives))
-		end
-		health_panel:child("hp_text"):set_text(tostring(math.ceil(data.current * 10)) .. " / " .. tostring(math.ceil(data.total * 10)))
-	elseif false then 
-		health_panel:child("bar_hp"):set_w(hp_r * health_panel:child("bar_hp_bg_panel"):child("bar_hp_bg"):w())
---		health_panel:child("text_revives"):set_text("DOWNS LEFT: " .. tostring(revives))
-		health_panel:child("bar_hp_bg_panel"):child("hp_text"):set_text(tostring(math.ceil(data.current * 10)) .. " / " .. tostring(math.ceil(data.total * 10)))
+
+	health_panel:child("bar_hp"):set_w(hp_r * health_panel:child("bar_hp_bg_panel"):w())
+	if revives then 
+		self._khud_downcounter_panel:child("text_revives"):set_text(tostring(revives))
 	end
-	
+	health_panel:child("hp_text"):set_text(tostring(math.ceil(data.current * 10)) .. " / " .. tostring(math.ceil(data.total * 10)))	
 end)
 
 Hooks:PostHook(HUDTeammate,"set_armor","khud_set_armor",function(self,data)
@@ -1334,7 +1325,16 @@ Hooks:PostHook(HUDTeammate,"set_grenades_amount","khud_set_grenades_amount",func
 	end
 end)
 
-Hooks:PostHook(HUDTeammate,"set_ammo_amount_by_type","khud_set_ammo_amount_by_type",function(self,type,max_clip,current_clip,current_left,max,weapon_panel)
+Hooks:PostHook(HUDTeammate,"set_ammo_amount_by_type","khud_set_ammo_amount_by_type",function(self,...)
+--,type,max_clip,current_clip,current_left,max,weapon_panel,
+	if KineticHUD:UseWeaponRealAmmo() then 
+		self:_khud_set_ammo_by_type_real(...) --too lazy to rewrite all those arguments again
+	else
+		self:_khud_set_ammo_by_type_default(...) --not too lazy to complain about it though
+	end
+end)
+
+function HUDTeammate:_khud_set_ammo_by_type_default(type,max_clip,current_clip,current_left,max,weapon_panel)
 	local weapon_panel = (type == "primary" and self._primary_weapon_panel) or (type == "secondary" and self._secondary_weapon_panel)
 	weapon_panel:set_visible(self._main_player)
 		
@@ -1359,8 +1359,38 @@ Hooks:PostHook(HUDTeammate,"set_ammo_amount_by_type","khud_set_ammo_amount_by_ty
 	ammo_total:set_text(tostring(current_left))
 	ammo_total:set_color(color_total)
 --		ammo_total:set_font_size(string.len(current_left) < 4 and 24 or 20)
+end
 
-end)
+function HUDTeammate:_khud_set_ammo_by_type_real(type,max_clip,current_clip,current_left,max,weapon_panel)
+	local weapon_panel = (type == "primary" and self._primary_weapon_panel) or (type == "secondary" and self._secondary_weapon_panel)
+	weapon_panel:set_visible(self._main_player)
+	
+	local total_left = current_left - current_clip
+	local col
+	if total_left < 0 then
+		total_left = current_left
+	end
+	local ammo_clip = weapon_panel:child("mag_text")
+	ammo_clip:set_text(tostring(current_clip))
+	if current_clip <= math.round(max_clip / 4) and current_clip ~= 0 then
+		col = Color(1, 0.9, 0.9, 0.3)
+	elseif current_clip <= 0 then
+		col = Color(1, 0.9, 0.3, 0.3)
+	else
+		col = Color.white
+	end
+	ammo_clip:set_color(col)
+	local ammo_total = weapon_panel:child("ammo_text")
+	if total_left <= math.round(max_clip / 2) and total_left ~= 0 then
+		col = Color(1, 0.9, 0.9, 0.3)
+	elseif total_left <= 0 then
+		col = Color(1, 0.9, 0.3, 0.3)
+	else
+		col = Color.white
+	end
+	ammo_total:set_text(tostring(total_left))
+	ammo_total:set_color(col)
+end
 
 --========================--
 --CREATE KHUD PANELS--
@@ -1426,8 +1456,8 @@ function HUDTeammate:_layout_khud_name(params)
 		if not KineticHUD:HUD_Enabled_Player() then 
 			return
 		else
-			x = (health_panel:x() + 96) or x or settings.panel_player_name_x or 64
-			y = (health_panel:y() - pad_medium) or y or settings.panel_player_name_y or 500
+			x = (health_panel:x() + 96) or x or 96
+			y = (health_panel:y() - pad_medium) or 500
 			fontsize = fontsize or settings.panel_player_name_fontsize or 24
 		end
 	else
@@ -1538,7 +1568,7 @@ function HUDTeammate:_create_khud_health()
 		font_size = downs_fontsize,
 		color = Color.white,
 		font = font_medium_shadow_mf,
-		text = "99"
+		text = "4"
 	})
 	
 	local icon_revives = downs_panel:bitmap({
@@ -1704,7 +1734,7 @@ function HUDTeammate:_create_khud_health()
 		y = arm_bar_y,
 		w = arm_bar_w,
 		h = arm_bar_h,
-		color = Color.white:with_alpha(0.5),
+		color = Color.white,
 		visible = debug_panels_visible --set visible on load
 	})
 
@@ -1891,10 +1921,10 @@ function HUDTeammate:_layout_khud_health(params) --self
 			return
 		else
 			health_panel:show()
-			x = x or settings.panel_player_health_x or 64
-			y = y or settings.panel_player_health_y or 500
-			w = w or settings.panel_player_health_w or 256 --w/h is currently disabled
-			h = h or settings.panel_player_health_h or 4
+			x = x or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_x) or 64
+			y = y or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_y) or 500
+			w = w or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_w) or 256 --w/h is currently disabled
+			h = h or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_h) or 4
 			diamond_scale = diamond_scale or settings.health_own_panel_diamond_scale or 1
 		end
 	else --teammate
@@ -1903,10 +1933,10 @@ function HUDTeammate:_layout_khud_health(params) --self
 			return
 		else
 			health_panel:show()
-			x = x or settings.panel_team_health_x or 64
-			y = y or settings.panel_team_health_y or 500
-			w = w or settings.panel_team_health_w or 256 --w/h is currently disabled
-			h = h or settings.panel_team_health_h or 4
+			x = x or (KineticHUD:UseHealthTeamCustomXY() and settings.panel_team_health_x) or (self._khud_player:right() - health_panel:w())
+			y = y or (KineticHUD:UseHealthTeamCustomXY() and settings.panel_team_health_y) or 500
+			w = w or (KineticHUD:UseHealthTeamCustomXY() and settings.panel_team_health_w) or 256 --w/h is currently disabled
+			h = h or (KineticHUD:UseHealthTeamCustomXY() and settings.panel_team_health_h) or 4
 			diamond_scale = diamond_scale or settings.panel_team_health_diamond_scale or 1
 		end
 	end
@@ -3005,7 +3035,7 @@ function HUDTeammate:_create_khud_region() --todo duplicate to hudstatsscreen wi
 			font_size = region_fontsize,
 			align = "center",
 			font = font_large_mf,
-			text = true and "WASHINGTON, D.C." or "",
+			text = debug_panels_visible and "WASHINGTON, D.C." or "",
 			color = Color.white
 		})
 	else
@@ -3016,7 +3046,7 @@ function HUDTeammate:_create_khud_region() --todo duplicate to hudstatsscreen wi
 			font_size = region_fontsize,
 			align = "right",
 			font = font_large_mf,
-			text = true and "WASHINGTON, D.C." or "",
+			text = debug_panels_visible and "WASHINGTON, D.C." or "",
 			color = Color.white
 		})
 	end
@@ -3303,6 +3333,7 @@ function HUDTeammate:_create_khud_ties()
 	local khud_ties_panel = hud_panel:panel({
 		name = "khud_ties_panel",
 		layer = 2,
+		visible = debug_panels_visible,
 		x = 50, --self._khud_hostages_panel:x() + (ties_h + pad_small),
 		y = 200, --self._khud_hostages_panel:y(),
 		w = ties_w,
@@ -3332,7 +3363,7 @@ function HUDTeammate:_create_khud_ties()
 	local ties_icon = khud_ties_panel:bitmap({
 		name = "ties_icon",
 		layer = 3,
-		visible = true,--is set visible after load
+		visible = debug_panels_visible,--is set visible after load
 		texture = texture,
 		texture_rect = rect,
 		color = Color.white,
@@ -3388,10 +3419,10 @@ function HUDTeammate:_layout_khud_ties(params)
 		end
 	else --should not be called for teammates
 		if not KineticHUD:HUD_Enabled_Team() then
-			ties_panel:hide()
+--			ties_panel:hide()
 			return
 		else
-			ties_panel:show()
+--			ties_panel:show()
 			x = x or settings.panel_team_health_x or 64
 			y = y or settings.panel_team_health_y or 500
 			w = w or settings.panel_team_health_w or 256 --w/h is currently disabled

@@ -3,16 +3,8 @@
 	"parent_menu_id" : "khud_mainmenu",
 	"title" : "khud_menu_quickchat_title",
 	"description" : "khud_menu_quickchat_desc",
-	"priority" : 3,
+	"priority" : 9,
 	"items" : [
-		{
-			"type" : "toggle",
-			"id" : "khud_quickchat_antispam",
-			"title" : "khud_quickchat_antispam_title",
-			"description" : "khud_quickchat_antispam_desc",
-			"callback" : "callback_khud_quickchat_antispam",
-			"value" : "antispam_enabled"
-		},
 		{
 			"type" : "toggle",
 			"id" : "khud_quickchat_notext",

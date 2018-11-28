@@ -1,7 +1,7 @@
 --local box_speed = 1000
 local ammo_font = tweak_data.hud_players.ammo_font
 
-local is_mission_enabled = KineticHUD:IsMissionEnabled()
+local is_mission_enabled = KineticHUD:IsMissionEnabled() --this way, require a restart to toggle the mission panel
 
 --local orig_obj_init = HUDObjectives.init
 --function HUDObjectives:init(hud,...)
@@ -149,7 +149,7 @@ Hooks:PostHook(HUDObjectives,"init","khud_init_objhud",function(self,hud,...)
 	self._bg_box:set_visible(false)
 --	local enabled = KineticHUD:IsMissionEnabled()
 	objectives_panel:child("icon_objectivebox"):set_visible(not is_mission_enabled)
-	objectives_panel:child("amount_text"):hide()
+--	objectives_panel:child("amount_text"):hide()
 --	objectives_panel:child("objective_text"):set_visible(not enabled)
 	objectives_panel:child("objective_text"):set_alpha(is_mission_enabled and 0 or 1)
 	objectives_panel:set_visible(not is_mission_enabled)

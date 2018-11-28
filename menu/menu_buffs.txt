@@ -1,9 +1,9 @@
 {
 	"menu_id" : "khud_menu_buffs",
-	"parent_menu_id" : "khud_menu_panels",
+	"parent_menu_id" : "khud_mainmenu",
 	"title" : "khud_menu_buffs_title",
 	"description" : "khud_menu_buffs_desc",
-	"priority" : 9,
+	"priority" : 5,
 	"items" : [
 		{
 			"type" : "toggle",

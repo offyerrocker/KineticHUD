@@ -3,7 +3,7 @@
 	"parent_menu_id" : "khud_mainmenu",
 	"title" : "khud_menu_panels_title",
 	"description" : "khud_menu_panels_desc",
-	"priority" : 5,
+	"priority" : 3,
 	"items" : [
 		{
 			"type" : "toggle_DISABLED",

@@ -1175,35 +1175,38 @@ KineticHUD.default_settings = {
 	hud_enabled_master = true, --not a setting atm
 
 	panel_player_enabled = true,
-	panel_player_health_enabled = true,
+--	panel_player_health_enabled = true,
 	panel_player_health_custom_xy = false,
 	panel_player_health_x = 0,
 	panel_player_health_y = 500,
-	panel_player_health_w = 512,
-	panel_player_health_h = 64,
+	panel_player_health_w = 512, --no menu option
+	panel_player_health_h = 64, --no menu option
 	panel_player_health_diamond_scale = 1,
-	panel_player_name_x = 64,
-	panel_player_name_y = 500,
-	panel_player_name_fontsize = 24,
-	panel_player_ties_x = 0,
-	panel_player_ties_y = 0,
-	panel_player_ties_fontsize = 22,
+--	panel_player_name_x = 96,
+--	panel_player_name_y = 500,
+	panel_player_name_fontsize = 20,
+--	panel_player_ties_x = 0,
+--	panel_player_ties_y = 0,
+--	panel_player_ties_fontsize = 22,
 	
 	panel_team_enabled = true,
-	panel_team_health_enabled = true, --no longer used
+--	panel_team_health_enabled = true, --no longer used
 	panel_team_health_custom_xy = false,
-	panel_team_health_x = 64,
-	panel_team_health_y = 500,
-	panel_team_health_align = "vertical", --"horizontal" or "vertical" 
-	panel_team_health_margin = 50, --gap between teammates' panels
+	panel_team_health_x = 1000,
+	panel_team_health_y = 144,
+	panel_team_health_align = 1, --2: horizontal or 1: vertical 
+	panel_team_health_margin = 128, --gap between teammates' panels
 	panel_team_health_diamond_scale = 0.75,
-	panel_team_ties_x = 64,
-	panel_team_ties_y = 500,
+--	panel_team_ties_x = 64,
+--	panel_team_ties_y = 500,
 	panel_team_ties_fontsize = 22,
 	panel_team_name_x = 64,
 	panel_team_name_y = 500,
-	panel_team_name_y = 500,
 	panel_team_name_fontsize = 22,
+	
+	panel_chat_x = 700,
+	panel_chat_y = -125,
+	panel_chat_use_custom_xy = true,
 	
 	hud_enabled_downcounter_own = true,
 	
@@ -1228,9 +1231,11 @@ KineticHUD.default_settings = {
 	antispam_enabled = true,
 	use_nav_surfaces = false,
 	quickchat_notext = false,
-	wpn_panel_x = 138,
-	wpn_panel_y = 568,
-	wpn_panel_scale = 1,
+	use_wpn_real_ammo = false,
+	panel_weapon_x = 256,
+	panel_weapon_y = 560,
+	panel_weapon_custom_xy = false,
+	panel_weapon_scale = 0.75,
 	downcounter_announce_lowdowns_only_mode = true,
 	downcounter_announce_docbags = false,
 	downcounter_announce_custody = false,
@@ -1238,11 +1243,11 @@ KineticHUD.default_settings = {
 	downcounter_announce_chat_mode = 2,
 	downcounter_announce_alert_mode = 1,
 	use_compass = false,
-	menu_panel_compass_x = 0, --disabled
-	menu_panel_compass_y = 0,
-	menu_panel_compass_w = 3000, --disabled
-	menu_panel_compass_h = 32, --disabled
-	menu_panel_compass_alpha = 1
+	panel_compass_x = 0, --disabled
+	panel_compass_y = 0,
+	panel_compass_w = 3000, --disabled
+	panel_compass_h = 32, --disabled
+	panel_compass_alpha = 1
 }
 
 
@@ -1263,7 +1268,7 @@ KineticHUD.down_counter = {
 	[420] = 0
 }
 
-KineticHUD.downcounter_nine_lives = {
+KineticHUD.downcounter_nine_lives = { --tracks extra lives, instead of just a bool for uses ninelives
 	[1] = 0,
 	[2] = 0,
 	[3] = 0,
@@ -1289,7 +1294,10 @@ KineticHUD.temp_cartographer_selected = 1
 --superimpose default settings over saved settings;
 --this way, new settings from updates are still loaded and written into savedata
 for k,v in pairs(KineticHUD.default_settings) do
-	KineticHUD.settings[k] = (KineticHUD.settings[k] ~= nil) and KineticHUD.settings[k] or v
+	if KineticHUD.settings[k] == nil then
+		KineticHUD.settings[k] = v
+	end
+--	KineticHUD.settings[k] = (KineticHUD.settings[k] ~= nil) and KineticHUD.settings[k] or v
 end
 
 --=======================--
@@ -1386,6 +1394,10 @@ function KineticHUD:DownCounter_AnnounceToSelf(message)
 	managers.chat:_receive_message(1,"[DownCounter]", tostring(message), Color('fce538'))
 end
 
+function KineticHUD:DownCounter_GetPeerExtraLives(peer_id) --NOTE! Only applies to other KineticHUD users, as this information is not networked normally
+	return KineticHUD.downcounter_nine_lives[peer_id or 5]
+end
+
 function KineticHUD:DownCounter_GetDowns(peer_id)
 	peer_id = peer_id or LuaNetworking:LocalPeerID() or 1
 	return KineticHUD.down_counter[peer_id]
@@ -1440,6 +1452,10 @@ function KineticHUD:play_sound_event(id)
 	if category and KineticHUD:IsSoundCategoryAllowed(category) then
 		KineticHUD:play_sound(id)
 	end
+end
+
+--not implemented
+function KineticHUD:IsSoundCategoryAllowed(category) 
 end
 
 --not implemented
@@ -1717,14 +1733,14 @@ function KineticHUD:HUD_Enabled_Team() --not used
 end
 
 function KineticHUD:HUD_Enabled_Player()
-	return KineticHUD:HUD_Enabled_Master() and KineticHUD.settings.hud_enabled_own
+	return KineticHUD:HUD_Enabled_Master() and KineticHUD.settings.panel_player_enabled
 end
 
 function KineticHUD:HUD_Enabled_Master()
 	return not _G.IS_VR and KineticHUD.settings.hud_enabled_master
 end
 
-function KineticHUD:HUD_Enabled_Downcounter_Own()
+function KineticHUD:HUD_Enabled_Downcounter_Own() --not used
 	return KineticHUD:HUD_Enabled_Master() and KineticHUD.settings.hud_enabled_downcounter_own
 end
 
@@ -1733,13 +1749,16 @@ function KineticHUD:HUD_Enabled_Health_Player()
 end
 
 function KineticHUD:UseHealthOwnCustomXY()
-	return KineticHUD.settings.health_own_panel_custom_xy
+	return KineticHUD.settings.panel_player_health_custom_xy
 end
 
 function KineticHUD:UseHealthTeamCustomXY()
 	return KineticHUD.settings.panel_team_health_custom_xy
 end
 
+function KineticHUD:UseWeaponRealAmmo()
+	return KineticHUD.settings.use_wpn_real_ammo
+end
 
 function KineticHUD:UseCompass()
 	return KineticHUD.settings.use_compass
@@ -1758,7 +1777,7 @@ function KineticHUD:UseNavSurfaces()
 end
 
 function KineticHUD:UseWeaponCustomXY()
-	return KineticHUD.settings.wpn_panel_custom_xy
+	return KineticHUD.settings.panel_weapon_custom_xy
 end
 
 function KineticHUD:IsCrosshairScannerEnabled()
@@ -2198,7 +2217,7 @@ end
 
 function KineticHUD:ToggleBuffVisible(params)
 	if params.id then 
-		self.settings[params.id] = not self.settings[params.id] -- not not params.enabled --lua sure is great
+		self.settings[params.id] = not self.settings[params.id]
 	elseif not params.id then 
 		self:c_log("No valid id for togglebuffvisible")
 	end
@@ -2311,24 +2330,27 @@ Hooks:Add("MenuManagerSetupCustomMenus", "MenuManagerSetupCustomMenus_khud", fun
     MenuHelper:NewMenu("khud_menu_panel_player_health")
     MenuHelper:NewMenu("khud_menu_panel_team_name")
     MenuHelper:NewMenu("khud_menu_panel_team_health")
+    MenuHelper:NewMenu("khud_menu_panel_chat")
 end)
 
 Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
---	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_keybinds.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_basic.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panels.txt", KineticHUD, KineticHUD:GetSettings())
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team.txt", KineticHUD, KineticHUD:GetSettings())	
+--	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_keybinds.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_quickchat.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_crosshair.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_downcounter.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_buffs.txt", KineticHUD, KineticHUD:GetSettings())
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_downcounter.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_weapons.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_crosshair.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_quickchat.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_compass.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_name.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_health.txt", KineticHUD, KineticHUD:GetSettings())	
-	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_name.txt", KineticHUD, KineticHUD:GetSettings())	
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panels.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_basic.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_compass.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_chat.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_weapons.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_health.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_name.txt", KineticHUD, KineticHUD:GetSettings())
+	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_name.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_health.txt", KineticHUD, KineticHUD:GetSettings())
+	--[[
 	MenuHelper:AddDivider({
 		id = "example_divider_4",
 		size = 2,
@@ -2347,7 +2369,6 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud
 		menu_id = menu_id,
 		priority = 8
 	})
-	--[[
 	MenuHelper:AddKeybinding({
 		id = "id_khud_quickchat_1",
 		title = "khud_quickchat_1_keybind_title",
@@ -2398,7 +2419,45 @@ Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", fun
 end)
 
 Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)
-
+	--====================== CHAT ======================	
+	MenuCallbackHandler.callback_khud_panel_chat_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.panel_chat_x = value
+		if managers.hud then 
+			managers.hud:layout_khud_chat({
+				x = value,
+				show_debug = true
+			})
+		end
+		KineticHUD:Save()
+	end
+	MenuCallbackHandler.callback_khud_panel_chat_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.panel_chat_y = value
+		if managers.hud then 
+			managers.hud:layout_khud_chat({
+				y = value,
+				show_debug = true
+			})
+		end
+		KineticHUD:Save()
+	end
+	MenuCallbackHandler.callback_khud_panel_chat_custom_xy = function(self,item)
+		local value = item:value() == "on"
+		KineticHUD.settings.panel_chat_use_custom_xy = value
+		if value and managers.hud then 
+			managers.hud:layout_khud_chat()
+		end
+		KineticHUD:Save()
+	end
+	MenuCallbackHandler.callback_khud_panel_chat_close = function(self)
+		if managers.hud then 
+			managers.hud:layout_khud_chat({
+				show_debug = false
+			})
+		end
+	end
+	
 	--====================== QUICKCHAT ======================	
 	MenuCallbackHandler.func_quickchat_1 = function(self)
 		managers.hud:refresh_quickchat_menu(1)
@@ -2471,8 +2530,10 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_show_location = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.show_location = value
-		for id,v in pairs(managers.hud._teammate_panels) do
-			managers.hud:set_subregion("",id)
+		if managers.hud then 
+			for id,v in pairs(managers.hud._teammate_panels) do
+				managers.hud:set_subregion("",id)
+			end
 		end
 		KineticHUD:Save()
 	end		
@@ -2480,7 +2541,9 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_use_compass = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.use_compass = value
-		managers.hud:toggle_khud_compass(value)
+		if managers.hud then 
+			managers.hud:toggle_khud_compass(value)
+		end
 		KineticHUD:Save()
 	end		
 			
@@ -2499,7 +2562,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_mission_enabled = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.hud_mission_enabled = value
-		if managers and managers.hud then 
+		if managers.hud then 
 --			managers.hud:show_khud_objectives(value)
 		end
 		KineticHUD:Save()
@@ -2509,51 +2572,58 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	
 	MenuCallbackHandler.callback_khud_menu_panel_compass_alpha = function(self,item)
 		local value = item:value()
-		KineticHUD.settings.menu_panel_compass_alpha = value
-		managers.hud:layout_khud_compass({
-			alpha = value
-		})
+		KineticHUD.settings.panel_compass_alpha = value
+		if managers.hud then 
+			managers.hud:layout_khud_compass({
+				alpha = value
+			})
+		end
 		KineticHUD:Save()
 	end	
 		
 	MenuCallbackHandler.callback_khud_menu_panel_compass_x = function(self,item)
 		local value = item:value()
-		KineticHUD.settings.menu_panel_compass_x = value
-		managers.hud:layout_khud_compass({
-			x = value
-		})
+		KineticHUD.settings.panel_compass_x = value
+		if managers.hud then 
+			managers.hud:layout_khud_compass({
+				x = value
+			})
+		end
 		KineticHUD:Save()
 	end	
 	
 	MenuCallbackHandler.callback_khud_menu_panel_compass_y = function(self,item)
 		local value = item:value()
-		KineticHUD.settings.menu_panel_compass_y = value
-		managers.hud:layout_khud_compass({
-			y = value
-		})
-
+		KineticHUD.settings.panel_compass_y = value
+		if managers.hud then 
+			managers.hud:layout_khud_compass({
+				y = value
+			})
+		end
 		KineticHUD:Save()
 	end	
 	
 	
 	MenuCallbackHandler.callback_khud_menu_panel_compass_w = function(self,item)
 		local value = item:value()
-		KineticHUD.settings.menu_panel_compass_w = value
-		managers.hud:layout_khud_compass({
-			w = value
-		})
-
+		KineticHUD.settings.panel_compass_w = value
+		if managers.hud then 
+			managers.hud:layout_khud_compass({
+				w = value
+			})
+		end
 		KineticHUD:Save()
 	end	
 	
 	
 	MenuCallbackHandler.callback_khud_menu_panel_compass_h = function(self,item)
 		local value = item:value()
-		KineticHUD.settings.menu_panel_compass_h = value
-		managers.hud:layout_khud_compass({
-			h = value
-		})
-
+		KineticHUD.settings.panel_compass_h = value
+		if managers.hud then 
+			managers.hud:layout_khud_compass({
+				h = value
+			})
+		end
 		KineticHUD:Save()
 	end	
 	
@@ -2565,7 +2635,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		local enabled = item:value() == "on"
 		KineticHUD.settings.show_crosshair = enabled
 		--do show/hide crosshair
-		if managers and managers.hud then 
+		if managers.hud then 
 			managers.hud:toggle_khud_crosshair(enabled)
 		end
 		KineticHUD:Save()
@@ -2586,88 +2656,115 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_crosshair_show_circle = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.crosshair_show_circle = value
-		managers.hud:layout_khud_crosshair({
-			show_circle = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				show_circle = value
+			})
+		end
 		KineticHUD:Save()
 	end					
 	
 	MenuCallbackHandler.callback_khud_crosshair_show_dot = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.crosshair_show_dot = value
-		managers.hud:layout_khud_crosshair({
-			show_dot = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				show_dot = value
+			})
+		end
 		KineticHUD:Save()
 	end				
 	MenuCallbackHandler.callback_khud_crosshair_circle_scale = function(self,item)
 		local value = item:value()
 		KineticHUD.settings.crosshair_circle_scale = value
-		managers.hud:layout_khud_crosshair({
-			circle_scale = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				circle_scale = value
+			})
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_crosshair_show_cross = function(self,item)
 		local value = item:value() == 'on'
 		KineticHUD.settings.crosshair_show_cross = value
-		managers.hud:layout_khud_crosshair({
-			show_cross = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				show_cross = value
+			})
+		end
 		KineticHUD:Save()
 	end					
 			
 	MenuCallbackHandler.callback_khud_crosshair_cross_w = function(self,item)
 		KineticHUD.settings.crosshair_cross_w = item:value()
-		managers.hud:layout_khud_crosshair({
-			cross_w = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				cross_w = value
+			})
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_crosshair_cross_h = function(self,item)
 		KineticHUD.settings.crosshair_cross_h = item:value()
-		managers.hud:layout_khud_crosshair({
-			cross_h = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				cross_h = value
+			})
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_crosshair_cross_offset = function(self,item)
 		KineticHUD.settings.crosshair_cross_offset = item:value()
-		managers.hud:layout_khud_crosshair({
-			cross_offset = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				cross_offset = value
+			})
+		end
 		KineticHUD:Save()
 	end
 	MenuCallbackHandler.callback_khud_crosshair_dot_scale = function(self,item)
 		KineticHUD.settings.crosshair_dot_scale = item:value()
-		managers.hud:layout_khud_crosshair({
-			dot_scale = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				dot_scale = value
+			})
+		end
 		KineticHUD:Save()
 	end
 	MenuCallbackHandler.callback_khud_crosshair_master_opacity = function(self,item)
 		KineticHUD.settings.crosshair_master_opacity = item:value()
-		managers.hud:layout_khud_crosshair({
-			crosshair_opacity = value
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_crosshair({
+				crosshair_opacity = value
+			})
+		end
 		KineticHUD:Save()
 	end
 
 	--====================== WEAPONS PANEL ======================	
 	
+	MenuCallbackHandler.callback_khud_panel_weapons_real_ammo = function(self,item)
+		local value = item:value() == 'on'
+		KineticHUD.settings.use_wpn_real_ammo = value
+		--todo refresh weapon ammo counts
+		KineticHUD:Save()
+	end
+		
 	MenuCallbackHandler.callback_khud_panel_weapons_custom_xy = function(self,item)
 		local value = item:value() == 'on'
-		KineticHUD.settings.wpn_panel_custom_xy = value
-		managers.hud:layout_khud_weapons_panel()
+		KineticHUD.settings.panel_weapon_custom_xy = value
+		if managers.hud then 
+			managers.hud:layout_khud_weapons_panel()
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_weapons_set_x = function(self,item)
-		KineticHUD.settings.wpn_panel_x = item:value()
-		if KineticHUD:UseWeaponCustomXY() then 
+		KineticHUD.settings.panel_weapon_x = item:value()
+		if KineticHUD:UseWeaponCustomXY() and managers.hud then 
 			managers.hud:layout_khud_weapons_panel({
 				x = item:value()
 			})
@@ -2676,8 +2773,8 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_weapons_set_y = function(self,item)
-		KineticHUD.settings.wpn_panel_y = item:value()
-		if KineticHUD:UseWeaponCustomXY() then 
+		KineticHUD.settings.panel_weapon_y = item:value()
+		if KineticHUD:UseWeaponCustomXY() and managers.hud then 
 			managers.hud:layout_khud_weapons_panel({
 				y = item:value()
 			})
@@ -2686,10 +2783,12 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	end	
 	
 	MenuCallbackHandler.callback_khud_panel_weapons_set_scale = function(self,item)
-		KineticHUD.settings.wpn_panel_scale = item:value()
-		managers.hud:layout_khud_weapons_panel({
-			scale = item:value()
-		})
+		KineticHUD.settings.panel_weapon_scale = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_weapons_panel({
+				scale = item:value()
+			})
+		end
 		KineticHUD:Save()
 	end
 
@@ -2728,177 +2827,202 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	--====================== PLAYER ======================		
 	MenuCallbackHandler.callback_khud_panel_player_enabled = function(self,item)
 		KineticHUD.settings.panel_player_enabled = item:value() == "on"
-		managers.hud:set_khud_player_visible(item:value() == "on")
-		--todo hide hud here
+		if managers.hud then 
+			managers.hud:set_khud_player_visible(item:value() == "on")
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_name_set_x = function(self,item)
 		KineticHUD.settings.panel_player_name_x = item:value()
-		managers.hud:layout_khud_name({
-			x = item:value()
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_name({
+				x = item:value()
+			})
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_player_name_set_y = function(self,item)
 		KineticHUD.settings.panel_player_name_y = item:value()
-		managers.hud:layout_khud_name({
-			y = item:value()
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_name({
+				y = item:value()
+			})
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_name_set_fontsize = function(self,item)
 		KineticHUD.settings.panel_player_name_fontsize = item:value()
-		managers.hud:layout_khud_name({
-			fontsize = item:value()
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_name({
+				fontsize = item:value()
+			})
+		end
 		KineticHUD:Save()
 	end
 
-		
-	MenuCallbackHandler.callback_khud_panel_player_name_set_x = function(self,item)
-		KineticHUD.settings.panel_player_name_x = item:value()
-		managers.hud:layout_khud_name()
-		KineticHUD:Save()
-	end
-		
-	MenuCallbackHandler.callback_khud_panel_player_name_set_y = function(self,item)
-		KineticHUD.settings.panel_player_name_y = item:value()
-		managers.hud:layout_khud_name()
-		KineticHUD:Save()
-	end
-		
-	MenuCallbackHandler.callback_khud_panel_player_name_set_fontsize = function(self,item)
-		KineticHUD.settings.panel_player_name_fontsize = item:value()
-		managers.hud:layout_khud_name()
-		KineticHUD:Save()
-	end
-	
 	MenuCallbackHandler.callback_khud_panel_player_ties_set_x = function(self,item)
 		KineticHUD.settings.panel_player_ties_x = item:value()
-		managers.hud:layout_khud_ties_player()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_player()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_player_ties_set_y = function(self,item)
 		KineticHUD.settings.panel_player_ties_y = item:value()
-		managers.hud:layout_khud_ties_player()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_player()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_player_ties_set_fontsize = function(self,item)
 		KineticHUD.settings.panel_player_ties_fontsize = item:value()
-		managers.hud:layout_khud_ties_player()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_player()
+		end
 		KineticHUD:Save()
 	end
 
 	
 	MenuCallbackHandler.callback_khud_panel_player_health_enabled = function(self,item)
 	--deprecated
-		KineticHUD.settings.player_health_panel_enabled = item:value() == "on"
-		managers.hud:layout_khud_health()		
+		KineticHUD.settings.panel_player_health_enabled = item:value() == "on"
+		if managers.hud then 
+			managers.hud:layout_khud_health()
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_health_custom_xy = function(self,item)
-		KineticHUD.settings.player_health_panel_custom_xy = item:value()
-		managers.hud:layout_khud_health()
+		KineticHUD.settings.panel_player_health_custom_xy = item:value() == "on"
+		if managers.hud then 
+			managers.hud:layout_khud_health()
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_health_set_x = function(self,item)
-		KineticHUD.settings.player_health_panel_x = item:value()
-		managers.hud:layout_khud_health({
-			x = item:value(),
-			show_debug = true
-		})
+		KineticHUD.settings.panel_player_health_x = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_health({
+				x = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 			
 	MenuCallbackHandler.callback_khud_panel_player_health_set_y = function(self,item)
-		KineticHUD.settings.player_health_panel_y = item:value()
-		managers.hud:layout_khud_health({
-			y = item:value(),
-			show_debug = true
-		})
+		KineticHUD.settings.panel_player_health_y = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_health({
+				y = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 	MenuCallbackHandler.callback_khud_panel_player_health_set_w = function(self,item)
-		KineticHUD.settings.player_health_panel_w = item:value()
-		managers.hud:layout_khud_health({
-			w = item:value(),
-			show_debug = true
-		})
+		KineticHUD.settings.panel_player_health_w = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_health({
+				w = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 			
 	MenuCallbackHandler.callback_khud_panel_player_health_set_h = function(self,item)
-		KineticHUD.settings.player_health_panel_h = item:value()
-		managers.hud:layout_khud_health({
-			h = item:value(),
-			show_debug = true
-		})
+		KineticHUD.settings.panel_player_health_h = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_health({
+				h = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 			
 	MenuCallbackHandler.callback_khud_panel_player_health_set_diamond_scale = function(self,item)
-		KineticHUD.settings.player_health_panel_diamond_scale = item:value()
-		managers.hud:layout_khud_health({
-			diamond_scale = item:value(),
-			show_debug = true
-		})
+		KineticHUD.settings.panel_player_health_diamond_scale = item:value()
+		if managers.hud then 
+			managers.hud:layout_khud_health({
+				diamond_scale = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 		
 	--====================== TEAM ======================		
 	MenuCallbackHandler.callback_khud_panel_team_enabled = function(self,item)
 		KineticHUD.settings.panel_team_enabled = item:value() == "on"
-		managers.hud:set_khud_team_visible(item:value() == "on")
+		if managers.hud then 
+			managers.hud:set_khud_team_visible(item:value() == "on")
+			managers.hud:layout_khud_health_team()
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_team_name_set_x = function(self,item)
 		KineticHUD.settings.panel_team_name_x = item:value()
-		managers.hud:layout_khud_name_team()
+		if managers.hud then 
+			managers.hud:layout_khud_name_team()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_team_name_set_y = function(self,item)
 		KineticHUD.settings.panel_team_name_y = item:value()
-		managers.hud:layout_khud_name_team()
+		if managers.hud then 
+			managers.hud:layout_khud_name_team()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_team_name_set_fontsize = function(self,item)
 		KineticHUD.settings.panel_team_name_fontsize = item:value()
-		managers.hud:layout_khud_name_team()
+		if managers.hud then 
+			managers.hud:layout_khud_name_team()
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_team_ties_set_x = function(self,item)
 		KineticHUD.settings.panel_team_ties_x = item:value()
-		managers.hud:layout_khud_ties_team()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_team()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_team_ties_set_y = function(self,item)
 		KineticHUD.settings.panel_team_ties_y = item:value()
-		managers.hud:layout_khud_ties_team()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_team()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_team_ties_set_fontsize = function(self,item)
 		KineticHUD.settings.panel_team_ties_fontsize = item:value()
-		managers.hud:layout_khud_ties_team()
+		if managers.hud then 
+			managers.hud:layout_khud_ties_team()
+		end
 		KineticHUD:Save()
 	end
 
 	MenuCallbackHandler.callback_khud_panel_team_name_set_max_length = function(self,item)
 	--not implemented
 		KineticHUD.settings.panel_team_name_max_length = item:value()
-		managers.hud:layout_khud_name_team()
+		if managers.hud then 
+			managers.hud:layout_khud_name_team()
+		end
 		KineticHUD:Save()
 	end
 	
@@ -2907,60 +3031,72 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD:Save()
 	end
 	
-	MenuCallbackHandler.callback_khud_panel_team_health_custom_xy = function(self,item) --disabled
-		KineticHUD.settings.panel_team_health_custom_xy = item:value()
-		managers.hud:layout_khud_health_team()
+	MenuCallbackHandler.callback_khud_panel_team_health_custom_xy = function(self,item)
+		KineticHUD.settings.panel_team_health_custom_xy = item:value() == "on"
+		if managers.hud then 
+			managers.hud:layout_khud_health_team()
+		end
 		KineticHUD:Save()
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_team_health_set_align = function(self,item)
 		KineticHUD.settings.panel_team_health_align = tonumber(item:value())
-		managers.hud:layout_khud_health_team({
-			align = tonumber(item:value()),
-			show_debug = true
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_health_team({
+				align = tonumber(item:value()),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_team_health_set_x = function(self,item)
 		KineticHUD.settings.panel_team_health_x = item:value()
-		managers.hud:layout_khud_health_team({
-			x = item:value(),
-			show_debug = true
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_health_team({
+				x = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 			
 	MenuCallbackHandler.callback_khud_panel_team_health_set_y = function(self,item)
 		KineticHUD.settings.panel_team_health_y = item:value()
-		managers.hud:layout_khud_health_team({
-			y = item:value(),
-			show_debug = true
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_health_team({
+				y = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end
 			
 	MenuCallbackHandler.callback_khud_panel_health_team_set_scale = function(self,item)
 	--unused
 		KineticHUD.settings.panel_team_health_scale = item:value()
-		managers.hud:layout_khud_health_team({
-			scale = item:value(),
-			show_debug = true
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_health_team({
+				scale = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end	
 				
 	MenuCallbackHandler.callback_khud_panel_team_health_set_margin = function(self,item)
 		KineticHUD.settings.panel_team_health_margin = item:value()
-		managers.hud:layout_khud_health_team({
-			margin = item:value(),
-			show_debug = true
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_health_team({
+				margin = item:value(),
+				show_debug = true
+			})
+		end
 		KineticHUD:Save()
 	end	
 	
 	MenuCallbackHandler.callback_khud_panel_grenades_set_x = function(self,item)
-		
+		--not used
 	end
 	
 	
@@ -2991,11 +3127,15 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	
 	
 	MenuCallbackHandler.callback_khud_panel_team_health_close = function(this)
-		managers.hud:align_khud_health({show_debug = false})
+		if managers.hud then 
+			managers.hud:align_khud_health({show_debug = false})
+		end
 	end
 		
 	MenuCallbackHandler.callback_khud_panel_player_health_close = function(this)
-		managers.hud:layout_khud_health({show_debug = false})
+		if managers.hud then 
+			managers.hud:layout_khud_health({show_debug = false})
+		end
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_name_close = function(this)
@@ -3006,6 +3146,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	end
 	MenuCallbackHandler.callback_khud_close = function(this)
 		KineticHUD:Save()
+		--note to self: weapons menu and compass menu use this generic callback
 	end
 	KineticHUD:Load()
 end)

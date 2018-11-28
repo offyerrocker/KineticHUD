@@ -4,7 +4,7 @@
 	"title" : "khud_menu_basic_title",
 	"description" : "khud_menu_basic_desc",
 	"back_callback" : "callback_khud_close",
-	"priority" : 9,
+	"priority" : 1,
 	"items" : [
 		{
 			"type" : "toggle",

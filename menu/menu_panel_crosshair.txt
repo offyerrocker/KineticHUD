@@ -1,8 +1,9 @@
 {
 	"menu_id" : "khud_menu_panel_crosshair",
-	"parent_menu_id" : "khud_menu_panel_player",
+	"parent_menu_id" : "khud_mainmenu",
 	"title" : "khud_menu_panel_crosshair_title",
 	"description" : "khud_menu_panel_crosshair_desc",
+	"priority" : 11,
 	"items" : [
 		{
 			"type" : "toggle",

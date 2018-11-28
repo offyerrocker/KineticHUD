@@ -60,6 +60,8 @@ Hooks:PreHook(HUDManager,"_create_teammates_panel","khud_hudmanager_create_teamm
 		table.insert(self._khud_panels,teammate)
 	end
 	
+	--just a separate parent panel so that it can display independently of hidden vanilla hud or hidden kinetichud;
+	--while the buffs panel is still created in hudteammate, it references this panel as its parent
 	self._khud_buffs_master = hud.panel:panel({
 		name = "khud_buffs_master",
 		halign = "grow",
@@ -67,44 +69,8 @@ Hooks:PreHook(HUDManager,"_create_teammates_panel","khud_hudmanager_create_teamm
 		w = hud.panel:w(),
 		h = hud.panel:h()
 	})
-	--self:_create_khud_buffs()
 	
 end)
-
-
-function HUDManager:get_khud_buffs()
-	return self._khud_buffs_panel
-end
-
-function HUDManager:_create_khud_buffs()
-	if self._khud_player and alive(self._khud_player) then 
-		KineticHUD:c_log("Error! Duplicate _create_khud_buffs")
-		return 
-	end
-	local hud_panel = self._khud_base -- managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2).panel
---	local full_hud = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_FULLSCREEN_PD2)
-	local buffs_w = 400
-	local buffs_h = 300
-	
-	local khud_buffs_panel = hud_panel:panel({
-		name = "khud_buffs_panel",
-		layer = 1,
-		x = 32,
-		y = hud_panel:h() - (buffs_h + 176), --todo top of health panel
-		w = buffs_w,
-		h = buffs_h
-	})
-	
-	
-	local debug_buffs = khud_buffs_panel:rect({
-		name = "debug_buffs",
-		visible = debug_panels_visible,
-		layer = 0,
-		color = Color.yellow:with_alpha(0.3)
-	})
-	self._khud_buffs_panel = khud_buffs_panel
-	return khud_buffs_panel
-end
 
 Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 --if armor_max == 0 then return end
@@ -678,9 +644,9 @@ end
 
 Hooks:PostHook(HUDManager,"set_player_location","khud_setplayerlocation",function(self,location_id)
 --This function is empty, but is still appropriately called complete with location_id argument for the main player, and can be applied to teammates, so I'm gonna use this.
-	if KineticHUD:UseCartographer() and KineticHUD:UseNavSurfaces() and location_id ~= "location_unknown" then  --!
+	if KineticHUD:UseCartographer() and KineticHUD:UseNavSurfaces() and utf8.to_lower(location_id) ~= "location_unknown" then
 		self._player_location = location_id
-		self:set_subregion(KineticHUD:display_debug() and location_id or managers.localization:text(location_id))
+		self:set_subregion(KineticHUD:IsDebugEnabled() and location_id or managers.localization:text(location_id))
 --		KineticHUD:_log("OwO a named nav surface??? set_player_location(" .. tostring(location_id) .. ")")
 	else --if invalid location, remove player location and enable cartographer checking again
 		--self._player_location = nil
@@ -776,8 +742,8 @@ function HUDManager:layout_khud_weapons_panel(params)
 	local settings = KineticHUD:GetSettings()
 	local panel_w = 256 --default parent panel w
 	local panel_h = 100 --default parent panel h
-	local panel_x = 128 + pad_medium --parent x
-	local panel_y = hud._player_panel:h() - panel_h --parent y
+--	local panel_x = 128 + pad_medium --parent x
+--	local panel_y = hud._player_panel:h() - panel_h --parent y
 	local wpn_h = 50 --primary/secondary subpanel height
 	local firemode_w = 32 --also self explanatory
 	local firemode_h = 32 --self explanatory
@@ -785,15 +751,7 @@ function HUDManager:layout_khud_weapons_panel(params)
 	local y = panel:y()
 	local scale = 1
 	local icon_scale = 0.75
-	if use_custom then 
-		x = params.x or settings.wpn_panel_x or x
-		y = params.y or settings.wpn_panel_y or y
-		scale = params.scale or settings.wpn_panel_scale or scale
-	else
-		x = 128 + pad_medium --hud._player_panel:w() - panel:w()
-		y = hud._player_panel:h() + - panel_h + - pad_small
-	end
-	
+
 	local w = panel_w * scale
 	local h = panel_h * scale
 	
@@ -803,6 +761,16 @@ function HUDManager:layout_khud_weapons_panel(params)
 	
 
 	panel:set_size(w,h)
+	
+	if use_custom then 
+		x = params.x or settings.panel_weapon_x or x
+		y = params.y or settings.panel_weapon_y or y
+		scale = params.scale or settings.panel_weapon_scale or scale
+	else
+		x = hud._khud_grenades_panel:right() + pad_medium --128 + pad_medium --hud._player_panel:w() - panel:w()
+		y = hud._khud_grenades_panel:y() -- hud._khud_health_panel:y() + h -- - panel_h
+	end
+	
 	panel:set_x(x)
 	panel:set_y(y)
 
@@ -876,7 +844,7 @@ function HUDManager:layout_khud_weapons_panel(params)
 --	secondary_firemode_panel:child("firemode_secondary"):set_h(32 * scale)--
 	sec_wpn_panel:child("secondary_kill_counter"):set_font_size(fontsize_killcounter)
 	sec_wpn_panel:child("secondary_kills_icon"):set_size(12 * scale)
-	
+
 end
 
 function HUDManager:set_khud_weapon_icons(slot)
@@ -999,6 +967,17 @@ function HUDManager:get_criminal_hud_panel_by_peer_id(peer_id)
 	return nil
 end
 
+function HUDManager:init_khud_downs_team()
+	for id,panel in pairs(self._teammate_panels) do
+		local peer_id = panel._peer_id or 5
+		local max_downs = KineticHUD:DownCounter_GetGlobalMaxDowns() + KineticHUD:DownCounter_GetPeerExtraLives(peer_id)
+		local downs = max_downs - KineticHUD:DownCounter_GetDowns(peer_id)
+		if id ~= HUDManager.PLAYER_PANEL then 
+			panel:_set_khud_downs(peer_id,downs)
+		end
+	end
+end
+
 function HUDManager:set_khud_downs(peer_id,downs)
 	if not downs then return end
 	
@@ -1109,10 +1088,10 @@ function HUDManager:layout_khud_health_team() --layout all teammates' health pan
 	for id,panel in pairs(self._teammate_panels) do
 		if id ~= HUDManager.PLAYER_PANEL then
 			local settings = KineticHUD:GetSettings()
-			local align = settings.panel_team_health_align
+			local align = settings.panel_team_health_align or 1
 			local margin = settings.panel_team_health_margin
 --			local health_panel = panel._khud_health_panel
-			if align == 1 then -- 1 = vertical, 2 = horizontal
+			if not KineticHUD:UseHealthTeamCustomXY() or align == 1 then -- 1 = vertical, 2 = horizontal
 				panel:_layout_khud_health({
 					y = settings.panel_team_health_y + ((id - 1) * margin)
 				})
@@ -1179,6 +1158,17 @@ function HUDManager:align_khud_health(params) --for teammates only; deprecated
 	end
 end
 
+function HUDManager:layout_khud_chat(params)
+	params = params or {}
+	local settings = KineticHUD:GetSettings()
+	local chat = self._hud_chat
+	local show_debug = params.show_debug or false
+	chat._panel:child("debug_chat"):set_visible(show_debug)
+	local x = params.x or settings.panel_chat_x or 0
+	local y = params.y or settings.panel_chat_y or 0
+	chat._panel:set_x(x)
+	chat._panel:set_y(y)
+end
 
 function HUDManager:set_khud_compass(params)
 	KineticHUD:c_log("Using deprecated function name set_khud_compass")
@@ -1191,11 +1181,11 @@ function HUDManager:layout_khud_compass(params)
 	local compass = hud._khud_compass
 	local strip = compass:child("compass_strip")
 
-	local alpha = params.alpha or settings.menu_panel_compass_alpha or 1
-	local w = params.w or settings.menu_panel_compass_w or 1000
---	local h = params.h or settings.menu_panel_compass_h or 16
-	local x = params.x or settings.menu_panel_compass_x or 0
-	local y = params.y or settings.menu_panel_compass_y or 64
+	local alpha = params.alpha or settings.panel_compass_alpha or 1
+	local w = params.w or settings.panel_compass_w or 1000
+--	local h = params.h or settings.panel_compass_h or 16
+	local x = params.x or settings.panel_compass_x or 0
+	local y = params.y or settings.panel_compass_y or 64
 	
 	compass:set_alpha(alpha)
 	compass:set_visible(KineticHUD:UseCompass())

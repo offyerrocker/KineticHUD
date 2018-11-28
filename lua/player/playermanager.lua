@@ -81,16 +81,19 @@ Hooks:PostHook(PlayerManager,"_internal_load","khud_player_internal_load",functi
 	managers.hud:layout_khud_compass()
 --	managers.hud:toggle_khud_crosshair(settings.show_crosshair) --redundant
 	managers.hud:layout_khud_crosshair()
-	managers.hud:layout_khud_weapons_panel()
 	managers.hud:layout_khud_deployables_team()
 	managers.hud:layout_khud_equipment_team()
 	managers.hud:layout_khud_region_team()
 	managers.hud:layout_khud_ties_team()
 	managers.hud:layout_khud_grenades_team()
+	managers.hud:layout_khud_weapons_panel()
 	managers.hud:layout_khud_name_team()
 	managers.hud:set_khud_player_visible(settings.panel_player_enabled)
 	managers.hud:set_khud_team_visible(settings.panel_team_enabled)
-	
+--	if use custom chat then
+	if settings.panel_chat_use_custom_xy then 
+		managers.hud:layout_khud_chat()
+	end
 	
 	local primary_deployable = managers.blackmarket:equipped_deployable(1)
 	local secondary_deployable = managers.blackmarket:equipped_deployable(2)

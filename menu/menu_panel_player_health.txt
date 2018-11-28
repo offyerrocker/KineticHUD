@@ -4,6 +4,7 @@
 	"title" : "khud_menu_player_health_title",
 	"description" : "khud_menu_player_health_desc",
 	"back_callback" : "callback_khud_panel_player_health_close",
+	"priority" : 3,
 	"items" : [
 		{
 			"type" : "toggle",

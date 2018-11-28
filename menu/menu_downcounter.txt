@@ -3,6 +3,7 @@
 	"parent_menu_id" : "khud_mainmenu",
 	"title" : "khud_menu_downcounter_title",
 	"description" : "khud_menu_downcounter_desc",
+	"priority" : 7,
 	"items" : [	
 		{
 			"type" : "multiple_choice",

@@ -1,12 +1,9 @@
 --todo get voice commands list from json file
---todo figure out how to localize voice command names? nah let translators deal with that
+--todo add option to use localized name ids
 --
-Hooks:PostHook(HUDChat,"_layout_input_panel","khud_layout_chat_input",function(self)
-	local input_panel = self._input_panel
+--Hooks:PostHook(HUDChat,"_layout_input_panel","khud_layout_chat_input",function(self)
+--end)
 
-	self._input_panel:set_y(370) 
---sloppy fix til i revisit hudchat
-end)
 Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,
@@ -19,11 +16,6 @@ Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
 end)
 
 Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
-	self._panel:set_x(self._hud_panel:w() - self._panel_width)
-	self._panel:child("output_panel"):set_x(self._panel:w() - self._output_width)
-	self._panel:set_y(0)--!
-	self._panel:set_h(400)
---	self._panel:set_valign("top")
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,
 		Color.white:with_alpha(0),
@@ -32,14 +24,23 @@ Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 		1,
 		Color.white:with_alpha(0)
 	})
---	self._input_panel:child("input_bg"):set_x(0)
-	--
+--	local show_debug = KineticHUD:IsDebugEnabled()
+	
+	local debug_output = self._panel:child("output_panel"):rect({
+		name = "debug_output",
+		color = Color.green:with_alpha(0.3),
+		visible = false
+	})
+	local debug_input = self._input_panel:rect({
+		name = "debug_input",
+		color = Color.red:with_alpha(0.3),
+		visible = false
+	})
 	local debug_chat = self._panel:rect({
 		name = "debug_chat",
-		visible = false,
-		color = Color.red:with_alpha(0.3),
-		layer = 0
-	})--]]
+		color = Color.blue:with_alpha(0.3),
+		visible = false
+	})
 	
 	local qchat = self._panel:panel({
 		name = "quickchat_panel",
@@ -140,42 +141,3 @@ function HUDChat:refresh_quickchat_menu(selected)
 		this_panel:set_text(tostring(i) .. ". " .. (KineticHUD.quickchat_defaults[j] and KineticHUD.quickchat_defaults[j].name or "[EMPTY]"))--todo get preferences[j]
 	end
 end
-	
-				--[[
-function HUDChat:update_caret()
-	local text = self._input_panel:child("input_text")
-	local caret = self._input_panel:child("caret")
-	local s, e = text:selection()
-	local x, y, w, h = text:selection_rect()
-
-	if s == 0 and e == 0 then
-		x = text:align() == "center" and text:world_x() + text:w() / 2 or text:world_x()
-		y = text:world_y()
-	end
-
-	h = text:h()
-
-	if w < 3 then
-		w = 3
-	end
-
-	if not self._focus then
-		w = 0
-		h = 0
-	end
-
-	caret:set_world_shape(x, y + 2, w, h - 4)
-	self:set_blinking(s == e and self._focus)
-
-	local mid = 0.5--self._input_panel:child("input_bg"):w()
-
-	self._input_panel:child("input_bg"):set_gradient_points({
-		0,
-		Color.white:with_alpha(0),
-		mid,
-		Color.white:with_alpha(0.25),
-		1,
-		Color.white:with_alpha(0)
-	})
-end
---]]

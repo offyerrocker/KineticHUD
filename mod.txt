@@ -1,9 +1,9 @@
 {
-	"name" : "KineticHUD",
+	"name" : "KineticHUD G",
 	"description" : "Buffs tracker, QuickChat, ECM Timer, and more!",
 	"author" : "Offyerrocker"
 	"contact" : "Discord: Offyerrocker#3878",
-	"version" : "Gamma r2",
+	"version" : "Gamma Revision 4",
 	"blt_version" : 2,
 	"image" : "khud.png",
 	"color" : "255 234 99",

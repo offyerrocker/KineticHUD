@@ -6,7 +6,7 @@
 	"back_callback" : "callback_khud_panel_team_health_close",
 	"items" : [
 		{
-			"type" : "toggle_DISABLED",
+			"type" : "toggle",
 			"id" : "khud_panel_team_health_custom_xy",
 			"title" : "khud_panel_team_health_custom_xy_title",
 			"description" : "khud_panel_team_health_custom_xy_desc",
