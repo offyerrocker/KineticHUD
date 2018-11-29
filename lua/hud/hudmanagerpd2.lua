@@ -1117,6 +1117,10 @@ function HUDManager:layout_khud_health_team() --layout all teammates' health pan
 	self:layout_khud_grenades_team()
 	self:layout_khud_ties_team()
 	self:layout_khud_region_team()
+	self:layout_khud_speaking()
+end
+function HUDManager:layout_khud_speaking()
+	self._teammate_panels[HUDManager.PLAYER_PANEL]:_layout_khud_speaking()
 end
 
 function HUDManager:layout_khud_health(params,id) --layout specific teammate's health panel

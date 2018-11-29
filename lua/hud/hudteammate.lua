@@ -3799,6 +3799,13 @@ function HUDTeammate:_create_khud_speaking()
 	return speaking
 end
 
+function HUDTeammate:_layout_khud_speaking()
+	local speaking = self._khud_voice_indicator
+	local health_panel = self._khud_health_panel
+	speaking:set_x(health_panel:x())
+	speaking:set_y(health_panel:y())
+end
+
 function HUDTeammate:_create_khud_scanner_left()
 	local hud_panel = self._khud_player
 	
