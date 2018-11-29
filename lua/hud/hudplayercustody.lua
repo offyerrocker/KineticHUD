@@ -3,6 +3,7 @@ Hooks:PostHook(HUDPlayerCustody,"init","khud_init_hudplayercustody",function(sel
 	local custody_panel = hud.panel:child("custody_panel")
 	local _debug_ = custody_panel:rect({
 		name = "debug_custody",
+		visible = false,
 		color = Color.red:with_alpha(0.3),
 		layer = 0
 	})
