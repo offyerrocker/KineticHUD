@@ -1178,10 +1178,10 @@ KineticHUD.default_settings = {
 --	panel_player_health_enabled = true,
 	panel_player_health_custom_xy = false,
 	panel_player_health_x = 0,
-	panel_player_health_y = 500,
+	panel_player_health_y = 540,
 	panel_player_health_w = 512, --no menu option
 	panel_player_health_h = 64, --no menu option
-	panel_player_health_diamond_scale = 1,
+	panel_player_health_diamond_scale = 0.75,
 --	panel_player_name_x = 96,
 --	panel_player_name_y = 500,
 	panel_player_name_fontsize = 20,
@@ -1189,6 +1189,9 @@ KineticHUD.default_settings = {
 --	panel_player_ties_y = 0,
 --	panel_player_ties_fontsize = 22,
 	
+	panel_buffs_custom_xy = false,
+	panel_buffs_x = 0,
+	panel_buffs_y = 200,
 	panel_team_enabled = true,
 --	panel_team_health_enabled = true, --no longer used
 	panel_team_health_custom_xy = false,
@@ -1225,7 +1228,7 @@ KineticHUD.default_settings = {
 	crosshair_cross_h = 8,
 	crosshair_cross_offset = 6,
 	crosshair_dot_scale = 4,
-	crosshair_master_opacity = 0.3,
+	crosshair_master_opacity = 0.5,
 	crosshair_scanner = true,
 	crosshair_fade_ads = true,
 	antispam_enabled = true,
@@ -1748,6 +1751,9 @@ function KineticHUD:HUD_Enabled_Health_Player()
 	return KineticHUD:HUD_Enabled_Master() and KineticHUD.settings.health_own_panel_enabled
 end
 
+function KineticHUD:UseBuffsCustomXY()
+	return KineticHUD.settings.panel_buffs_custom_xy
+end 
 function KineticHUD:UseHealthOwnCustomXY()
 	return KineticHUD.settings.panel_player_health_custom_xy
 end
@@ -2499,10 +2505,41 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD:Save()
 	end
 	
-	MenuCallbackHandler.callback_khud_menu_buffs_custom_xy = function(self,item) --not used
+	MenuCallbackHandler.callback_khud_panel_buffs_custom_xy = function(self,item) --not used
 		local value = item:value() == "on"
-		KineticHUD.settings.buffs_custom_xy = value
+		KineticHUD.settings.panel_buffs_custom_xy = value
+		if managers.hud then 
+			managers.hud:layout_khud_buffs()
+		end
 		KineticHUD:Save()
+	end
+	
+	MenuCallbackHandler.callback_khud_panel_buffs_x = function(self,item) --not used
+		local value = item:value()
+		KineticHUD.settings.panel_buffs_x = value
+		if managers.hud then 
+			managers.hud:layout_khud_buffs({
+				show_debug = true
+			})
+		end
+		KineticHUD:Save()
+	end
+	
+	MenuCallbackHandler.callback_khud_panel_buffs_y = function(self,item) --not used
+		local value = item:value()
+		KineticHUD.settings.panel_buffs_y = value
+		if managers.hud then 
+			managers.hud:layout_khud_buffs({
+				show_debug = true
+			})
+		end
+		KineticHUD:Save()
+	end
+	
+	MenuCallbackHandler.callback_khud_panel_buffs_close = function(self)
+		managers.hud:layout_khud_buffs({
+			show_debug = false
+		})
 	end
 	
 --[[
@@ -2837,7 +2874,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD.settings.panel_player_name_x = item:value()
 		if managers.hud then 
 			managers.hud:layout_khud_name({
-				x = item:value()
+--				x = item:value()
 			})
 		end
 		KineticHUD:Save()
@@ -2847,7 +2884,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD.settings.panel_player_name_y = item:value()
 		if managers.hud then 
 			managers.hud:layout_khud_name({
-				y = item:value()
+--				y = item:value()
 			})
 		end
 		KineticHUD:Save()
@@ -2909,7 +2946,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD.settings.panel_player_health_x = item:value()
 		if managers.hud then 
 			managers.hud:layout_khud_health({
-				x = item:value(),
+--				x = item:value(),
 				show_debug = true
 			})
 		end
@@ -2920,7 +2957,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD.settings.panel_player_health_y = item:value()
 		if managers.hud then 
 			managers.hud:layout_khud_health({
-				y = item:value(),
+--				y = item:value(),
 				show_debug = true
 			})
 		end
@@ -2952,7 +2989,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD.settings.panel_player_health_diamond_scale = item:value()
 		if managers.hud then 
 			managers.hud:layout_khud_health({
-				diamond_scale = item:value(),
+--				diamond_scale = item:value(),
 				show_debug = true
 			})
 		end

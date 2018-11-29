@@ -53,8 +53,8 @@ Hooks:PostHook(HUDAssaultCorner,"init","khud_init_assaultcorner",function(self, 
 		visible = false
 	})
 	local enabled = KineticHUD:IsMissionEnabled()
-	self._hostages_bg_box:set_visible(enabled)
-	self._hud_panel:child("hostages_panel"):child("hostages_icon"):set_visible(enabled)
+	self._hostages_bg_box:set_visible(not enabled)
+	self._hud_panel:child("hostages_panel"):child("hostages_icon"):set_visible(not enabled)
 --	self._hud_panel:child("hostages_panel"):child("hostages_icon"):set_alpha(enabled and 0 or 1)
 end)
 

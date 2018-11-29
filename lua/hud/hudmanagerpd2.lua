@@ -54,7 +54,8 @@ Hooks:PreHook(HUDManager,"_create_teammates_panel","khud_hudmanager_create_teamm
 		local is_player = i == HUDManager.PLAYER_PANEL
 
 		local teammate = khud_base:panel({ --create khud teammates panel
-			name = "" .. tostring(i)
+			name = "" .. tostring(i),
+			visible = false
 		})		
 		
 		table.insert(self._khud_panels,teammate)
@@ -749,7 +750,7 @@ function HUDManager:layout_khud_weapons_panel(params)
 	local firemode_h = 32 --self explanatory
 	local x = panel:x()
 	local y = panel:y()
-	local scale = 1
+	local scale = 0.75
 	local icon_scale = 0.75
 
 	local w = panel_w * scale
@@ -987,6 +988,10 @@ function HUDManager:set_khud_downs(peer_id,downs)
 	end
 end
 
+function HUDManager:layout_khud_buffs(params)
+	self._teammate_panels[HUDManager.PLAYER_PANEL]:_layout_khud_buffs(params)
+end
+
 function HUDManager:layout_khud_deployables_team()
 	for id,panel in pairs(self._teammate_panels) do
 		if id ~= HUDManager.PLAYER_PANEL then
@@ -1081,7 +1086,7 @@ function HUDManager:layout_khud_name_team()
 --		self:layout_khud_health(params,id) --either of these will work. but i have no reason to pick one over the other. guess i'll die
 	end
 	--local health_panel = self._khud_panels[id]._khud_health_panel
-	self:layout_khud_region_team()
+--	self:layout_khud_region_team()
 end
 
 function HUDManager:layout_khud_health_team() --layout all teammates' health panels, including main player; good for init
@@ -1111,12 +1116,20 @@ function HUDManager:layout_khud_health_team() --layout all teammates' health pan
 	self:layout_khud_deployables_team()
 	self:layout_khud_grenades_team()
 	self:layout_khud_ties_team()
+	self:layout_khud_region_team()
 end
 
 function HUDManager:layout_khud_health(params,id) --layout specific teammate's health panel
 	id = id or HUDManager.PLAYER_PANEL
 	self._teammate_panels[id]:_layout_khud_health(params)
 	--local health_panel = self._khud_panels[id]._khud_health_panel
+	self:layout_khud_name_team()
+	self:layout_khud_equipment_team()
+	self:layout_khud_deployables_team()
+	self:layout_khud_grenades_team()
+	self:layout_khud_ties_team()
+	self:layout_khud_region_team()
+	self:layout_khud_weapons_panel()
 end
 
 function HUDManager:align_khud_health(params) --for teammates only; deprecated

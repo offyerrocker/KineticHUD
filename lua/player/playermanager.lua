@@ -88,8 +88,9 @@ Hooks:PostHook(PlayerManager,"_internal_load","khud_player_internal_load",functi
 	managers.hud:layout_khud_grenades_team()
 	managers.hud:layout_khud_weapons_panel()
 	managers.hud:layout_khud_name_team()
+	managers.hud:layout_khud_buffs()
 	managers.hud:set_khud_player_visible(settings.panel_player_enabled)
-	managers.hud:set_khud_team_visible(settings.panel_team_enabled)
+--	managers.hud:set_khud_team_visible(settings.panel_team_enabled)
 --	if use custom chat then
 	if settings.panel_chat_use_custom_xy then 
 		managers.hud:layout_khud_chat()

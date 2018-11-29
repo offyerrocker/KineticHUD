@@ -1,92 +1,38 @@
 OI! WHAT'RE YEW DOIN' IN MY SWAMP?
 GET OU', I'M MODDING HERE.
-- Many HUD elements can now be individually toggled on/off, allowing you to use select elements from KHUD or other HUD mods as you please
-	* Panels that can be moved:
-		- Player Health
-		- Player weapons/ammo
-		- Player compass
-		(Movable buffs panel will come soon)
-		- Teammate Health
-		- Chat
-- buff panel is now set enabled independently of whether or not your player/team panels are enabled or disabled; this means you can effectively use KineticHUD as a buff tracker standalone
-- Added an option for "real ammo" count
-- added a voice chat indicator
-- added a compass (disabled by default) - enable it in options!
-- added the ability to use nav_surfaces for the cartographer- useful for custom heists, and also vanilla panic room in particular and no other vanilla heist because thanks overkill
-- fixed incorrect location names on Branch Bank (west/east alley directions swapped)
-- fixed localizing nav_surface location names for teammates 
-- fixed teammate locations not always being detected correctly with the cartographer for non-english platforms
-- fixed teammate locations displaying as "location_unknown" for unknown nav_surface names while having nav_surface names enabled - intended behaviour is to only update/change the nav_surface name if the name is not "location_unknown"
-- changed down counter icon from heart to smaller diamond
-
-- fixed crashing after changing hud options while not in-game
-- rewrote a bunch of stuff to make that stuff possible
-- trimmed bad code
 
 Priority TODO:
-- set downs at game start
-- update mod options menu
+- highest priority buffs in center of screen (scanner left panel)
+- buffs by priority 
+- create ammo counter display for teammates
 
 - separate quickchat panel from chat
 - allow custom x/y for quickchat panel
-
-- disable vanilla state icons for teammates
-- align teammate eq to right instead of left
-- location unknown
-- downcounter only/not shown for late join teammates?
-
-
-- assaults don't sync time
-- assault states sync every second
-
 - downcounter: option to show downs instead of revives
 - custom interaction circle w/ timer?
 - show teammates' interaction circles
+- bag carry icon for teammates/self]
 
-- priority buffs in center
-- create ammo counter display for teammates
+---
 
-- fix objective panel number (eg "4/6 bags") not displaying until the last one and immediately disappearing
+- crosshair color multiplechoice (normal, enemy, civ, bot ai)
+- downcounter only/not shown for late join teammates?
 
-- enable changing hud elements (update armor/hp values) for other players
-- test + apply new hud (equipment, grenades) changes for teammates
-- custom adjust for:
-		- Buffs panel
-			* Adjust number of buffs per column	
-		- Mission Equipment
-		- Teammate panels
-			* move entire parent _khud_player panel
-			* equipment
-			* grenades
-			* weapon
-		- Location panel
-		- Mission timer
-		- Objectives HUD
-		- Compass panel: custom width
-- mission panel hides/shows hostages
-- re-add condition icon
-- fix vanilla deployable icon showing up as blank (possible override in effect)
-- fix firemode icons not scaling
+
+- if you scale the weapon display past 1 it cuts it off (-gimme)
 
 - add hp bar width scale setting
 - deployables waypoints
-- disable hud elements (eg. buffs only)
 
 - Fix ai masks
 - Sixth sense does not work as a buff (temp disabled)
 
 
-- crosshair color multiplechoice (normal, enemy, civ, bot ai)
 
 - Animate teammate special eq sort/apply to local
-- Organize player/teammate hud
 	* recreate carry panel with player bag icon
-	* add (diamond_bg_w = margin + diamond:w())
 	* restyle carry panel
-	* Resize/realign teammate HP/ARM numbers
-- integrate custom x/y hud element positioning 
-- mission hud
-	* menu option for mission hud
+	
 	* fancy frivolous init anims (checkbox, banner, container)
 	* fadein objective amount text
 	* anim for changing objective text
@@ -102,26 +48,25 @@ Priority TODO:
 	* Manually block input for quickchat
 	* Use TF2 system (z,x,c; 1-9) instead of Rocket League (1-4,1,4)
 - Write improved waypoints 
-- Voice chat indicator
 
 FEATURES:
+- Button to show/hide chat like D2
+- Ammo counter for underbarrel
+
 - dynamic bloom for crosshair 
-- actually hide location with menu option instead of setting to empty string and disabling update
 - Limit name characters
 - Health % as waypoint icon
 
 - Bodybags num?
 - Stats Screen
 
-- Ammo counter for underbarrel
 - Sentry tracking
 - ECM feedback tracker
 - Sync Assault state from hosts with KHUD
 - Converts panel
 - Enemy health bars
 - Menu: Toggle vs hold to use quickchat menu?
-- Show kills rem. free to grenade from team ai boost
-- Menu: Hide crosshair on hit with enhanced hitmarkers
+- Show kills rem. free to grenade from team ai boost?
 
 PLANNED, POSSIBLY:
 - Flashbang status for teammates who are estimated to be flashbanged/synced flashbanged state + duration to other hud users

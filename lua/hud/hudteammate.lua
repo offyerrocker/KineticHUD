@@ -699,6 +699,11 @@ Hooks:PostHook(HUDTeammate,"set_state","khud_set_state",function(self,state)
 		self._khud_grenades_panel:show()
 		self._khud_ties_panel:show()
 	else
+		if visible_team then 
+			self._player_panel:hide()
+		else
+			self._khud_player:hide()
+		end
 		self._khud_player:set_visible(visible_team)
 		self._player_panel:set_visible(not visible_team)
 		self._khud_downcounter_panel:hide()
@@ -1444,6 +1449,31 @@ Hooks:PostHook(HUDTeammate,"init","khud_hudteammate_init",function(self,i,teamma
 	self:set_condition("mugshot_normal")	
 end)
 
+Hooks:PostHook(HUDTeammate,"add_panel","khud_hudteammate_addpanel",function(self,...)
+	if self._panel._id == HUDManager.PLAYER_PANEL then 
+		if KineticHUD:HUD_Enabled_Player() then 
+			self._khud_player:show()
+		end
+	elseif KineticHUD:HUD_Enabled_Team() then
+		self._panel:show()
+--		self._khud_ties_panel:show()
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"remove_panel","khud_hudteammate_removepanel",function(self,weapons_panel,...)
+	local teammate_panel = self._panel
+	self._khud_player:hide()
+--	KineticHUD:c_log("Hiding player panel #" .. tostring(self._panel._id or ""))
+--	self._khud_equipment_panel:hide()
+--	self._khud_deployables_panel:hide()
+--	self._khud_ties_panel:hide()
+--	self._khud_grenades_panel:hide()
+--	self._khud_weapons_panel:hide()
+--	self._carry_panel:hide()
+	--
+end)
+
+
 function HUDTeammate:_layout_khud_name(params)
 	local name = self._khud_name or self._khud_player:child("name")
 	params = params or {}
@@ -1465,7 +1495,9 @@ function HUDTeammate:_layout_khud_name(params)
 			return
 		else
 			x = x or (health_panel:x() + 64) or x or settings.panel_team_name_x or 64
-			y = y or (health_panel:y() - (name:font_size() * 0.66)) or y or settings.panel_team_name_y or 500
+			y = y or (health_panel:y() - (name:font_size() * 0.75)) or y or settings.panel_team_name_y or 500
+			--todo make this set y thingy work better
+			--use text_rect() instead
 			fontsize = fontsize or settings.panel_team_name_fontsize or 24
 		end
 	end
@@ -1925,7 +1957,7 @@ function HUDTeammate:_layout_khud_health(params) --self
 			y = y or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_y) or 500
 			w = w or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_w) or 256 --w/h is currently disabled
 			h = h or (KineticHUD:UseHealthOwnCustomXY() and settings.panel_player_health_h) or 4
-			diamond_scale = diamond_scale or settings.health_own_panel_diamond_scale or 1
+			diamond_scale = diamond_scale or settings.panel_player_health_diamond_scale or 1
 		end
 	else --teammate
 		if not KineticHUD:HUD_Enabled_Team() then
@@ -2197,6 +2229,8 @@ function HUDTeammate:_layout_khud_crosshair(params)
 	local settings = KineticHUD:GetSettings()
 	params = params or {}
 	
+	panel:set_visible(KineticHUD:IsCrosshairEnabled())
+	
 	local hud_panel = self._khud_player
 
 	local panel_w = panel:w()
@@ -2424,7 +2458,7 @@ function HUDTeammate:_layout_khud_deployables(params)
 	local health_panel = self._khud_health_panel
 	
 	deployables:set_x(health_panel:x() + deployables:w())
-	deployables:set_y(health_panel:y() + deployables:child("primary_deployable"):h())
+	deployables:set_y(health_panel:y() + pad_medium + deployables:child("primary_deployable"):child("primary_deployable_bg"):h())
 end
 
 function HUDTeammate:_create_khud_grenades()
@@ -3166,12 +3200,17 @@ function HUDTeammate:_layout_khud_region(params)
 --	local i = self._id or 5
 	local name = self._khud_name
 --	local x = 
-	--local health_panel = self._khud_health_panel
+	local health_panel = self._khud_health_panel
 --	local x = health_panel:x() + health_panel:w() - region:w()  -- health_panel:right() - region:w()
 	
+--	local _,_,w,h = name:text_rect()
 	
-	region:set_x(name:x()) -- region:w())
-	region:set_y(name:y() + region:child("region_label"):font_size()) --font size
+	region:set_x(name:x())
+	local _,_,ww,hh = region:child("region_label"):text_rect()
+	region:set_y(health_panel:y() - hh)
+--	region:set_y(name:y() + h - hh)
+--	region:set_x(name:x()) -- region:w())
+--	region:set_y(name:y() + region:child("region_label"):font_size()) --font size
 end
 
 function HUDTeammate:_layout_khud_subregion(params) --i don't remember writing this, and also i don't use this???
@@ -3466,6 +3505,28 @@ function HUDTeammate:_create_khud_buffs()
 	})
 	self._khud_buffs_panel = khud_buffs_panel
 	return khud_buffs_panel
+end
+
+function HUDTeammate:_layout_khud_buffs(params)
+	local buffs_panel = self._khud_buffs_panel
+	
+	local settings = KineticHUD:GetSettings()
+	params = params or {}
+
+	local x = params.x
+	local y = params.y
+	local show_debug = params.show_debug or false --does nothing currently
+	
+	if KineticHUD:UseBuffsCustomXY() then 
+		x = x or settings.panel_buffs_x or 32
+		y = y or settings.panel_buffs_y or 500
+	else
+		x = 32
+		y = managers.hud._khud_buffs_master:h() - (300 + 176)
+	end
+	buffs_panel:child("debug_buffs"):set_visible(show_debug)
+	buffs_panel:set_x(x)
+	buffs_panel:set_y(y)
 end
 
 function HUDTeammate:_create_khud_stamina()
