@@ -5,7 +5,15 @@ end)
 --PlayerStandard:_update_fwd_ray() todo
 
 Hooks:PostHook(PlayerStandard,"_start_action_steelsight","khud_start_ads",function(self,t,gadget_state)
-	managers.hud:animate_fade_crosshair(false)
+	if KineticHUD:IsCrosshairADSOnly() then
+		managers.hud:animate_fade_crosshair(false)
+	end
+end)
+
+Hooks:PostHook(PlayerStandard,"_end_action_steelsight","khud_end_ads",function(self,t)
+	if KineticHUD:IsCrosshairADSOnly() then 
+		managers.hud:animate_fade_crosshair(true)
+	end
 end)
 
 local orig_check_fire = PlayerStandard._check_action_primary_attack
@@ -24,7 +32,3 @@ function PlayerStandard:_check_action_primary_attack(t,input,...)
 	end
 	return orig_check_fire(self,t,input,...)
 end
-
-Hooks:PostHook(PlayerStandard,"_end_action_steelsight","khud_end_ads",function(self,t)
-	managers.hud:animate_fade_crosshair(true)
-end)

@@ -9,7 +9,7 @@ function PlayerDamage:_update_armor_hud(t, dt) --overridden
 	if real_armor <= 0 then 
 --	the positive and totally intentional side effect of my modification is that it skips the interpolation,
 --	and thus the visual animation for armor damage, but only when your armor is fully depleted.
---	calculated.
+--	Calculated.
 		managers.hud:set_player_armor({
 			current = 0, 
 			total = self:_max_armor()
@@ -33,6 +33,50 @@ function PlayerDamage:_update_armor_hud(t, dt) --overridden
 	end
 end
 
+Hooks:PostHook(PlayerDamage,"_update_armor_grinding","khud_update_anarchist",function(self,t,dt)
+	if not (self._armor_grinding and self._armor_grinding.elapsed and self._armor_grinding.target_tick) then return end
+	local next_regen = self._armor_grinding.target_tick - self._armor_grinding.elapsed
+	local regen_amount = self._armor_grinding.armor_value
+	managers.player:add_buff("anarchist_armor_regen",{duration = next_regen,value = regen_amount})
+--	KineticHUD:_debug("Armor Grinding: " .. (self._armor_grinding.elapsed or "none"),3)
+end)
+
+Hooks:PostHook(PlayerDamage,"_upd_health_regen","khud_update_hp_regen",function(self,t,dt)
+	if self._health_regen_update_timer then
+		local health_value = math.floor(managers.player:health_regen() * 100)
+		if health_value > 0 then 
+			managers.player:add_buff("hp_regen",{value = health_value,duration = self._health_regen_update_timer})
+		else
+			managers.player:remove_buff("hp_regen")
+		end
+--		KineticHUD:_debug("hp regen: " .. tostring(self._health_regen_timer or "nil"),1)
+	else
+		managers.player:remove_buff("hp_regen")
+	end
+	
+
+	local hot_stacks = self._damage_to_hot_stack
+	local next_doh = hot_stacks and hot_stacks[1]
+	if next_doh then 
+		local ticks_count = 0
+		for k,doh in pairs(hot_stacks) do 
+
+			if doh.ticks_left then 
+				ticks_count = ticks_count + doh.ticks_left
+			end
+		end
+
+		managers.player:add_buff("grinder",{value = ticks_count})
+	else
+		managers.player:remove_buff("grinder")
+	end
+end)
+
+Hooks:PostHook(PlayerDamage,"_update_regen_on_the_side","khud_update_hitman",function(self,dt)
+	local timer = self._regen_on_the_side_timer
+--	KineticHUD:_debug(timer,"1")
+end)
+
 Hooks:PostHook(PlayerDamage,"_on_enter_swansong_event","khud_enter_swansong",function(self)
 	local expire_time = managers.player:get_activate_temporary_expire_time("temporary", "berserker_damage_multiplier")
 --	local duration = managers.player:upgrade_value("temporary", "berserker_damage_multiplier")
@@ -55,7 +99,6 @@ Hooks:PostHook(PlayerDamage,"set_health","aui_set_health",function(self,health)
 		--no need to check for remove buff; this is re-evaluated every frame while the buff is applied
 	end
 end)
-
 
 Hooks:PostHook(PlayerDamage, "on_downed", "khud_playerdamage_ondowned", function(self, ...)
 	local max_downs = self._lives_init + managers.player:upgrade_value("player", "additional_lives", 0) or 4 --global_max_downs not needed since self._revives are locally stored

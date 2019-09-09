@@ -1,9 +1,29 @@
 OI! WHAT'RE YEW DOIN' IN MY SWAMP?
 GET OU', I'M MODDING HERE.
 
-- Completed mapping Murky Station for the Cartographer
+- Fixed "Hipfire Only" option for crosshair not applying 
+- Fixed Health Regen buff from Hostage Taker occasionally failing to remove itself after the hostage providing the proc is removed, resulting in a negative timer number
+- Fixed crashing from fire damage from explosive barrels/other invalid-weapon damage sources
+
 
 Priority TODO:
+- fix objectivehud not updating when objective amount (eg bag amount) reached
+- Fix buff sorting offscreen
+- add left scanner for enemy health bar
+- fix left scanner not updating whilst being looked at
+-	rework fade code
+- show stoic hp regen amount on health bar
+
+- chat scaling
+- chat bg colors
+
+- Add better crosshair options w/ actual custom textures (beardlib req)
+
+- Button to show/hide chat like D2
+- Ammo counter for underbarrel
+
+
+
 - highest priority buffs in center of screen (scanner left panel)
 - buffs by priority 
 - create ammo counter display for teammates
@@ -52,8 +72,6 @@ Priority TODO:
 - Write improved waypoints 
 
 FEATURES:
-- Button to show/hide chat like D2
-- Ammo counter for underbarrel
 
 - dynamic bloom for crosshair 
 - Limit name characters
@@ -64,7 +82,7 @@ FEATURES:
 
 - Sentry tracking
 - ECM feedback tracker
-- Sync Assault state from hosts with KHUD
+- Sync Assault state from hosts with KHUD	
 - Converts panel
 - Enemy health bars
 - Menu: Toggle vs hold to use quickchat menu?
@@ -90,7 +108,6 @@ TODO:
 
 BUG FIXES:
 - Assault phases don't always show timer
-- does not show shaped charges (deployable amount[2]) on start; fixed after swap
 - incorrect sentry amount shown when replenish (not updated)
 - status icons still display (override set_condition) (temporarily overridden)
 - ex pres z fighting with health bar gradient

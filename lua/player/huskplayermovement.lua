@@ -5,7 +5,6 @@ Hooks:PostHook(HuskPlayerMovement,"update","khud_huskplayermove_update",function
 		return
 	end
 
-	
 	local show_location = KineticHUD:UseCartographer()
 --	local peer = managers.network:session():peer_by_unit(self._unit)
 	local peer = unit and managers.network:session():peer_by_unit(unit)

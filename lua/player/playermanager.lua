@@ -36,22 +36,31 @@ Hooks:PostHook(PlayerManager,"init","khud_init_playermanager",function(self)
 	self._tracked_sentryguns = {}
 end)
 
+function PlayerManager:update_khud_equipment()
+	local equipments = self._equipment and self._equipment.selections
+	if equipments then 
+		for index,equipment in pairs(equipments) do 
+			local name = equipment.equipment
+			local icon = tweak_data.equipments[name].icon
+			local amount = equipment.amount
+			managers.hud:set_khud_deployable(nil,{index = index,icon = icon,amount = amount})
+		end
+	end
+end
+
+Hooks:PostHook(PlayerManager,"add_sentry_gun","khud_correct_sentry_amount",function(self,num,sentry_type)
+--	local equipment, index = self:equipment_data_by_name(sentry_type)
+--	managers.hud:set_khud_deployable(nil,equipment,index)
+--  ^ this method causes crashes for reasons i'm too tired to investigate
+	self:update_khud_equipment()
+end)
+
 Hooks:PostHook(PlayerManager,"_internal_load","khud_player_internal_load",function(self)
 	local settings = KineticHUD:GetSettings() --used for individual buff settings
 	
 	managers.hud:set_khud_weapon_icons()
-	local equipment = self._equipment.selections[2]
-
-	if equipment then --not sure how necessary this is 
 	
-		local amount = Application:digest_value(equipment.amount[1], false)
-		local icon = tweak_data.equipments[equipment.equipment].icon
-		
-		managers.hud:set_secondary_deployable(managers.hud.PLAYER_PANEL,{
-			icon = icon,
-			amount = amount
-		})
-	end	
+	self:update_khud_equipment()
 	
 	if (self:has_category_upgrade("player", "wild_health_amount") or self:has_category_upgrade("player", "wild_armor_amount")) then
 		self:add_buff("wild_kill_counter",{value = tweak_data.upgrades.wild_max_triggers_per_time})
@@ -74,6 +83,8 @@ Hooks:PostHook(PlayerManager,"_internal_load","khud_player_internal_load",functi
 		managers.hud:align_khud_health()
 	end
 	
+	managers.hud:set_sentry_tracker_visible(KineticHUD.settings.show_sentry_tracker)
+			
 --	managers.hud:align_khud_health()
 --	managers.hud:layout_khud_health()
 	managers.hud:layout_khud_health_team()
@@ -186,15 +197,17 @@ end
 
 function PlayerManager:add_tracked_sentrygun(key,params) --todo table.sort tracked_ecms; todo don't remove on finish, just set color
 	local tracked_sentryguns = self:get_tracked_sentryguns()
-	for k,sentrygun in ipairs(tracked_sentryguns) do
-		if sentrygun.key == key then
-			tracked_sentryguns[k] = nil
-			return
+	for k = 0,KineticHUD.max_tracked_sentryguns do	
+		if not tracked_sentryguns[k] then
+			tracked_sentryguns[k] = params
+			break
 		end
 	end
-	table.insert(tracked_sentryguns,params)
---	managers.hud:add_tracked_sentrygun(key)
---	KineticHUD:c_log(#tracked_sentryguns,"sentry count")
+end
+
+function PlayerManager:remove_tracked_sentrygun(id) --should only be called from/after hudmanagerpd2:update()!
+	local tracked_sentryguns = self:get_tracked_sentryguns()
+	tracked_sentryguns[id] = nil
 end
 
 function PlayerManager:get_tracked_sentryguns()
@@ -203,9 +216,7 @@ end
 
 function PlayerManager:remove_tracked_ecm(ecm)
 	local tracked_ecms = self:get_tracked_ecms()
-	tracked_ecms[ecm] = nil	
-	
---	KineticHUD:c_log("Removed ecm",ecm)
+	tracked_ecms[ecm] = nil
 end
 
 function PlayerManager:remove_tracked_ecms(ecms)
@@ -270,7 +281,6 @@ function PlayerManager:switch_equipment()
 		add_hud_item(digested,equipment.icon)
 		self:update_deployable_selection_to_peers()	
 	end
-	
 --	return orig_switch_equipment(self)
 end
 
@@ -373,4 +383,16 @@ end)
 
 Hooks:PostHook(PlayerManager,"_on_messiah_recharge_event","khud_on_messiah_recharge_event",function(self)
 	self:add_buff("messiah_charge",{value = self._messiah_charges})
+end)
+
+Hooks:PostHook(PlayerManager,"on_headshot_dealt","khud_on_bullseye_event",function(self)
+	if not self:player_unit() then return end
+
+	if self:upgrade_value("player", "headshot_regen_armor_bonus", 0) > 0 then 
+		if self._on_headshot_dealt_t then 
+			self:add_buff("bullseye",{end_t = self._on_headshot_dealt_t})
+		else --just in case
+			self:add_buff("bullseye",{end_t = Application:time() + tweak_data.upgrades.on_headshot_dealt_cooldown})
+		end
+	end
 end)

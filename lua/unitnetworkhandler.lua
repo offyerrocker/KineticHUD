@@ -127,7 +127,7 @@ function UnitNetworkHandler:say(unit,event_id,sender,...) --this function interp
 		
 		if managers.chat:is_peer_muted(peer) then --muted peer with ingame players list options
 			return
-		elseif banned_eventids[tostring(event_id)] then --muted voiceline from blacklist
+		elseif false then --banned_eventids[tostring(event_id)] then --muted voiceline from blacklist
 			return
 		end
 	end

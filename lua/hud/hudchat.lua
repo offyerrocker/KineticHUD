@@ -4,6 +4,28 @@
 --Hooks:PostHook(HUDChat,"_layout_input_panel","khud_layout_chat_input",function(self)
 --end)
 
+function HUDChat:set_khud_chat_scale(scale)
+	if not scale then return end
+	
+	local panel = self._panel
+	local input = self._input_panel
+	local output = self._output_panel
+	local say = input:child("say")
+	local text = input:child("input_text")
+	local caret = input:child("caret")
+	local bg = input:child("bg")
+	
+--	if input.set_font_size then 
+--		input:set_font_size(scale * tweak_data.menu.pd2_small_font_size)
+--	end
+	
+	--do stuff with self._lines here
+	
+	
+--	self._input_panel:child(
+	
+end
+
 Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,

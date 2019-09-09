@@ -1,8 +1,8 @@
 Hooks:PostHook(GroupAIStateBase,"set_assault_mode","khud_groupaibase_detect_controlphase",function(self,is_assault)
 	if not is_assault then 
---		managers.hud:set_assault_phase(utf8.to_upper("control")) --todo localize
+		managers.hud:set_assault_phase(utf8.to_upper("control")) --todo localize
 --		managers.hud:set_phase_timer()
-		KineticHUD:c_log("Assault: control")
+--		KineticHUD:c_log("Assault: control")
 	end
 end)
 

@@ -17,5 +17,5 @@ Hooks:PostHook(GroupAIStateBesiege,"_begin_regroup_task","khud_detect_regrouppha
 	local start_t = self._task_data.regroup.start_t
 	managers.hud:set_assault_phase(utf8.to_upper("regroup")) --todo localize
 	managers.hud:set_phase_timer(end_t)
-	KineticHUD:c_log(end_t - start_t,"Starting regroup: " .. tostring(end_t or "nil"))
+--	KineticHUD:c_log(end_t - start_t,"Starting regroup: " .. tostring(end_t or "nil"))
 end)

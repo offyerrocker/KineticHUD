@@ -23,6 +23,7 @@ local function interp_col(col_1,col_2,interp) --interp is (0-1]
 end
 
 local function format_seconds(raw)
+--	local format_template = show_ms and "%i:%02d.%.2f" or "%i:%02d"
 	return string.format("%i:%02d",math.floor(raw / 60),math.floor(raw % 60))
 end
 
@@ -82,25 +83,45 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 		managers.player._player_buffs = {}
 		return
 	end
-
+	
 	local settings = KineticHUD.settings
 	
 	self:set_phase_timer()
 		
 	if KineticHUD:IsCrosshairScannerEnabled() and KineticHUD:IsCrosshairEnabled() then
 		local fwd_ray = player_unit:movement():current_state()._fwd_ray
-		if fwd_ray and fwd_ray.unit then
+		if fwd_ray and fwd_ray.unit and alive(fwd_ray.unit) then
+--			KineticHUD:_debug(fwd_ray.unit,1)
 			if managers.enemy:is_enemy(fwd_ray.unit) then 
-				self:layout_khud_crosshair({color = Color.red})
+				if fwd_ray.unit:movement() and fwd_ray.unit:movement():team() then 
+					local team = fwd_ray.unit:movement():team().id
+					if team == "converted_enemy" or team == "criminal1" then 
+						self:layout_khud_crosshair({color = tweak_data.chat_colors[#tweak_data.chat_colors],skip_alpha = true})
+					else
+						local brain = fwd_ray.unit:brain()
+						if brain and brain:is_current_logic("intimidated") then 
+							self:layout_khud_crosshair({color = Color.green,skip_alpha = true})
+						else
+							self:layout_khud_crosshair({color = Color.red,skip_alpha = true})
+						end
+					end
+				else
+					self:layout_khud_crosshair({color = Color.red,skip_alpha = true})
+				end
 			elseif managers.enemy:is_civilian(fwd_ray.unit) then --doesn't work since civ is filtered out of slotmask
-				self:layout_khud_crosshair({color = Color.green})
+				self:layout_khud_crosshair({color = Color.green,skip_alpha = true})
 			elseif managers.criminals:character_name_by_unit(fwd_ray.unit) then 
-				self:layout_khud_crosshair({color = tweak_data.chat_colors[#tweak_data.chat_colors]})
+				self:layout_khud_crosshair({color = tweak_data.chat_colors[#tweak_data.chat_colors],skip_alpha = true})
 			else
-				self:layout_khud_crosshair({color = Color.white})
+				if KineticHUD.last_ray_unit and KineticHUD.last_ray_unit ~= fwd_ray.unit then 
+--					KineticHUD:t_log(fwd_ray.unit)
+				end
+				KineticHUD.last_ray_unit = fwd_ray.unit
+--				self:layout_khud_crosshair({color = KineticHUD.quality_colors.unusual,skip_alpha = true})
+				self:layout_khud_crosshair({color = Color.white,skip_alpha = true})
 			end
 		else
-			self:layout_khud_crosshair({color = Color.white})
+			self:layout_khud_crosshair({color = Color.white,skip_alpha = true})
 		end
 	end
 		
@@ -132,33 +153,34 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 		end
 		
 	end
-	
-	local special_equipment = hud_panel._special_equipment
-	if special_equipment then --slide-in & fade-in animation for mission equipment
-		local equip_panel = hud_panel._khud_equipment_panel
-		local p_w = 0
-		local p_x = 0
-		local dest_x = 0
-		local diff_x = 1
-		local eq_alpha = 0
-		local sign = 1
-		local result = 0
-		for i,panel in ipairs(special_equipment) do
-			p_w = panel:w()
-			p_x = panel:x()
-			dest_x = equip_panel:w() - ((pad_small + p_w) * i)
-			diff_x = (dest_x - p_x)
-			if math.abs(diff_x) > 0 then 
-				sign = math.sign(diff_x)
-				eq_alpha = 1 - (diff_x / dest_x)
-				diff_x = math.abs(diff_x)
-				result = (sign * math.min(diff_x,math.max(1,diff_x / 10))) + p_x
-				panel:set_alpha(eq_alpha)
-				panel:set_x(result)			
+		
+	if KineticHUD:HUD_Enabled_Player() then 
+		local special_equipment = hud_panel._special_equipment
+		if special_equipment then --slide-in & fade-in animation for mission equipment
+			local equip_panel = hud_panel._khud_equipment_panel
+			local p_w = 0
+			local p_x = 0
+			local dest_x = 0
+			local diff_x = 1
+			local eq_alpha = 0
+			local sign = 1
+			local result = 0
+			for i,panel in ipairs(special_equipment) do
+				p_w = panel:w()
+				p_x = panel:x()
+				dest_x = equip_panel:w() - ((pad_small + p_w) * i)
+				diff_x = (dest_x - p_x)
+				if math.abs(diff_x) > 0 then 
+					sign = math.sign(diff_x)
+					eq_alpha = 1 - (diff_x / dest_x)
+					diff_x = math.abs(diff_x)
+					result = (sign * math.min(diff_x,math.max(1,diff_x / 10))) + p_x
+					panel:set_alpha(eq_alpha)
+					panel:set_x(result)			
+				end
 			end
 		end
 	end
-	
 	
 --[[test code for panel border function
 --this does the shwoopy-loopy very well, in my professional opinion
@@ -169,18 +191,19 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 	})
 --]]
 
-	if KineticHUD.selected_wpn then --weapon selection bar 
+	local panel_weapon_name = hud_panel._khud_weapon_name
+	if KineticHUD.selected_wpn then --weapon selection bar
 		local start_t = KineticHUD.start_swap_wpn_t
 		local selected_bar = hud_panel._khud_weapons_panel:child("selected_bar") --bar hud panel object
 		local selected_div = hud_panel._khud_weapons_panel:child("selected_div")
 		local wpn_h = hud_panel._khud_weapons_panel:child("secondary_weapon_panel"):h()
 		local wpn_y = (KineticHUD.selected_wpn - 1) * wpn_h --new resting pos for bar
 		local rem_y = wpn_y - selected_bar:y() --distance from bar to new pos
+		local elapsed_t = Application:time() - start_t
 		if math.abs(rem_y) > 0 then 
 			
 			local duration = 0.25
 			
-			local elapsed_t = Application:time() - start_t
 			
 			local progress_smooth = 0
 			
@@ -200,8 +223,36 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 				end
 			end
 		end
+		
+		if settings.wpn_name_duration < elapsed_t then
+			if panel_weapon_name:alpha() > 0.01 then 
+				panel_weapon_name:set_alpha(panel_weapon_name:alpha() * 0.9) --or do alpha decay
+			elseif panel_weapon_name:alpha() > 0 then 
+				panel_weapon_name:set_alpha(0)
+			end
+		end
 	end
 
+	if KineticHUD.scanner_left_timer then 
+		if KineticHUD.scanner_left_timer + 1 > Application:time() then 
+			self:set_khud_scanner_info()
+		else
+			KineticHUD.scanner_left_timer = nil
+			KineticHUD.scanner_left_focus_unit = nil
+			KineticHUD.scanner_left_focus_name = nil
+		end
+	else
+		local scanner_label = hud_panel._khud_scanner_left:child("scanner_left_label")
+		local scanner_alpha = scanner_label:alpha()
+		if scanner_alpha < 0.005 then 
+			scanner_alpha = 0
+		else
+			scanner_alpha = scanner_alpha * 0.8
+		end
+		local scanner_icon = hud_panel._khud_scanner_left:child("scanner_left_icon")
+		scanner_label:set_alpha(scanner_alpha)
+		scanner_icon:set_alpha(scanner_alpha)
+	end
 	
 	local buffs = managers.player:get_buffs()
 
@@ -219,8 +270,15 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 	--sort after other buffs expire
 	local buff_num = 1
 	local queued_remove_buffs = {} --todo global this
-
-	local dodge_chance_total = managers.player:skill_dodge_chance(player_unit:movement():running(),player_unit:movement():crouching(),player_unit:zipline_unit())
+	
+	
+--	KineticHUD:_debug("zipline unit: " .. tostring(player_unit:movement():zipline_unit()),1)
+--	KineticHUD:_debug("is ziplining: " .. tostring(player_unit:movement():on_zipline()),2)
+--	local is_zipline = player_unit:movement():on_zipline()
+--	KineticHUD:_debug("zipline dodge: " .. tostring(managers.player:upgrade_value("player", "on_zipline_dodge_chance", 0)),1)
+--	KineticHUD:_debug("is ziplining: " .. tostring(is_zipline),2)
+--	local armor_type = managers.blackmarket:equipped_armor_slot()
+	local dodge_chance_total = managers.player:skill_dodge_chance(player_unit:movement():running(),player_unit:movement():crouching(),is_zipline) + managers.player:body_armor_value("dodge")
 	if settings["dodge_chance_total"] and dodge_chance_total > 0 then 
 		if not buffs["dodge_chance_total"] then 
 			managers.player:add_buff("dodge_chance_total")
@@ -264,7 +322,7 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 			end
 			time_left = buff.end_t - _t
 			text = format_seconds(1 + math.floor(time_left))
-			if buff.end_t < _t then 
+			if buff.end_t < _t and not buff_data[id].persistent_timer then 
 --				KineticHUD:c_log(tostring(_t),"Removing expired buff with end_t " .. tostring(buff.end_t))
 				table.insert(queued_remove_buffs,id)
 			else
@@ -279,6 +337,12 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 						buff_label:set_color(buff_data[id].text_color)
 						buff_label:set_alpha(1)
 					end
+				elseif id == "hp_regen" then 
+					local hp_regained = (buffs[id].value) and (" +" .. tostring(buffs[id].value) .. "%   ") or ""
+					buff_label:set_text(buff_data[id].label .. hp_regained .. text)
+				elseif id == "anarchist_armor_regen" then 
+					local armor_regen_amount = (buffs[id].value) and (" +" .. tostring(buffs[id].value) .. "%   ") or ""
+					buff_label:set_text(buff_data[id].label .. armor_regen_amount .. text)
 				else
 					buff_label:set_text(buff_data[id].label .. "  " .. text)
 					if buff.flash or buff_data.flash or (time_left <= flash_threshold) then 
@@ -321,6 +385,11 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 				buff_label:set_text(buff_data[id].label .. "  " .. string.format("%i",tostring(text * 100)) .. "%")				
 			elseif id == "messiah_charge" then
 				buff_label:set_text(buff_data[id].label .. "  x" .. (buffs[id].value or 1))
+			elseif id == "grinder" then 
+				buff_label:set_text(buff_data[id].label .. " x" .. (buffs[id].value or 0))
+				if buffs[id].value <= 0 then 
+					table.insert(queued_remove_buffs,id)
+				end
 			elseif id == "lock_n_load" then 
 --				local mag_rem = player_unit:inventory():equipped_unit():base():get_ammo_remaining_in_clip()
 --todo figure out how to choose the right weapon for that ^
@@ -375,9 +444,11 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 		end
 		
 		--update positions for buffs when one expires
-			
-		buff_panel:set_x(buff_panel:w() * math.floor(buff_num / 6)) --6 is max_per_column
-		buff_panel:set_y(buffs_parent_panel:h() - ((buff_num % 6) * (buff_panel:h() + pad_medium))) --6 is max_per_column; todo make pad small with more buffs
+		
+		local max_per_column = 6
+		
+		buff_panel:set_x(buff_panel:w() * math.floor(buff_num / max_per_column))
+		buff_panel:set_y(buffs_parent_panel:h() - ((buff_num % max_per_column) * (buff_panel:h() + pad_medium))) --todo make pad small with more buffs
 
 		buff_num = buff_num + 1 ---this feels wrong
 	end
@@ -398,7 +469,7 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 		teammate._khud_voice_indicator:set_alpha(indic_alpha) --:child("voice_indicator"):set_alpha(indic_alpha)
 	end
 	
-	--grenades recharge meter
+	--sentry/ecm rightscanner
 	if managers.groupai:state():whisper_mode() then
 		hud_panel:update_tracked_ecms()	
 	else
@@ -586,6 +657,111 @@ function HUDManager:remove_buff(id)
 	hud:_remove_buff(id)
 end
 
+function HUDManager:set_khud_scanner_info(name,unit) --interpret input
+	local refresh = (unit and name)
+	unit = unit or KineticHUD.scanner_left_focus_unit
+	name = name or KineticHUD.scanner_left_focus_name
+	if not alive(unit) then return end
+	local base = unit:base()
+	if not base then return end
+	local result
+	if name == "ammo_bag" then 
+		local ammo_amount = base._ammo_amount
+		if ammo_amount then 
+			result = tostring(ammo_amount * 100) .. "% ammo left"
+		end
+	elseif name == "doctor_bag" then
+		local docbag_amount = base._amount
+		if docbag_amount then 
+			result = tostring(base._amount) .. " uses left"
+		end
+	elseif name == "first_aid_kit" then
+		local has_uppers_aced = base._min_distance and base._min_distance and tonumber(base._min_distance) > 0
+		result = (has_uppers_aced and "[Uppers Aced Enabled]" or "First Aid Kit")
+	elseif name == "sentry_gun" or name == "sentry_gun_fire_mode" then 
+		local sentry_owner = unit:get_owner_id()
+		local sentry_damage = unit:character_damage()
+		if sentry_damage then 
+			if sentry_owner and sentry_owner ~= LuaNetworking:LocalPeerID() then 
+				local sentry_weapon = unit:weapon()
+				local sentry_ammo = sentry_weapon:ammo_ratio()
+				sentry_owner = LuaNetworking:GetNameFromPeerID(sentry_owner)
+				if sentry_damage:dead() then 
+					result = sentry_owner .. "'s Sentry Gun (Dead)"
+				else
+					result = sentry_owner .. "'s Sentry Gun (" .. ((sentry_ammo or 0) * 100) .. "% ammo)"
+				end
+			else
+				if not sentry_damage:dead() then
+					result = "My Sentry Gun (" .. (sentry_damage:health_ratio() or 0) * 100 .. "% health)"
+				else
+					local criminal = managers.criminals:local_character_name() or "Dallas"
+					result = "*cough* oh, I'm dying... " .. criminal .. ", tell my wife I love her! *blergh*"
+				end
+			end
+		end
+	elseif name == "bodybags_bag" then
+		local bodybags_left = base._bodybag_amount
+		if bodybags_left then 
+			result = tostring(bodybags_left or 3) .. " bodybags left"
+		end
+	elseif name == "ecm_jammer" then 
+		local battery_life = base._battery_life
+		if battery_life then
+			result = format_seconds(battery_life) .. "s left" 
+		end
+--			KineticHUD:_debug(tostring(time_left) .. " time left",2)
+	elseif name == "trip_mine" then  --todo get upgrade value or something?
+		return
+	elseif name == "grenade_briefcase" then --this crashes and i don't know why
+--			local grenades_left = unit._grenade_amount
+		return
+	else
+		return
+	end
+	
+	if result then 
+		result = result .. "  "
+		self:set_khud_scanner_left(result,name)
+		if refresh then 
+			KineticHUD.scanner_left_timer = Application:time()
+			KineticHUD.scanner_left_focus_unit = unit
+			KineticHUD.scanner_left_focus_name = name
+		end
+	end
+end
+
+
+function HUDManager:set_sentry_tracker_visible(visible)
+	local hud = self._teammate_panels[HUDManager.PLAYER_PANEL]
+	
+	local scanner = hud._khud_scanner_right
+	if visible == nil then 
+		visible = KineticHUD:IsSentryTrackerEnabled()
+	end
+	if scanner then 
+		scanner:set_visible(visible)
+	end
+	
+end
+
+function HUDManager:set_khud_scanner_left(str,name) --outputs; leave str nil to reset
+	local hud = self._teammate_panels[HUDManager.PLAYER_PANEL]
+	local scanner_left = hud._khud_scanner_left
+	local label = scanner_left:child("scanner_left_label")
+	local icon = scanner_left:child("scanner_left_icon")
+	
+	label:set_text(str)
+	label:set_alpha(1)
+	icon:set_alpha(1)
+	
+	local icon_name,icon_rect = tweak_data.hud_icons:get_icon_data(tweak_data.equipments[name or "armor_kit"].icon)
+	local _,_,name_w,_ = label:text_rect()
+	icon:set_image(icon_name, unpack(icon_rect))
+	icon:set_x(scanner_left:w() + - icon:w() + - name_w + - 12)
+	
+end
+
 function HUDManager:add_tracked_sentrygun(key) --unused
 	local sentrygun_texture = tweak_data.hud_icons.equipment_sentry.texture
 	local sentrygun_rect = tweak_data.hud_icons.equipment_sentry.texture_rect
@@ -675,9 +851,9 @@ function HUDManager:_animate_fade_crosshair(crosshair,visible)
 --function HUDHitConfirm:_animate_show(hint_confirm, done_cb, seconds)
 	crosshair = crosshair or self._teammate_panels[HUDManager.PLAYER_PANEL]._khud_crosshair_panel
 	
-	local seconds = 0.25 --duration for fadeout
+	local seconds = 1 --duration for fadeout
 	
-	crosshair:set_visible(not visible)
+--	crosshair:set_visible(not visible)
 	local alpha = KineticHUD.settings.crosshair_master_opacity
 --	crosshair:set_alpha(KineticHUD.settings.crosshair_master_opacity)
 
@@ -685,14 +861,16 @@ function HUDManager:_animate_fade_crosshair(crosshair,visible)
 
 	while t > 0 do
 		local dt = coroutine.yield()
+		local a 
 		t = t - dt
 		if visible then 
-			crosshair:set_alpha(alpha * (seconds - t))
+			a = alpha * (seconds - t)
 		else
-			crosshair:set_alpha(alpha * t)
+			a = alpha * t
 		end
+		crosshair:set_alpha(a)
 	end
-	crosshair:set_visible(visible)
+--	crosshair:set_visible(visible)
 --	done_cb()
 end
 
@@ -720,7 +898,10 @@ end
 function HUDManager:set_assault_phase(phase)
 	self._hud_assault_corner:_set_assault_phase(phase)
 	if Network:is_server() then 
-		KineticHUD:sync_set_assault_phase(phase)
+		if KineticHUD.assault_phase_name ~= phase then 
+			KineticHUD.assault_phase_name = phase
+			KineticHUD:sync_set_assault_phase(phase)
+		end
 	end
 --	local hud = self._teammate_panels[HUDManager.PLAYER_PANEL]
 end
@@ -739,6 +920,7 @@ function HUDManager:layout_khud_weapons_panel(params)
 	params = params or {}
 	local hud = self._teammate_panels[HUDManager.PLAYER_PANEL]
 	local panel = hud._khud_weapons_panel
+	local wpn_name = hud._khud_weapon_name
 	local use_custom = KineticHUD:UseWeaponCustomXY()
 	local settings = KineticHUD:GetSettings()
 	local panel_w = 256 --default parent panel w
@@ -846,6 +1028,8 @@ function HUDManager:layout_khud_weapons_panel(params)
 	sec_wpn_panel:child("secondary_kill_counter"):set_font_size(fontsize_killcounter)
 	sec_wpn_panel:child("secondary_kills_icon"):set_size(12 * scale)
 
+	wpn_name:set_x((self._khud_base:w() / 2) + 8)
+	wpn_name:set_y((self._khud_base:h() / 2) + 8)
 end
 
 function HUDManager:set_khud_weapon_icons(slot)
@@ -859,10 +1043,30 @@ function HUDManager:set_khud_weapon_killcount(slot,count) --local player only
 end
 
 --misc
+function HUDManager:set_khud_deployable(i,data,index)
+	i = i or HUDManager.PLAYER_PANEL
+	index = index or (data and data.index)
+	local hud = self._teammate_panels[i]
+	local amount = {}
+	if #data.amount > 1 then 
+		for amount_index,value in pairs(data.amount) do 
+			table.insert(amount,Application:digest_value(value,false))
+		end
+		data.amount = amount
+		hud:set_khud_deployable_equipment_amount_secondary(index,data)
+	else
+		amount = Application:digest_value(data.amount[1],false)
+		data.amount = amount
+		hud:set_khud_deployable_equipment_amount(index,data)
+	end
+	hud:set_khud_deployable_equipment(data) --to show relevant equipment on hud
+	
+end
+
 function HUDManager:set_secondary_deployable(i,data) --todo phase this out
 	KineticHUD:c_log("Set_secondary_deployable called from hudmanagerpd2- phase this out")
 	local hud = self._teammate_panels[i] --todo just put that in data instead of making a new function
-	hud:_set_secondary_deployable(data)
+--	hud:_set_secondary_deployable(data)
 end
 
 function HUDManager:set_hostage_count(num)
@@ -1108,6 +1312,7 @@ function HUDManager:layout_khud_health_team() --layout all teammates' health pan
 		else
 			panel:_layout_khud_health(params)
 		end
+		panel:_layout_khud_speaking()
 --		self:layout_khud_health(params,id) --either of these will work. but i have no reason to pick one over the other. guess i'll die
 	end
 	--local health_panel = self._khud_panels[id]._khud_health_panel
@@ -1117,10 +1322,6 @@ function HUDManager:layout_khud_health_team() --layout all teammates' health pan
 	self:layout_khud_grenades_team()
 	self:layout_khud_ties_team()
 	self:layout_khud_region_team()
-	self:layout_khud_speaking()
-end
-function HUDManager:layout_khud_speaking()
-	self._teammate_panels[HUDManager.PLAYER_PANEL]:_layout_khud_speaking()
 end
 
 function HUDManager:layout_khud_health(params,id) --layout specific teammate's health panel
@@ -1185,6 +1386,9 @@ function HUDManager:layout_khud_chat(params)
 	local y = params.y or settings.panel_chat_y or 0
 	chat._panel:set_x(x)
 	chat._panel:set_y(y)
+	if params.scale then 
+		chat:set_khud_chat_scale(params.scale)
+	end
 end
 
 function HUDManager:set_khud_compass(params)
@@ -1243,5 +1447,9 @@ end
 
 --unused/broken right now
 function HUDManager:animate_khud_crosshair_kick(kick)
+end
+
+function HUDManager:layout_khud_speaking() --not used; only applies to main player
+	self._teammate_panels[HUDManager.PLAYER_PANEL]:_layout_khud_speaking()
 end
 

@@ -49,6 +49,19 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		source = "skill",
 		flash = false
 	},
+	["hp_regen"] = { --aggregated, standard timed-healing from multiple sources (muscle, hostage taker, etc)
+		menu_title = "Health Regen (Aggregated)",
+		icon = 17, --chico perk deck
+		icon_tier = 3, --heart with hollow +  
+		icon_rect = {1,1},
+		persistent_timer = true,
+		label = "Health Regen",
+		duration = 10,
+		value_type = "timer",
+		source = "perk",
+		text_color = Color("FFD700"),
+		flash = false
+	},
 	["long_dis_revive"] = { --cooldown; done
 		menu_title = "Inspire Aced Cooldown",
 		icon = "inspire",
@@ -59,6 +72,16 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		source = "skill",
 		text_color = Color("E84F4F"), --orangey-red; todo tweakdata/standardise this
 		flash = true
+	},
+	["morale_boost"] = {
+		menu_title = "Inspire Basic",
+		icon = "inspire",
+		icon_rect = {4,9},
+		label = "Inspire Basic",
+		value_type = "timer",
+		duration = 4,
+		source = "skill",
+		flash = false
 	},
 	["flashbang"] = { --owww my eyes; temp disabled
 		menu_title = "Flashbang",
@@ -124,6 +147,17 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		source = "skill",
 		flash = false
 	},
+	["bullseye"] = { --internally, "prison_wife"
+		icon = "prison_wife",
+		icon_rect = {6,11},
+		label = "Bullseye",
+		buff_type = "buff",
+		value_type = "timer",
+		text_color = Color("E84F4F"), --orangey-red
+		duration = 2.5, --td.values.player.headshot_regen_armor_bonus[2]
+		source = "skill",
+		flash = true
+	},
 	["wild_kill_counter"] = {
 		menu_title = "Biker Kills Tracker",
 		icon = 16,
@@ -137,6 +171,18 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		source = "perk",
 		flash = true
 	},
+	["grinder"] = {
+		menu_title = "Grinder Healing over Time",
+		icon = 11,
+		icon_tier = 1, --overridden by tier_floors
+		tier_floors = {1,3,5,7,9},
+		icon_rect = {6,1},
+		label = "Grinder",
+		buff_type = "buff",
+		value_type = "value",
+		source = "perk",
+		flash = false
+	},
 	["uppers_aced_cooldown"] = { --20 seconds but tweakdata says 500???
 		menu_title = "Uppers Aced Cooldown",
 		icon = "tea_cookies",
@@ -145,6 +191,18 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		text_color = Color("FF5F5C"), --red
 		value_type = "timer",
 		source = "skill",
+		flash = false
+	},
+	["anarchist_armor_regen"] = {
+		menu_title = "Anarchist Armor Grinding",
+		icon = 15,
+		icon_tier = 1,
+		icon_rect = {1,7},
+		label = "Blitzkrieg Bop",
+		persistent_timer = true,
+		text_color = Color("FFD700"),
+		value_type = "timer",
+		source = "perk",
 		flash = false
 	},
 	["armor_break_invulnerable"] = { --anarchist/armorer; game adds this buff as a cooldown for the invulnerability itself
@@ -179,11 +237,10 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 	},
 	["pocket_ecm_kill_dodge"] = {
 		menu_title = "Pocket ECM Dodge Bonus",
-		disabled = true,
 		icon = 21,--"pocket_ecm_jammer",
 		icon_tier = 7,
 		icon_rect = {1,7},
-		label = "Hacker: Kluge",
+		label = "Kluge",
 		buff_type = "buff",
 		value_type = "timer",
 		source = "perk",
@@ -391,6 +448,50 @@ KineticHUD.buff_data = { --loosely sorted by developmental priority, in descendi
 		icon = "speedy_reload",
 		icon_rect = {1,7},
 		label = "Aggressive Reload",
+		buff_type = "buff",
+		value_type = "timer",
+		duration = 4,
+		source = "skill",
+		flash = false
+	},
+	["reload_weapon_faster"] = { --revenant skill tree thing
+		disabled = true,
+		icon = "speedy_reload",
+		icon_rect = {1,7},
+		label = "reload_weapon_faster",
+		buff_type = "buff",
+		value_type = "timer",
+		duration = 4,
+		source = "skill",
+		flash = false
+	},
+	["swap_weapon_faster"] = { --revenant skill tree thing
+		disabled = true,
+		icon = "speedy_reload",
+		icon_rect = {1,7},
+		label = "swap_weapon_faster",
+		buff_type = "buff",
+		value_type = "timer",
+		duration = 4,
+		source = "skill",
+		flash = false
+	},
+	["revived_damage_resist"] = { --revenant skill tree thing
+		disabled = true,
+--		icon = "speedy_reload",
+		icon_rect = {1,7},
+		label = "swap_weapon_faster",
+		buff_type = "buff",
+		value_type = "timer",
+		duration = 4,
+		source = "skill",
+		flash = false
+	},
+	["increased_movement_speed"] = { --revenant skill tree thing
+		disabled = true,
+		icon = "running_from_death",
+		icon_rect = {1,7},
+		label = "Running From Death 2",
 		buff_type = "buff",
 		value_type = "timer",
 		duration = 4,
@@ -1166,7 +1267,26 @@ KineticHUD.chat_colors = {
 	[4] = Color(204/255, 161/255, 102/255), --orange
 	[5] = Color(0.2, 0.8, 1) --ai cyan
 }
-
+KineticHUD.quality_colors = { --definitely completely original
+	normal = Color("B2B2B2"),
+	unique = Color("FFD700"),
+	vintage = Color("476291"),
+	genuine = Color("4D6455"),
+	strange = Color("CF6A32"),
+	unusual = Color("8650AC"),
+	haunted = Color("38F3AB"),
+	collector = Color("AA0000"), --collector's, but i hate dealing with release + quotes in strings
+	decorated = Color("FAFAFA"),
+	community = Color("70B04A"), --also self-made
+	valve = Color("A50F79"),
+	void = Color("544071"),
+	solar = Color("E1834F"),
+	arc = Color("6F8EA2"),
+	common = Color("43734B"),
+	rare = Color("547C96"),
+	legendary = Color("522F65"),
+	exotic = Color("CEAE33")
+}
 --=======================--
 --*********INIT**********--
 --=======================--
@@ -1213,6 +1333,7 @@ KineticHUD.default_settings = {
 	
 	hud_enabled_downcounter_own = true,
 	
+	show_sentry_tracker = true,
 	show_crosshair = false,
 	show_debug = false,
 	show_buffs_master = true,
@@ -1239,6 +1360,9 @@ KineticHUD.default_settings = {
 	panel_weapon_y = 560,
 	panel_weapon_custom_xy = false,
 	panel_weapon_scale = 0.75,
+	use_wpn_name = true,
+	use_wpn_nickname = true,
+	wpn_name_duration = 1.5, --seconds to show weapon name/nickname before fading
 	downcounter_announce_lowdowns_only_mode = true,
 	downcounter_announce_docbags = false,
 	downcounter_announce_custody = false,
@@ -1285,14 +1409,19 @@ KineticHUD.quickchat_lifetime = 3 --seconds until panel starts to fade away
 KineticHUD.quickchat_fadeout = nil --boolean
 KineticHUD.quickchat_focus = nil --int [1,4]
 KineticHUD.quickchat_fade_duration = 2 --seconds from fade start (alpha 1) to fade end (alpha 0)
-
 --quickchat start t (memory)
 --quickchat lifetime (setting)
 --quickchat fade duration (setting)
 --quickchat fadeout (memory)
 --quickchat focus (memory)
+KineticHUD.scanner_focus_duration = 3
 
 KineticHUD.temp_cartographer_selected = 1
+
+KineticHUD.max_tracked_ecms = 8
+KineticHUD.max_tracked_sentryguns = 6
+
+KineticHUD.assault_phase_name = "" --quick fix so that KineticHUD stops spamming logs with assault phase
 
 --superimpose default settings over saved settings;
 --this way, new settings from updates are still loaded and written into savedata
@@ -1690,6 +1819,14 @@ function KineticHUD:GetSettings(setting)
 	end
 end
 
+function KineticHUD:GetColor(name,backup)
+	if KineticHUD.quality_colors[name] or not backup then
+		return KineticHUD.quality_colors[name]
+	else
+		return Color.white
+	end
+end
+
 function KineticHUD:DownCounter_AnnounceLowDownsOnly()
 	return KineticHUD.settings.downcounter_announce_lowdowns_only_mode --formerly only_announce_lowdowns_mode
 end
@@ -1766,6 +1903,14 @@ function KineticHUD:UseWeaponRealAmmo()
 	return KineticHUD.settings.use_wpn_real_ammo
 end
 
+function KineticHUD:UseWeaponName()
+	return KineticHUD.settings.use_wpn_name
+end
+
+function KineticHUD:UseWeaponNickname() --requires useweaponname enabled
+	return KineticHUD.settings.use_wpn_nickname
+end
+
 function KineticHUD:UseCompass()
 	return KineticHUD.settings.use_compass
 end
@@ -1794,6 +1939,10 @@ function KineticHUD:IsCrosshairEnabled()
 	return KineticHUD.settings.show_crosshair
 end
 
+function KineticHUD:IsCrosshairADSOnly()
+	return self.settings.crosshair_fade_ads
+end
+
 function KineticHUD:IsAntispamEnabled()
 	return KineticHUD.settings.antispam_enabled
 end
@@ -1804,6 +1953,10 @@ end
 
 function KineticHUD:IsDebugEnabled()
 	return KineticHUD.settings.show_debug
+end
+
+function KineticHUD:IsSentryTrackerEnabled()
+	return self.settings.show_sentry_tracker
 end
 
 function KineticHUD:is_kool_kid(id64) --normally, putting numbers in arg/var names is bad practice imo. i'll make an exception here
@@ -2217,6 +2370,15 @@ function KineticHUD:Create_Cartograper_ToolMenu() --also bind this to use the ca
 	QuickMenu:new("Cartographer Tool Menu","Choose an option",options):show()
 end
 
+function KineticHUD:ResetPrompt()	
+	KineticHUD.settings = {}
+	for k,v in pairs(KineticHUD.default_settings) do --should really do deep_clone or something but /shrug
+		KineticHUD.settings[k] = v
+	end	
+	KineticHUD:Save()
+end
+
+
 --=======================--
 --**********MENU*********--
 --=======================--
@@ -2295,7 +2457,7 @@ Hooks:Add("LocalizationManagerPostInit", "khud_LocalizationManagerPostInit", fun
 			break
 		end
 	end
-	loc:load_localization_file( KineticHUD._path .. "loc/en.txt")
+	loc:load_localization_file( KineticHUD._path .. "loc/english.txt")
 end)
 
 function KineticHUD:Load()
@@ -2356,6 +2518,22 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_name.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_name.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_health.txt", KineticHUD, KineticHUD:GetSettings())
+	--[[
+	for num,v in pairs (binds) do 
+		local key_name = v and v.key
+		MenuHelper:AddKeybinding({
+			id = "id_test_" .. num,
+			title = "test_title_" .. num,
+			callback = "callback_test_func_" .. num,
+			connection_name = "test_key_" .. num,
+			binding = key_name,
+--			button = key_name,
+			menu_id = menu_id,
+			priority = num
+		})	
+	end
+	--]]
+	
 	--[[
 	MenuHelper:AddDivider({
 		id = "example_divider_4",
@@ -2425,6 +2603,7 @@ Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", fun
 end)
 
 Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)
+	
 	--====================== CHAT ======================	
 	MenuCallbackHandler.callback_khud_panel_chat_x = function(self,item)
 		local value = tonumber(item:value())
@@ -2456,6 +2635,18 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		end
 		KineticHUD:Save()
 	end
+	MenuCallbackHandler.callback_khud_panel_chat_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.panel_chat_scale = value
+		if managers.hud then 
+			managers.hud:layout_khud_chat({
+				scale = value,
+				show_debug = true
+			})
+		end
+		
+		KineticHUD:Save()
+	end
 	MenuCallbackHandler.callback_khud_panel_chat_close = function(self)
 		if managers.hud then 
 			managers.hud:layout_khud_chat({
@@ -2463,6 +2654,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 			})
 		end
 	end
+	
 	
 	--====================== QUICKCHAT ======================	
 	MenuCallbackHandler.func_quickchat_1 = function(self)
@@ -2537,9 +2729,11 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	end
 	
 	MenuCallbackHandler.callback_khud_panel_buffs_close = function(self)
-		managers.hud:layout_khud_buffs({
-			show_debug = false
-		})
+		if managers.hud then 
+			managers.hud:layout_khud_buffs({
+				show_debug = false
+			})
+		end
 	end
 	
 --[[
@@ -2799,6 +2993,16 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD:Save()
 	end
 	
+	MenuCallbackHandler.callback_khud_panel_weapons_use_name = function(self,item)
+		local value = item:value() == "on"
+		KineticHUD.settings.use_wpn_name = value
+	end
+	
+	MenuCallbackHandler.callback_khud_panel_weapons_use_nickname = function(self,item)
+		local value = item:value() == "on"
+		KineticHUD.settings.use_wpn_nickname = value
+	end
+	
 	MenuCallbackHandler.callback_khud_panel_weapons_set_x = function(self,item)
 		KineticHUD.settings.panel_weapon_x = item:value()
 		if KineticHUD:UseWeaponCustomXY() and managers.hud then 
@@ -2923,7 +3127,14 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		end
 		KineticHUD:Save()
 	end
-
+	
+	MenuCallbackHandler.callback_khud_panel_player_show_sentry_tracker = function(self,item)
+		KineticHUD.settings.show_sentry_tracker = item:value() == "on"
+		if managers.hud then 
+			managers.hud:set_sentry_tracker_visible(KineticHUD.settings.show_sentry_tracker)
+		end
+		KineticHUD:Save()
+	end
 	
 	MenuCallbackHandler.callback_khud_panel_player_health_enabled = function(self,item)
 	--deprecated
@@ -3161,7 +3372,26 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD:Save()
 	--]]
 	end
+
+	MenuCallbackHandler.callback_reset_khud_all = function(self,item)
+		local title = managers.localization:text("khud_menu_reset_all_title")
+
+		local desc = managers.localization:text("khud_menu_reset_all_desc")
+		local confirm = managers.localization:text("dialog_yes")
+		local cancel = managers.localization:text("dialog_no")
+		local options = {
+			{
+				text = cancel,
+				is_cancel_button = true
+			},
+			{
+				text = confirm,
+				callback = callback(self,KineticHUD,"ResetAllSettings")
+			}
+		}
+		QuickMenu:new(title,desc,options):show()
 	
+	end
 	
 	MenuCallbackHandler.callback_khud_panel_team_health_close = function(this)
 		if managers.hud then 

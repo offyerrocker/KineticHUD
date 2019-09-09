@@ -15,9 +15,6 @@ local pad_large = 20
 local pad_medium = 10
 local pad_small = 5
 
-local max_tracked_ecms = 8
-local max_tracked_sentryguns = 6
-
 local debug_panels_visible = false
 
 function HUDTeammate:_add_buff(id)
@@ -39,6 +36,7 @@ function HUDTeammate:_add_buff(id)
 	local icon = buff.icon or buff_data.icon --should always use buff_data
 	local source = buff.source or buff_data.source --should always use buff_data
 	local icon_tier = buff.icon_tier or buff_data.icon_tier or 1 --only used for perk decks
+	local tier_floors = buff.tier_floors or buff_data.tier_floors --used to get max_tier but with a whitelist
 	
 	local text_color = buff.text_color or buff_data.text_color
 	local icon_color = buff.icon_color or buff_data.icon_color
@@ -47,7 +45,6 @@ function HUDTeammate:_add_buff(id)
 	if buffs_panel:child(id) then --todo overhaul this refresh thingy
 		if icon_color then 
 			buffs_panel:child(id):child("icon"):set_color(icon_color)
-		
 		end
 		if text_color then 
 			buffs_panel:child(id):child("label"):set_color(text_color)
@@ -62,7 +59,7 @@ function HUDTeammate:_add_buff(id)
 			local x,y = unpack(tweak_data.skilltree.skills[icon].icon_xy)
 			rect = {x * 80,y * 80,80,80}
 		elseif source == "perk" then
-			texture,rect = tweak_data.skilltree:get_specialization_icon_data_with_tier_because_overkill_wouldnt_do_it(tonumber(icon),nil,icon_tier)
+			texture,rect = tweak_data.skilltree:get_specialization_icon_data_with_tier_because_overkill_wouldnt_do_it(tonumber(icon),nil,icon_tier,tier_floors)
 --			texture,rect = tweak_data.skilltree:get_specialization_icon_data(tonumber(buff_data.icon))
 		elseif source == "icon" then
 			texture,rect = tweak_data.hud_icons:get_icon_data(icon or "mugshot_normal")
@@ -144,22 +141,81 @@ function HUDTeammate:update_tracked_sentryguns()
 	local scanner_right_panel = self._khud_scanner_right
 	local tracked_sentrygun,sentrygun_label,sentrygun_icon,sentrygun_unit
 	local tracked_sentryguns = managers.player:get_tracked_sentryguns()
-	for k = 0,max_tracked_sentryguns do
+--	scanner_right_panel:set_visible(KineticHUD:IsSentryTrackerEnabled())
+	local queued_remove_sentryguns = {}
+	for k = 0,KineticHUD.max_tracked_sentryguns do
 		sentrygun_label = scanner_right_panel:child("scanner_right_label_" .. k)
 		sentrygun_icon = scanner_right_panel:child("scanner_right_icon_" .. k)
 		tracked_sentrygun = tracked_sentryguns[k]
 		if sentrygun_label and tracked_sentrygun then 
 			managers.hud._teammate_panels[HUDManager.PLAYER_PANEL]._khud_scanner_right:child("scanner_right_icon_" .. k):set_image(sentrygun_texture,unpack(sentrygun_rect))
-			--set ammo/hp here accoridng to client/host
 			sentrygun_unit = tracked_sentrygun.unit
-			sentrygun_label:set_text("Sentrygun")
-			sentrygun_label:set_color(tweak_data.chat_colors[tracked_sentrygun.owner_id or 1])
-			sentrygun_icon:set_visible(true)
+			if not alive(sentrygun_unit) then 
+				if sentrygun_unit then 
+					sentrygun_label:set_visible(false)
+					sentrygun_icon:set_visible(false)
+					table.insert(queued_remove_sentryguns,k)
+--					KineticHUD:_debug("ERROR! NO SENTRYGUN UNIT",k)
+				else
+--					KineticHUD:_debug("no sentrygun unit found",k)
+				end
+			else
+				local label = "" --could number with k?
+				local sentrygun_damage = sentrygun_unit:character_damage()
+				if sentrygun_damage then
+					local sentry_hp 
+					if (managers.network and Network and Network:is_client()) then --if not host in multiplayer game, use synced sentry hp value
+						sentry_hp = sentrygun_damage._health_ratio
+					else --if host or offline, use 
+						sentry_hp = sentrygun_damage:health_ratio()
+					end
+					if sentry_hp then 
+						label = label .. "  " .. string.format("%d",(sentry_hp * 100)) .. "% HP | "
+					end
+				end
+				local sentrygun_weapon = sentrygun_unit:weapon()
+				local sentry_ammo
+				if sentrygun_weapon then 
+					sentry_ammo = sentrygun_weapon:ammo_ratio()
+					label = label .. "  " .. string.format("%d",(sentry_ammo * 100)) .. "% AMMO" --or %.1f 
+				end
+				
+				if (sentry_ammo and sentry_ammo <= 0) then
+					sentrygun_icon:set_color(KineticHUD.quality_colors.strange)
+					sentrygun_label:set_visible(true)
+				elseif (sentrygun_damage and sentrygun_damage:dead()) then 
+					sentrygun_icon:set_color(KineticHUD.quality_colors.collector)
+--					KineticHUD:_debug("Dead/No ammo",k)
+					sentrygun_label:set_visible(false)
+					sentrygun_icon:set_alpha(0.2)
+				elseif sentrygun_weapon then
+					if sentrygun_weapon._use_armor_piercing then
+						sentrygun_icon:set_color(Color(0.1,1,0.1))
+						sentrygun_label:set_visible(true)
+--						KineticHUD:_debug("AP",k)
+					else
+						sentrygun_icon:set_color(Color(0.2,0.8,1))
+						sentrygun_label:set_visible(true)
+--						KineticHUD:_debug("Normal " .. Application:time(),k)
+					end
+				else
+--					KineticHUD:_debug("No weapon",k)
+					sentrygun_icon:set_color(Color.white)
+				end
+				sentrygun_label:set_color(tweak_data.chat_colors[tracked_sentrygun.owner_id or 1])
+				sentrygun_label:set_text(label)
+				sentrygun_icon:set_visible(true)
+			end
 		else
+			--should not be used
 			sentrygun_label:set_text("")
 			sentrygun_icon:set_visible(false)
 		end
 	end
+	
+	for _,id in pairs(queued_remove_sentryguns) do 
+		managers.player:remove_tracked_sentrygun(id)
+	end	
 end
 
 function HUDTeammate:update_tracked_ecms()
@@ -172,7 +228,7 @@ function HUDTeammate:update_tracked_ecms()
 --	for k,ecm in ipairs(managers.player:get_tracked_ecms()) do
 --	KineticHUD:c_log(k,"Current tracked ecm")
 --	PrintTable(tracked_ecms)
-	for k = 0,max_tracked_ecms do
+	for k = 0,KineticHUD.max_tracked_ecms do
 		ecm_label = scanner_right_panel:child("scanner_right_label_" .. k)
 		ecm_icon = scanner_right_panel:child("scanner_right_icon_" .. k)
 		tracked_ecm = tracked_ecms[k]
@@ -336,7 +392,7 @@ function HUDTeammate:_set_khud_weapon_icons(slot) --todo set primary/secondary w
 	local panel = self._khud_player
 	local id1 = "glock_17"
 	local id2 = "amcar"
-	--KineticHUD:c_log(unit:inventory():equipped_selection(),"Equipped selection")
+--	KineticHUD:c_log(unit:inventory():equipped_selection(),"Equipped selection")
 	if alive(unit) then --put in set_weapon_selected
 		if (not slot) or slot == 1 then
 			local panel_1 = secondary_weapon_panel:child("secondary_icon")
@@ -356,13 +412,36 @@ end
 
 function HUDTeammate:_set_khud_selected_weapon(id,hud_icon)
 	local is_secondary = id == 1
+	local bm = managers.blackmarket
 	self._primary_weapon_panel:set_alpha(is_secondary and 0.5 or 0.9)
 	self._secondary_weapon_panel:set_alpha(is_secondary and 0.9 or 0.5)
-	--todo animate focus fade
+	--todo animate focus fade?
 	
 	--do animate bar movement
 	KineticHUD.selected_wpn = is_secondary and 2 or 1 --"secondary" is weapon 1. "primary" is weapon 2. ovk pls
 	KineticHUD.start_swap_wpn_t = Application:time()
+	if KineticHUD:UseWeaponName() then 
+		local weapon_id = is_secondary and bm:equipped_secondary().weapon_id or bm:equipped_primary().weapon_id
+		local weapon_name = managers.weapon_factory:get_weapon_name_by_weapon_id(weapon_id)
+		local weapon_nickname = (is_secondary and bm:equipped_secondary() or bm:equipped_primary()).custom_name
+		if weapon_nickname and KineticHUD:UseWeaponNickname() then 
+			self._khud_weapon_name:set_text(tostring(weapon_nickname))
+			self._khud_weapon_name:set_color(KineticHUD:GetColor("unique"))
+--			KineticHUD:c_log(weapon_nickname)
+		else
+--			KineticHUD:c_log(weapon_name)
+			self._khud_weapon_name:set_text(tostring(weapon_name))
+			self._khud_weapon_name:set_color(Color.white)
+		end
+			self._khud_weapon_name:set_alpha(1)
+--			local category = is_secondary and "secondaries" or "primaries"
+--			local slot = bm:equipped_weapon_slot(category)
+--			local weapon_nickname = bm:get_crafted_custom_name(category,slot,false)
+--			KineticHUD:t_log(weapon_nickname)
+--			KineticHUD:c_log(weapon_name)
+	end
+	
+--	self._khud_player:child("weapon_name"):set_text(weapon_name)
 end
 
 function HUDTeammate:_set_weapon_safety(id,safety) --actually sets the safety on, functionally as well as visually
@@ -917,23 +996,41 @@ Hooks:PostHook(HUDTeammate,"set_absorb_active","khud_set_absorb",function(self,a
 --	end
 end)
 
-Hooks:PostHook(HUDTeammate,"set_deployable_equipment","khud_set_deployable_equipment",function(self,data)
+Hooks:PostHook(HUDTeammate,"set_deployable_equipment","khud_set_deployable_equipment",function(self,data) 
+	self:set_khud_deployable_equipment(data)
+end)
 
+function HUDTeammate:set_khud_deployable_equipment(data)
 	local index = data.index or managers.player._equipment.selected_index or 1--added data.index
 	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")	
 	local equipment = deployable_equipment_panel:child("icon")
 	local amount = deployable_equipment_panel:child("amount")
 
-	local color = data.amount == 0 and Color(0.5, 1, 1, 1) or Color.white
+
+	local color = Color.white
+	if data.amount then 
+		if type(data.amount) == "table" then
+			color = Color(0.5,1,1,1)
+			for k,v in pairs(data.amount) do
+				if v ~= 0 then 
+					color = Color.white
+					break
+				end
+			end
+		elseif (data.amount == 0) then 
+			color = Color(0.5,1,1,1) --redundant
+		end
+	end
 	
 	equipment:set_color(color)
 	equipment:set_image(icon, unpack(texture_rect))
 	deployable_equipment_panel:set_visible(true)
 --		amount:set_visible(true)
 	
---	self:set_deployable_equipment_amount(index, data)
-end)
+--	self:set_deployable_equipment_amount(index, data)		
+end
+
 --[[
 local orig_set_deployable_equipment = HUDTeammate.set_deployable_equipment
 function HUDTeammate:set_deployable_equipment(data) --overridden :(
@@ -959,20 +1056,12 @@ function HUDTeammate:set_deployable_equipment(data) --overridden :(
 end--]]
 
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount","khud_set_deployable_equipment_amount",function(self,index,data)
-	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
-	local amount = deployable_equipment_panel:child("amount")
-	local icon_color = data.amount == 0 and Color(0.5, 1, 1, 1) or Color.white
-	local text_color = data.amount == 0 and Color(1, 0.9, 0.3, 0.3) or Color.white
-
-	deployable_equipment_panel:child("icon"):set_color(icon_color)
-	deployable_equipment_panel:child("icon"):set_visible(true)
-	amount:set_text(data.amount)
-	amount:set_color(text_color)
-	amount:set_visible(true)
+	self:set_khud_deployable_equipment_amount(managers.player._equipment.selected_index,data)
+	--ignore passed index value for reasons detailed below
 end)
 
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment_from_string","khud_set_deployable_from_string",function(self,data)
-	local index = data.index or managers.player._equipment.selected_index or 1		
+	local index = data.index or managers.player._equipment.selected_index or 1
 --		KineticHUD:c_log("set_deployable_equipment_from_string",KineticHUD:concat(data))
 	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
@@ -983,7 +1072,67 @@ Hooks:PostHook(HUDTeammate,"set_deployable_equipment_from_string","khud_set_depl
 end)
 
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_set_deployable_amount_from_string",function(self,index,data)
-	index = managers.player._equipment.selected_index or index
+	self:set_khud_deployable_equipment_amount_secondary(managers.player._equipment.selected_index,data)
+end)
+
+--replacement was warranted instead of a posthook for the following two functions, 
+--due to the fact that ovk calls 
+--	self:set_deployable_equipment_amount(1, data)
+--and
+--	self:set_deployable_equipment_amount_from_string(1, data)
+--thus forcing the index to 1 and causing display errors within khud
+function HUDTeammate:set_khud_deployable_equipment_amount(index,data)  --counterpart for set_deployable_equipment_amount()
+	index = index or managers.player._equipment.selected_index
+	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
+	local amount = deployable_equipment_panel:child("amount")
+	local icon_color = data.amount == 0 and Color(0.5, 1, 1, 1) or Color.white
+	local text_color = data.amount == 0 and Color(1, 0.9, 0.3, 0.3) or Color.white
+
+	deployable_equipment_panel:child("icon"):set_color(icon_color)
+	deployable_equipment_panel:child("icon"):set_visible(true)
+	amount:set_text(data.amount)
+	amount:set_color(text_color)
+	amount:set_visible(true)	
+	
+	--[[
+
+	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
+	local amount_panel = deployable_equipment_panel:child("amount")
+	local icon_panel = deployable_equipment_panel:child("icon")
+	
+	local color = Color.white
+	if data.amount == 0 then 
+		color = Color(0.5,1,1,1)
+	end
+	
+	icon_panel:set_color(color)
+	icon_panel:set_visible(true)
+	
+	self:_set_amount_string(amount,data.amount)
+	amount_panel:set_visible(true)
+	--]]
+end	
+	
+	--[[
+	local amount_string = tostring(data.amount)
+	if data.amount_2 then 
+		amount_string = amount_string .. " | " .. tostring(data.amount_2)
+		if data.amount_2 == 0 then 
+			color = Color(0.5,1,1,1)
+		end
+	elseif data.amount == 0 then 
+		color = Color(0.5,1,1,1)
+	end
+	amount_panel:set_color(color)
+	
+	amount_panel:set_text(amount_string)
+
+	icon_panel:set_color(color)
+	icon_panel:set_visible(true)
+	--]]
+
+function HUDTeammate:set_khud_deployable_equipment_amount_secondary(index,data) --counterpart for set_deployable_equipment_amount_from_string() 
+	index = index or managers.player._equipment.selected_index
 --		local teammate_panel = self._panel:child("player")
 	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
 	local icon = deployable_equipment_panel:child("icon")
@@ -1010,29 +1159,23 @@ Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_s
 	amount:set_text(amounts)
 	amount:set_color(color)
 	amount:set_visible(true)
-end)
+--[[	
+	
+	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
+	local equipment = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
+
+	equipment:set_visible(true)
+	equipment:set_image(icon,unpack(texture_rect))
+	self:set_khud_deployable_equipment_amount(index,data)
+--]]
+end
 
 function HUDTeammate:_set_secondary_deployable(data) --custom function. deprecated. i think
-	local index = 2
-	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
-
---	KineticHUD:c_log("_set_secondary_deployable " .. data.icon,data.amount)
-	local deployable_equipment_panel = self._khud_deployables_panel:child("secondary_deployable")
-	local equipment = deployable_equipment_panel:child("icon")
-	local amount = deployable_equipment_panel:child("amount")
-
-	local color = data.amount == 0 and Color(0.5, 1, 1, 1) or Color.white
-	
-	equipment:set_color(color)
-	equipment:set_image(icon, unpack(texture_rect))
-	equipment:set_visible(true)
-	deployable_equipment_panel:set_visible(true)
-	
-		
-	self:set_deployable_equipment_amount(index, data)
+	KineticHUD:c_log("Set_secondary_deployable called from hudteammate- this is a deprecated function!")
 end
 
 function HUDTeammate:_set_deployable_equipment_with_index(data) --custom function; unused
+	KineticHUD:c_log(data,"Set eq with index- this is a deprecated function!")
 	local index = data.index or 1
 	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 
@@ -1513,21 +1656,6 @@ Hooks:PostHook(HUDTeammate,"set_name","khud_hudteammate_set_name",function(self,
 	--local name = self._khud_name
 	local name = managers.hud._khud_panels[id]:child("name")
 	name:set_text(teammate_name)
-
---[[	
-instead do layout_khud_name
-	local margin = settings.panel_team_health_margin
-	local align = settings.panel_team_health_align
-	if align == 1 then -- 1 = vertical, 2 = horizontal
---		health_panel:set_x(x)
-		health_panel:set_y(y + ((i - 1) * margin))
-	else
-		health_panel:set_x(x + ((i - 1) * margin))
-		health_panel:set_y(y)
-	end
---]]
-	
-	
 
 	if true then return end
 --this stuff is untested, so i should probably disable it before 1.0 release
@@ -2226,6 +2354,14 @@ end
 
 function HUDTeammate:_layout_khud_crosshair(params)
 	local panel = self._khud_crosshair_panel
+	
+	local circle = panel:child("crosshair_circle")
+	local dot = panel:child("crosshair_dot")
+	local crosshair_top = panel:child("crosshair_top")
+	local crosshair_bottom = panel:child("crosshair_bottom")
+	local crosshair_left = panel:child("crosshair_left")
+	local crosshair_right = panel:child("crosshair_right")
+	
 	local settings = KineticHUD:GetSettings()
 	params = params or {}
 	
@@ -2242,7 +2378,6 @@ function HUDTeammate:_layout_khud_crosshair(params)
 	
 	panel:set_x(bandaid_x + (hud_panel:w() / 2) - (panel_w / 2))
 	panel:set_y(bandaid_y + (hud_panel:h() / 2) - (panel_h / 2))
-	
 	local show_circle = params.show_circle or settings.crosshair_show_circle --hopefully settings will always be set correctly or else it'll evaluate to true every time lol
 	local circle_w = params.circle_scale or settings.crosshair_circle_scale or 32
 	local circle_h = circle_w
@@ -2257,16 +2392,12 @@ function HUDTeammate:_layout_khud_crosshair(params)
 	
 	local alpha = params.crosshair_opacity or settings.crosshair_master_opacity or 0.5
 	local crosshair_color = params.color or Color("80C6FF") or Color.white
-	
-	panel:set_alpha(alpha)
-	
-	local circle = panel:child("crosshair_circle")
-	local dot = panel:child("crosshair_dot")
-	local crosshair_top = panel:child("crosshair_top")
-	local crosshair_bottom = panel:child("crosshair_bottom")
-	local crosshair_left = panel:child("crosshair_left")
-	local crosshair_right = panel:child("crosshair_right")
-	
+
+	if not params.skip_alpha then 
+		panel:set_alpha(alpha)
+	else
+		crosshair_color = crosshair_color:with_alpha(dot:alpha())
+	end
 	circle:set_x(w_c - (circle_w / 2))
 	circle:set_y(h_c - (circle_h / 2))
 	circle:set_size(circle_w,circle_h)
@@ -2561,7 +2692,7 @@ function HUDTeammate:_create_khud_weapons() --for main player
 	local wpn_h = 50 --individual primary/secondary weapon subpanel size
 	local firemode_h = 32
 	local firemode_w = 32
-	
+
 	local khud_weapons_panel = hud_panel:panel({
 		name = "khud_weapons_panel",
 		layer = 1,
@@ -2602,6 +2733,7 @@ function HUDTeammate:_create_khud_weapons() --for main player
 		layer = 0,
 		color = Color("394A5C"):with_alpha(0.9)
 	})
+		
 	local primary_mag_text = primary_weapon_panel:text({
 		name = "mag_text",
 		layer = 5,
@@ -2862,6 +2994,21 @@ function HUDTeammate:_create_khud_weapons() --for main player
 		visible = debug_panels_visible
 	})
 	--]]
+	
+	self._khud_weapon_name = hud_panel:text({ --not truly linked to weapon panel, is actually in the middle-right of the screen
+		name = "weapon_name",
+		layer = 5,
+--		align = "right",
+		x = khud_weapons_panel:left(),
+		y = khud_weapons_panel:top(),
+		font_size = 16, -- todo scale
+		color = Color.white,
+		font = ammo_font,
+		alpha = 0, --start 0, set to 1 after switching weapons, fades back to 0 via update()
+		visible = self._main_player, --not currently available for teammates or AI 
+		text = "AMCAR"
+	})
+	
 	return khud_weapons_panel
 end
 
@@ -3811,6 +3958,7 @@ function HUDTeammate:_create_khud_scanner_left()
 	
 	local scanleft_w = 128 + 64
 	local scanleft_h = 128
+	local item_size = 16
 	
 	local scanner_left_panel = hud_panel:panel({
 		name = "khud_scanner_left",
@@ -3833,11 +3981,26 @@ function HUDTeammate:_create_khud_scanner_left()
 		layer = 3,
 		Color = Color.white,
 		font = ammo_font,
-		visible = debug_panels_visible,
-		font_size = 22,
+		vertical = "center",
+		font_size = item_size,
 		align = "right",
-		text = "left"
+		text = ""
 	})
+	
+	local scanner_left_icon = scanner_left_panel:bitmap({
+		name = "scanner_left_icon",
+		layer = 0,
+		x = 0,
+		y = (scanner_left_panel:h() - item_size) / 2,
+		texture = "guis/textures/pd2/hud_progress_32px",
+		blend_mode = "add",
+		rotation = 0, --only used for tripmines
+		visible = true,
+		color = Color.white,
+		w = item_size,
+		h = item_size
+	})
+	
 	return scanner_left_panel
 end
 

@@ -37,6 +37,13 @@
 			"description" : "khud_show_unusuals_desc",
 			"callback" : "callback_khud_show_unusuals",
 			"value" : "show_unusuals"
+		},
+		{
+			"type" : "button",
+			"id" : "id_khud_reset_all",
+			"title" : "khud_menu_reset_all_title",
+			"description" : "khud_menu_reset_all_desc",
+			"callback" : "callback_reset_khud_all"
 		}
 	]
 }
