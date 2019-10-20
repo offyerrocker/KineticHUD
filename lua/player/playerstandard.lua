@@ -10,6 +10,12 @@ Hooks:PostHook(PlayerStandard,"_start_action_steelsight","khud_start_ads",functi
 	end
 end)
 
+Hooks:PostHook(PlayerStandard,"_interupt_action_steelsight","khud_interrupt_ads",function(self,t)
+	if KineticHUD:IsCrosshairADSOnly() then 
+		managers.hud:animate_fade_crosshair(true)
+	end
+end)
+
 Hooks:PostHook(PlayerStandard,"_end_action_steelsight","khud_end_ads",function(self,t)
 	if KineticHUD:IsCrosshairADSOnly() then 
 		managers.hud:animate_fade_crosshair(true)

@@ -76,6 +76,7 @@ end)
 
 Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 --if armor_max == 0 then return end
+	local hud_parent = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2).panel 
 	local hud_panel = self._teammate_panels[HUDManager.PLAYER_PANEL]
 	local _t = Application:time()
 	local player_unit = managers.player and managers.player:local_player()
@@ -87,8 +88,38 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 	local settings = KineticHUD.settings
 	
 	self:set_phase_timer()
-		
+	
+	local state = player_unit:movement():current_state()
+	local viewport_cam = managers.viewport:get_current_camera()
 	if KineticHUD:IsCrosshairScannerEnabled() and KineticHUD:IsCrosshairEnabled() then
+			
+		local crosshair_color = Color.white
+		
+		--experimental crosshair movement scheme
+		local c_w,c_h
+		if viewport_cam then 
+			if true then --use crosshair shake
+				local crosshair_stability = 1000
+				--theoretically, the raycast position (assuming perfect accuracy) at [crosshair_stability] meters;
+				--practically, the higher the number, the less sway shake
+				local ws = self:workspace("fullscreen_workspace", "menu") or self._workspace
+				Console.zzzz = ws
+				local c_p = ws:world_to_screen(viewport_cam,state:get_fire_weapon_position() + (state:get_fire_weapon_direction() * crosshair_stability))
+				if ws and ws:panel() and ws:panel().w and hud_parent.w then 
+					c_w = hud_parent:w() * c_p.x / ws:panel():w()
+					c_h = hud_parent:h() * c_p.y / ws:panel():h()
+--					Console:SetTrackerValue("trackerc",tostring(ws:panel():w()))
+--					Console:SetTrackerValue("trackerd",tostring(ws:panel():h()))
+				end
+--				Console:SetTrackerValue("trackerc",tostring(hud_panel._panel:w()))
+--				Console:SetTrackerValue("trackerd",tostring(hud_panel._panel:h()))
+
+				--local khc = self._teammate_panels[HUDManager.PLAYER_PANEL]._khud_crosshair_panel
+				--khc:set_center(c_w - (khc:w() / 2),c_h - (khc:h() / 2))
+			end
+		end	
+	
+		
 		local fwd_ray = player_unit:movement():current_state()._fwd_ray
 		if fwd_ray and fwd_ray.unit and alive(fwd_ray.unit) then
 --			KineticHUD:_debug(fwd_ray.unit,1)
@@ -96,33 +127,33 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 				if fwd_ray.unit:movement() and fwd_ray.unit:movement():team() then 
 					local team = fwd_ray.unit:movement():team().id
 					if team == "converted_enemy" or team == "criminal1" then 
-						self:layout_khud_crosshair({color = tweak_data.chat_colors[#tweak_data.chat_colors],skip_alpha = true})
+						crosshair_color = tweak_data.chat_colors[#tweak_data.chat_colors]
 					else
 						local brain = fwd_ray.unit:brain()
-						if brain and brain:is_current_logic("intimidated") then 
-							self:layout_khud_crosshair({color = Color.green,skip_alpha = true})
+						if brain and brain.is_current_logic and brain:is_current_logic("intimidated") then 
+							crosshair_color = Color.green
 						else
-							self:layout_khud_crosshair({color = Color.red,skip_alpha = true})
+							crosshair_color = Color.red
 						end
 					end
 				else
-					self:layout_khud_crosshair({color = Color.red,skip_alpha = true})
+					crosshair_color = Color.red
 				end
 			elseif managers.enemy:is_civilian(fwd_ray.unit) then --doesn't work since civ is filtered out of slotmask
-				self:layout_khud_crosshair({color = Color.green,skip_alpha = true})
+				crosshair_color = Color.green
 			elseif managers.criminals:character_name_by_unit(fwd_ray.unit) then 
-				self:layout_khud_crosshair({color = tweak_data.chat_colors[#tweak_data.chat_colors],skip_alpha = true})
+				crosshair_color = tweak_data.chat_colors[#tweak_data.chat_colors]
 			else
 				if KineticHUD.last_ray_unit and KineticHUD.last_ray_unit ~= fwd_ray.unit then 
 --					KineticHUD:t_log(fwd_ray.unit)
 				end
 				KineticHUD.last_ray_unit = fwd_ray.unit
---				self:layout_khud_crosshair({color = KineticHUD.quality_colors.unusual,skip_alpha = true})
-				self:layout_khud_crosshair({color = Color.white,skip_alpha = true})
+				crosshair_color = Color.white
 			end
 		else
-			self:layout_khud_crosshair({color = Color.white,skip_alpha = true})
+			crosshair_color = Color.white
 		end
+		self:layout_khud_crosshair({color = crosshair_color,skip_alpha = true,center_w = c_w,center_h = c_h})
 	end
 		
 	--deployable equipment swapping animation
@@ -194,6 +225,9 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 	local panel_weapon_name = hud_panel._khud_weapon_name
 	if KineticHUD.selected_wpn then --weapon selection bar
 		local start_t = KineticHUD.start_swap_wpn_t
+		if not alive(hud_panel._khud_weapons_panel) then 
+			return
+		end
 		local selected_bar = hud_panel._khud_weapons_panel:child("selected_bar") --bar hud panel object
 		local selected_div = hud_panel._khud_weapons_panel:child("selected_div")
 		local wpn_h = hud_panel._khud_weapons_panel:child("secondary_weapon_panel"):h()

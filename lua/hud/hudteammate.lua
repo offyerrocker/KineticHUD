@@ -2271,7 +2271,12 @@ function HUDTeammate:_create_khud_crosshair()
 		y = 1 + (hud_panel:h() / 2) - (panel_h / 2)
 	})
 	self._khud_crosshair_panel = khud_crosshair_panel
-	
+	local debug_crosshair = khud_crosshair_panel:rect({
+		name = "debug_crosshair",
+		visible = false,
+		color = Color.red,
+		alpha = 0.5
+	})
 	local h_c = panel_h / 2
 	local w_c = panel_w / 2
 	
@@ -2375,9 +2380,13 @@ function HUDTeammate:_layout_khud_crosshair(params)
 	local w_c = panel_w / 2
 	local bandaid_x = 0
 	local bandaid_y = 1
-	
-	panel:set_x(bandaid_x + (hud_panel:w() / 2) - (panel_w / 2))
-	panel:set_y(bandaid_y + (hud_panel:h() / 2) - (panel_h / 2))
+	if params.center_w and params.center_h then 
+		panel:set_center(params.center_w,params.center_h)
+--		Console:SetTrackerValue("trackera",tostring(params.center_w))
+--		Console:SetTrackerValue("trackerb",tostring(params.center_h))
+	end
+--	panel:set_x(bandaid_x + (hud_panel:w() / 2) - (panel_w / 2)) --disabled to allow experimental real crosshair position
+--	panel:set_y(bandaid_y + (hud_panel:h() / 2) - (panel_h / 2))
 	local show_circle = params.show_circle or settings.crosshair_show_circle --hopefully settings will always be set correctly or else it'll evaluate to true every time lol
 	local circle_w = params.circle_scale or settings.crosshair_circle_scale or 32
 	local circle_h = circle_w
@@ -2428,8 +2437,9 @@ function HUDTeammate:_layout_khud_crosshair(params)
 	crosshair_right:set_color(crosshair_color)
 	crosshair_right:set_visible(show_cross)
 	
-	dot:set_x(w_c - (dot_scale / 2))
-	dot:set_y(h_c - (dot_scale / 2))
+	dot:set_center(w_c,h_c)
+--	dot:set_x(w_c - (dot_scale / 2))
+--	dot:set_y(h_c - (dot_scale / 2))
 	dot:set_size(dot_scale,dot_scale)
 	dot:set_color(crosshair_color)
 	dot:set_visible(show_dot)

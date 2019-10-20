@@ -1983,6 +1983,34 @@ function KineticHUD:GetCartographerData(map_id)
 	end
 end
 
+function KineticHUD:OnEnemyKilled(stats,data)
+	if not data then return end
+	
+	local weapon_unit = data.weapon_unit
+	local weapon_id = "bad weapon id! :("
+	if weapon_unit then 
+		if alive(weapon_unit) then 
+			if weapon_unit:base() then 
+				if weapon_unit:base().get_name_id then 
+					weapon_id = weapon_unit:base():get_name_id()
+				end
+			end
+		end
+	end
+--	local weapon_id = weapon_unit and alive(weapon_unit) and weapon_unit:base() and weapon_unit:base():get_name_id() or "bad weapon id! :("
+	
+	local equipped_primary = managers.blackmarket:equipped_primary()
+	
+	local equipped_secondary = managers.blackmarket:equipped_secondary()
+	
+	if weapon_id == equipped_primary.weapon_id then 
+		managers.hud:set_khud_weapon_killcount(1,stats:session_killed_by_weapon(weapon_id))
+	end
+	if weapon_id == equipped_secondary.weapon_id then 
+		managers.hud:set_khud_weapon_killcount(2,stats:session_killed_by_weapon(weapon_id))
+	end
+end
+
 --=======================--
 --***CARTOGRAPHER TOOL***--
 --=======================--

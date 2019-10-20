@@ -3,8 +3,6 @@ GET OU', I'M MODDING HERE.
 
 - Fixed "Hipfire Only" option for crosshair not applying 
 - Fixed Health Regen buff from Hostage Taker occasionally failing to remove itself after the hostage providing the proc is removed, resulting in a negative timer number
-- Fixed crashing from fire damage from explosive barrels/other invalid-weapon damage sources
-
 
 Priority TODO:
 - fix objectivehud not updating when objective amount (eg bag amount) reached

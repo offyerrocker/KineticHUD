@@ -1,19 +1,7 @@
+
 Hooks:PostHook(StatisticsManager,"killed","khud_statistics_killed",function(self,data)
-	if not data then return end
-	
-	local weapon_unit = data.weapon_unit
-	local weapon_id = weapon_unit and weapon_unit:base() and weapon_unit:base():get_name_id() or "bad weapon id! :("
-	
-	local equipped_primary = managers.blackmarket:equipped_primary()
-	
-	local equipped_secondary = managers.blackmarket:equipped_secondary()
-	
-	if weapon_id == equipped_primary.weapon_id then 
-		managers.hud:set_khud_weapon_killcount(1,self:session_killed_by_weapon(weapon_id))
-	end
-	if weapon_id == equipped_secondary.weapon_id then 
-		managers.hud:set_khud_weapon_killcount(2,self:session_killed_by_weapon(weapon_id))
-	end
+	pcall(callback(self,KineticHUD,"OnEnemyKilled",data,self))
+end)
 --[[
 	local stats_name = data.stats_name or "nil"
 	local name = data.name
@@ -40,4 +28,3 @@ Hooks:PostHook(StatisticsManager,"killed","khud_statistics_killed",function(self
 	local by_other_variant = not by_bullet and not by_melee and not by_explosion
 	
 	--]]	
-end)
