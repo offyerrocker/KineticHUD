@@ -12,7 +12,7 @@
 			"description" : "khud_quickchat_1_keybind_desc",
 			"keybind_id" : "khud_quickchat_1_keybind",
 			"run_in_game" : true,
-			"func" : "func_quickchat_1"
+			"func" : "khud_quickchat_1"
 		},
 		{
 			"type" : "keybind",
@@ -21,7 +21,7 @@
 			"description" : "khud_quickchat_2_keybind_desc",
 			"keybind_id" : "khud_quickchat_2_keybind",
 			"run_in_game" : true,
-			"func" : "func_quickchat_2"
+			"func" : "khud_quickchat_2"
 		},
 		{
 			"type" : "keybind",
@@ -30,7 +30,7 @@
 			"description" : "khud_quickchat_3_keybind_desc",
 			"keybind_id" : "khud_quickchat_3_keybind",
 			"run_in_game" : true,
-			"func" : "func_quickchat_3"
+			"func" : "khud_quickchat_3"
 		},
 		{
 			"type" : "keybind",
@@ -39,7 +39,16 @@
 			"description" : "khud_quickchat_4_keybind_desc",
 			"keybind_id" : "khud_quickchat_4_keybind",
 			"run_in_game" : true,
-			"func" : "func_quickchat_4"
+			"func" : "khud_quickchat_4"
+		},
+		{
+			"type" : "keybind",
+			"id" : "id_khud_hidechat_keybind",
+			"title" : "khud_hidechat_keybind_title",
+			"description" : "khud_hidechat_keybind_desc",
+			"keybind_id" : "khud_hidechat_keybind",
+			"run_in_game" : true,
+			"func" : "khud_hidechat"
 		}
 	]
 }

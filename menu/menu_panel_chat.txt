@@ -7,6 +7,40 @@
 	"priority" : 1,
 	"items" : [
 		{
+			"type" : "multiple_choice",
+			"id" : "khud_chat_display_mode",
+			"title" : "khud_chat_display_mode_title",
+			"description" : "khud_chat_display_mode_desc",
+			"callback" : "callback_khud_chat_display_mode",
+			"items" : [
+				"khud_chat_display_mode_a",
+				"khud_chat_display_mode_b",
+				"khud_chat_display_mode_c",
+				"khud_chat_display_mode_d"
+			],
+			"value" : "chat_display_mode"
+		},
+		{
+			"type" : "DISABLED_toggle",
+			"id" : "khud_chat_autohide",
+			"title" : "khud_chat_autohide_title",
+			"description" : "khud_chat_autohide_desc",
+			"callback" : "callback_khud_chat_autohide",
+			"value" : "chat_autohide"
+		},
+		{
+			"type" : "slider",
+			"id" : "khud_chat_lifetime",
+			"title" : "khud_chat_lifetime_title",
+			"description" : "khud_chat_lifetime_desc",
+			"callback" : "callback_khud_chat_lifetime",
+			"value" : "chat_lifetime",
+			"default_value" : 1,
+			"min" : 0,
+			"max" : 60,
+			"step" : 1
+		},
+		{
 			"type" : "toggle",
 			"id" : "khud_quickchat_antispam",
 			"title" : "khud_quickchat_antispam_title",

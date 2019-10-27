@@ -13,7 +13,7 @@ end)
 	local weapon_custom_name = weapon_unit and weapon_unit.custom_name
 	KineticHUD:c_log(KineticHUD:tbl_to_string({stats_name,name,name_id,_type,variant,head_shot,weapon_unit,weapon_id,weapon_name,weapon_custom_name}))
 	KineticHUD:t_log(data)
-	KineticHUD:c_log(KineticHUD:concat({stats_name,name,name_id,_type}))
+	KineticHUD:c_log(KineticHUD.concat({stats_name,name,name_id,_type}))
 	
 	KineticHUD:c_log(equipped_primary.weapon_id)
 	KineticHUD:c_log(equipped_primary.custom_name)

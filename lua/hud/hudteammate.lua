@@ -1062,7 +1062,7 @@ end)
 
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment_from_string","khud_set_deployable_from_string",function(self,data)
 	local index = data.index or managers.player._equipment.selected_index or 1
---		KineticHUD:c_log("set_deployable_equipment_from_string",KineticHUD:concat(data))
+--		KineticHUD:c_log("set_deployable_equipment_from_string",KineticHUD.concat(data))
 	local icon, texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 	local deployable_equipment_panel = self._khud_deployables_panel:child(index == 2 and "secondary_deployable" or "primary_deployable")
 	local equipment = deployable_equipment_panel:child("icon")--deployable_equipment_panel:child("equipment")

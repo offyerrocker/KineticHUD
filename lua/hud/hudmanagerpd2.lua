@@ -266,6 +266,33 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 			end
 		end
 	end
+	
+	local chat_frame = self._khud_base:child("hudchat_test_frame")
+	if (settings.chat_display_mode % 2 == 0) and (t - KineticHUD.chat_lifetime_t > settings.chat_lifetime) and (chat_frame:alpha() >= 1) and not (self._hud_chat:input_focus()) then
+		KineticHUD.chat_fadeout_desired = true
+		KineticHUD.chat_fadeout_t = t
+	end
+
+	if chat_frame:visible() then 
+		local chat_alpha = chat_frame:alpha()
+		local fade_t = t - KineticHUD.chat_fadeout_t
+		if KineticHUD.chat_fadeout_desired then 
+			if chat_alpha > 0 then 
+				if chat_alpha < 0.001 then 
+					chat_frame:set_visible(false)
+				else
+					chat_frame:set_alpha(chat_alpha * 0.8)
+				end
+			end
+		else
+			if chat_alpha < 1 then
+				chat_frame:set_alpha(chat_alpha + ((KineticHUD.asdfd or 4) * dt))
+				if chat_alpha >= 1 then 
+					chat_frame:set_visible(true)
+				end
+			end
+		end
+	end
 
 	if KineticHUD.scanner_left_timer then 
 		if KineticHUD.scanner_left_timer + 1 > Application:time() then 
@@ -1423,6 +1450,20 @@ function HUDManager:layout_khud_chat(params)
 	if params.scale then 
 		chat:set_khud_chat_scale(params.scale)
 	end
+end
+
+function HUDManager:toggle_khud_chat(state)
+--	local hudchat = self._hud_chat
+	--TODO anim fadeout
+Log("Hewwo? keybind press" .. tostring(KineticHUD.chat_fadeout_desired))
+	local frame = self._khud_base:child("hudchat_test_frame")
+--	if (state == nil) then 
+--		state = not frame:visible()
+--	end
+	frame:set_visible(true) --uncomment for instant action
+	KineticHUD.chat_fadeout_desired = not KineticHUD.chat_fadeout_desired
+	KineticHUD.chat_fadeout_t = Application:time()
+	KineticHUD.chat_lifetime_t = Application:time()
 end
 
 function HUDManager:set_khud_compass(params)

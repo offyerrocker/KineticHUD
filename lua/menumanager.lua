@@ -1330,6 +1330,8 @@ KineticHUD.default_settings = {
 	panel_chat_x = 700,
 	panel_chat_y = -125,
 	panel_chat_use_custom_xy = true,
+	chat_display_mode = 1, --1 is always on, 2 is autohide, 3 is show when new message, 4 is autohide+show when new message
+	chat_lifetime = 15,
 	
 	hud_enabled_downcounter_own = true,
 	
@@ -1404,6 +1406,8 @@ KineticHUD.downcounter_nine_lives = { --tracks extra lives, instead of just a bo
 	[420] = 0
 }
 
+KineticHUD.chat_lines = 0
+
 KineticHUD.quickchat_start_t = -420 --keep it dank, everyone
 KineticHUD.quickchat_lifetime = 3 --seconds until panel starts to fade away
 KineticHUD.quickchat_fadeout = nil --boolean
@@ -1422,6 +1426,10 @@ KineticHUD.max_tracked_ecms = 8
 KineticHUD.max_tracked_sentryguns = 6
 
 KineticHUD.assault_phase_name = "" --quick fix so that KineticHUD stops spamming logs with assault phase
+
+KineticHUD.chat_fadeout_desired = false
+KineticHUD.chat_fadeout_t = 0
+KineticHUD.chat_lifetime_t = 0
 
 --superimpose default settings over saved settings;
 --this way, new settings from updates are still loaded and written into savedata
@@ -1563,6 +1571,100 @@ function KineticHUD:get_quickchat_focus()
 	return KineticHUD.quickchat_focus
 end
 
+
+function KineticHUD.scan_colormacros(s) --unfinished and buggy as hecc
+	local splat = string.split(s,"<")
+	local result = {}
+	local result_string = s
+	if splat then 
+		local filters = {["color"] = true}
+		local stack = {}
+		result_string = ""
+		local is_indicator = false
+		local current_col = Color.white
+		local current_start = nil
+		local current_finish = nil
+		local cumulative_len = 0
+		for k,v in pairs(splat) do
+			local finish = string.find(v,">")
+--			print("FULL STRING: " .. v)
+			if finish then
+				local internal = string.sub(v,1,finish)
+--				print("INTERNAL " .. internal)
+				local c = string.find(internal,"/%a+>")
+				if c then
+					local unfilter = string.sub(v,c + 1,(finish or 1) - 1)
+					if filters[unfilter] then 
+						--valid filter
+						local a = string.sub(v,finish+1)
+						result_string = result_string .. a
+	--					print("A " .. a)
+						if current_start and current_finish then 
+							table.insert(result,{start = current_start,finish = current_finish,color = current_col})
+							
+							print("10 Added " .. string.sub(s,current_start,current_finish))
+						end
+						current_col = Color.white
+						
+						if string.len(a) > 0 then 
+							table.insert(result,{start = cumulative_len + finish + 1,finish = cumulative_len + finish + string.len(a),color = current_col})
+							
+							print("4 Added " .. string.sub(s,cumulative_len + finish + 1,cumulative_len + finish + string.len(a)))
+						end
+						
+						current_start = nil
+						current_finish = nil
+					else
+						print("1 Added " .. string.sub(s,cumulative_len,cumulative_len + string.len(v)))
+						table.insert(result,{start = cumulative_len,finish = cumulative_len + string.len(v),color = current_col})
+						result_string = result_string .. v
+					end
+--					print("UNFILTER [" .. unfilter .. "]")
+--[[
+					if stack[#stack] == unfilter then 
+						stack[#stack] = nil
+					end
+--]]
+
+				else
+					local b = string.find(v,"=")
+					local filter = string.sub(v,1,(b or finish) - 1) or ""
+					if filters[filter] then 
+						
+						current_col = string.sub(v,(b or 0)+1,finish - 1)
+						if filter and string.len(filter) > 0 then 
+							current_start = cumulative_len + finish + 1
+							current_finish = current_start + string.len(string.sub(v,finish + 2))-- cumulative_len + ((b and b - 1) or string.len(filter))
+							print("6 " .. string.sub(v,finish + 1))
+						end
+						result_string = result_string .. string.sub(v,finish + 1)
+					else
+						print("2 Added " .. string.sub(s,cumulative_len,cumulative_len + string.len(v)))
+						table.insert(result,{start = cumulative_len,finish = cumulative_len + string.len(v),color = current_col})
+						result_string = result_string .. v
+					end
+--[[				
+					if stack[#stack] ~= filter then 
+						table.insert(stack,filter)
+					end
+--]]
+--					print("FILTER [" .. filter .. "]")
+--					print("B " .. string.sub(v,(b or 0)+1,finish - 1))
+				end
+			else
+				print("3 Added " .. string.sub(s,cumulative_len,cumulative_len + string.len(v)))
+				table.insert(result,{start = cumulative_len,finish = cumulative_len + string.len(v),color = current_col})
+				result_string = result_string .. v
+			end
+			cumulative_len = cumulative_len + 1 + string.len(v)
+		end
+	end
+	PrintTable(splat)
+--	Log("scanned " .. tostring(result_string),{color = Color.green})
+	return result,result_string
+end
+
+
 function KineticHUD:play_criminal_sound(id)	
 	if Utils:IsInHeist() and Utils:IsInCustody() == false and Utils:IsInGameState() then 
 		managers.player:local_player():sound():say(id,true,true) --"i'm helping you up"
@@ -1619,10 +1721,14 @@ function KineticHUD:trunc(str,length) --i think i was gonna do something more co
 	return string.sub(str,1,length)
 end
 
-function KineticHUD:_log(data,name)
+function KineticHUD:_log(data,text)
 	if not self.settings.show_debug then return end
-	name = name and (tostring(name) .. " : ") or ""
-	log("KineticHUD: " .. name .. tostring(data))
+	text = "KineticHUD: " .. (text and (tostring(text) .. " : ") or "") .. tostring(data)
+	if not Console then 
+		log(text)
+	else
+		Console:Log(text,{color = self.quality_colors.haunted})
+	end
 end
 
 function KineticHUD:t_log(tbl,name,result,tier_limit,tier,return_result)
@@ -1679,9 +1785,9 @@ function KineticHUD:c_log(data,name)
 	end
 end
 
-function KineticHUD:concat(tbl,div)
+function KineticHUD.concat(tbl,div)
 	div = tostring(div or ",")
-	if not type(tbl) == "table" then 
+	if not (tbl and type(tbl) == "table") then 
 		return "{non-table value}"
 	end
 	local str
@@ -2531,6 +2637,7 @@ end)
 
 Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
 --	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_keybinds.txt", KineticHUD, KineticHUD:GetSettings())
+--	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_main.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_quickchat.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_crosshair.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_downcounter.txt", KineticHUD, KineticHUD:GetSettings())
@@ -2546,7 +2653,21 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_player_name.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_name.txt", KineticHUD, KineticHUD:GetSettings())
 	MenuHelper:LoadFromJsonFile(KineticHUD._path .. "menu/menu_panel_team_health.txt", KineticHUD, KineticHUD:GetSettings())
+
 	--[[
+	MenuHelper:AddKeybinding({
+		id = "id_khud_hidechat_keybind",
+		title = "khud_hidechat_keybind_title",
+		description = "khud_hidechat_keybind_desc",
+		callback = "khud_hidechat",
+		connection_name = "khud_hidechat_keybind",
+		binding = "Y",
+--		button = "Y",
+		menu_id = "khud_mainmenu",
+		priority = 1
+	})	
+	khud_hidechat
+	
 	for num,v in pairs (binds) do 
 		local key_name = v and v.key
 		MenuHelper:AddKeybinding({
@@ -2627,12 +2748,22 @@ end)
 Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", function(menu_manager, nodes)
     nodes[menu_id] = MenuHelper:BuildMenu( menu_id )
     MenuHelper:AddMenuItem( nodes.options, menu_id, "khud_mainmenu_title", "khud_mainmenu_desc","blt_options","before")
-
 end)
 
 Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)
 	
 	--====================== CHAT ======================	
+	MenuCallbackHandler.callback_khud_chat_display_mode = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.chat_display_mode = value
+		KineticHUD:Save()
+	end	
+	
+	MenuCallbackHandler.callback_khud_chat_lifetime = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.chat_lifetime = value
+		KineticHUD:Save()
+	end
 	MenuCallbackHandler.callback_khud_panel_chat_x = function(self,item)
 		local value = tonumber(item:value())
 		KineticHUD.settings.panel_chat_x = value
@@ -2683,18 +2814,25 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		end
 	end
 	
+	--[[
+	MenuCallbackHandler.khud_hidechat = function(self)
+		managers.hud:toggle_khud_chat()
+		Log("togglechat keybind ")
+		KineticHUD:Save()
+	end
+	--]]
 	
 	--====================== QUICKCHAT ======================	
-	MenuCallbackHandler.func_quickchat_1 = function(self)
+	MenuCallbackHandler.khud_quickchat_1 = function(self)
 		managers.hud:refresh_quickchat_menu(1)
 	end
-	MenuCallbackHandler.func_quickchat_2 = function(self)
+	MenuCallbackHandler.khud_quickchat_2 = function(self)
 		managers.hud:refresh_quickchat_menu(2)
 	end
-	MenuCallbackHandler.func_quickchat_3 = function(self)
+	MenuCallbackHandler.khud_quickchat_3 = function(self)
 		managers.hud:refresh_quickchat_menu(3)
 	end
-	MenuCallbackHandler.func_quickchat_4 = function(self)
+	MenuCallbackHandler.khud_quickchat_4 = function(self)
 		managers.hud:refresh_quickchat_menu(4)
 	end
 	

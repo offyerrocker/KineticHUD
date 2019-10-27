@@ -4,6 +4,7 @@
 --Hooks:PostHook(HUDChat,"_layout_input_panel","khud_layout_chat_input",function(self)
 --end)
 
+
 function HUDChat:set_khud_chat_scale(scale)
 	if not scale then return end
 	
@@ -25,7 +26,7 @@ function HUDChat:set_khud_chat_scale(scale)
 --	self._input_panel:child(
 	
 end
-
+--[[
 Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,
@@ -36,8 +37,119 @@ Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
 		Color.white:with_alpha(0)
 	})
 end)
+--]]
 
+
+Hooks:PostHook(HUDChat,"receive_message","khud_hudchat_receive_message",function(self,name,message,color,icon)
+	local dewit = (KineticHUD.chat_lines % 2) == 0
+--	Log(KineticHUD.concat({dewit,KineticHUD.chat_lines,name,message,color,icon}),{color = Color.yellow})
+	
+	if dewit then 
+		local infamy_icon = true
+	--todo init that v
+		local text_margin_x = 2
+		local text_margin_y = 2
+		local text_y = 0 --default
+		local font_size = 12
+		
+		local frame = managers.hud._khud_base:child("hudchat_test_frame")
+--		managers.hud._khud_base:child("hudchat_test_frame"):child("chatlog")
+		
+		local chatlog = frame:child("chatlog")
+		local previous_line = chatlog:child("message_" .. KineticHUD.chat_lines - 2)
+		if alive(previous_line) then
+			local _,y,_,h = previous_line:text_rect()
+			text_y = (y - chatlog:y()) + h + text_margin_y
+		end
+		
+		
+		--[[
+		local sender = chatlog:text({
+			name = "sender_" .. KineticHUD.chat_lines,
+			layer = 1,
+			x = 0,
+			y = text_y,
+			text = name,
+			font = tweak_data.hud.medium_font,
+			font_size = font_size,
+			color = color
+		})
+		local _,_,sender_w,_ = sender:text_rect()
+		--]]
+		local color_data,processed_message = KineticHUD.scan_colormacros(message)
+		local line = chatlog:text({
+			name = "message_" .. KineticHUD.chat_lines,
+			layer = 1,
+			x = 0 + text_margin_x,
+			y = text_y,
+			text = name .. ": " .. processed_message,
+			font = tweak_data.hud.medium_font,
+			font_size = font_size,
+			color = Color.white
+		})
+		
+		
+		local namelen = utf8.len(name) + 1
+		
+		for k,v in pairs(color_data) do 
+			local col = Color[v.color] or KineticHUD.quality_colors[v.color]
+			line:set_range_color(v.start,v.finish,((type(col) == type(Color.white)) and col) or Color.white)
+		end
+		
+		line:set_range_color(0, namelen, color)
+--		line:set_range_color(namelen, utf8.len(line:text()), Color(1,1,0))
+		
+--[[
+		local ell2 = math.max(utf8.len(line:text()) - 4,1)
+		line:set_range_color(namelen, ell2, Color(1,1,0))
+		line:set_range_color(ell2, utf8.len(line:text()), Color.white)
+	--]]
+--		Log("Message:" .. tostring(message),{color = Color.orange})
+		local _,_,_,h = line:text_rect()
+		
+		chatlog:set_y(chatlog:y() - (h + text_margin_y))
+	end
+	KineticHUD.chat_lines = KineticHUD.chat_lines + 1
+	
+	--todo flashy fucking colors, cause i'm cool
+	--todo macro replace given chars
+	--todo macro replace given colors?
+	
+	
+end)
+
+
+
+Hooks:PostHook(HUDChat,"_on_focus","khud_on_chatfocus",function(self)
+	if (KineticHUD.settings.chat_display_mode % 2) == 0 then
+		KineticHUD.chat_fadeout_desired = false
+		KineticHUD.chat_fadeout_t = Application:time()
+		KineticHUD.chat_lifetime_t = Application:time()
+	end
+end)
+	
+	
 Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
+	local hud = managers.hud._khud_base
+	if not hud then 
+		KineticHUD:_log("Help!")
+		return
+	end
+	local hudchat_test_frame = hud:panel({
+		name = "hudchat_test_frame",
+		w = 400,
+		h = 400
+	})
+	local chatlog = hudchat_test_frame:panel({
+		name = "chatlog",
+		y = 400
+	})
+	local hudchat_test_debug = hudchat_test_frame:rect({
+		name = "hudchat_test_debug",
+		color = Color.red:with_alpha(0.3),
+		visible = true
+	})
+	
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,
 		Color.white:with_alpha(0),
