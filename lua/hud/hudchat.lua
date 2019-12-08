@@ -52,17 +52,17 @@ Hooks:PostHook(HUDChat,"receive_message","khud_hudchat_receive_message",function
 		
 		
 --
-		local sender = chatlog:text({
-			name = "sender_" .. KineticHUD.chat_lines,
-			layer = 1,
-			x = 0,
-			y = text_y,
-			text = name,
-			font = tweak_data.hud.medium_font,
-			font_size = font_size,
-			color = color
-		})
-		local _,_,sender_w,_ = sender:text_rect()
+--	local sender = chatlog:text({
+--		name = "sender_" .. KineticHUD.chat_lines,
+--		layer = 1,
+--		x = 0,
+--		y = text_y,
+--		text = name,
+--		font = tweak_data.hud.medium_font,
+--		font_size = font_size,
+--		color = color
+--	})
+--	local _,_,sender_w,_ = sender:text_rect()
 --
 		local color_data,processed_message = KineticHUD.scan_colormacros(message)
 		local line = chatlog:text({
@@ -119,6 +119,7 @@ Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 	end
 	local hudchat_test_frame = hud:panel({
 		name = "hudchat_test_frame",
+		visible = false,
 		w = 400,
 		h = 400
 	})

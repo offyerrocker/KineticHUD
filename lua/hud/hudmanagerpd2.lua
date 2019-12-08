@@ -1455,10 +1455,7 @@ function HUDManager:toggle_khud_chat(state)
 --	local hudchat = self._hud_chat
 	--TODO anim fadeout
 	local frame = self._khud_base:child("hudchat_test_frame")
---	if (state == nil) then 
---		state = not frame:visible()
---	end
-	frame:set_visible(true) --uncomment for instant action
+	frame:set_visible(true)
 	KineticHUD.chat_fadeout_desired = not KineticHUD.chat_fadeout_desired
 	KineticHUD.chat_fadeout_t = Application:time()
 	KineticHUD.chat_lifetime_t = Application:time()
