@@ -2089,9 +2089,8 @@ function KineticHUD:GetCartographerData(map_id)
 	end
 end
 
-function KineticHUD:OnEnemyKilled(stats,data)
+function KineticHUD:OnEnemyKilled(data,stats)
 	if not data then return end
-	
 	local weapon_unit = data.weapon_unit
 	local weapon_id = "bad weapon id! :("
 	if weapon_unit then 

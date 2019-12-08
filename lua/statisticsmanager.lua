@@ -1,7 +1,12 @@
 
-Hooks:PostHook(StatisticsManager,"killed","khud_statistics_killed",function(self,data)
-	pcall(callback(self,KineticHUD,"OnEnemyKilled",data,self))
+Hooks:PostHook(StatisticsManager,"killed","khud_statistics_onkill",function(self,data)
+	local stat, err = pcall(function ()
+		KineticHUD:OnEnemyKilled(data,self)
+	end)
+--	Log(tostring(stat) .. "," .. tostring(err or ""))
 end)
+
+
 --[[
 	local stats_name = data.stats_name or "nil"
 	local name = data.name

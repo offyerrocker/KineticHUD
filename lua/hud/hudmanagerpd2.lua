@@ -103,7 +103,6 @@ Hooks:PostHook(HUDManager,"update","khud_hudmanager_update",function(self,t,dt)
 				--theoretically, the raycast position (assuming perfect accuracy) at [crosshair_stability] meters;
 				--practically, the higher the number, the less sway shake
 				local ws = self:workspace("fullscreen_workspace", "menu") or self._workspace
-				Console.zzzz = ws
 				local c_p = ws:world_to_screen(viewport_cam,state:get_fire_weapon_position() + (state:get_fire_weapon_direction() * crosshair_stability))
 				if ws and ws:panel() and ws:panel().w and hud_parent.w then 
 					c_w = hud_parent:w() * c_p.x / ws:panel():w()
@@ -1455,7 +1454,6 @@ end
 function HUDManager:toggle_khud_chat(state)
 --	local hudchat = self._hud_chat
 	--TODO anim fadeout
-Log("Hewwo? keybind press" .. tostring(KineticHUD.chat_fadeout_desired))
 	local frame = self._khud_base:child("hudchat_test_frame")
 --	if (state == nil) then 
 --		state = not frame:visible()
