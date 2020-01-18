@@ -1,8 +1,7 @@
 OI! WHAT'RE YEW DOIN' IN MY SWAMP?
 GET OU', I'M MODDING HERE.
 
-- Fixed "Hipfire Only" option for crosshair not applying 
-- Fixed Health Regen buff from Hostage Taker occasionally failing to remove itself after the hostage providing the proc is removed, resulting in a negative timer number
+- Reinforced StatisticsManager:killed() killtracker with bulldozer-grade Vibranium, so it should not crash anyone anymore for any reason
 
 Priority TODO:
 - fix objectivehud not updating when objective amount (eg bag amount) reached

@@ -132,7 +132,7 @@ end)
 Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 	local hud = managers.hud._khud_base
 	if not hud then 
-		KineticHUD:_log("Help!")
+		KineticHUD:_log("No khud base found")
 		return
 	end
 	local hudchat_test_frame = hud:panel({
@@ -147,7 +147,7 @@ Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 	local hudchat_test_debug = hudchat_test_frame:rect({
 		name = "hudchat_test_debug",
 		color = Color.red:with_alpha(0.3),
-		visible = true
+		visible = false
 	})
 	
 	self._input_panel:child("input_bg"):set_gradient_points({

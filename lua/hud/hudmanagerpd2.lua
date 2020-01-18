@@ -1455,7 +1455,7 @@ end
 function HUDManager:toggle_khud_chat(state)
 --	local hudchat = self._hud_chat
 	--TODO anim fadeout
-Log("Hewwo? keybind press" .. tostring(KineticHUD.chat_fadeout_desired))
+--Log("Hewwo? keybind press" .. tostring(KineticHUD.chat_fadeout_desired))
 	local frame = self._khud_base:child("hudchat_test_frame")
 --	if (state == nil) then 
 --		state = not frame:visible()
