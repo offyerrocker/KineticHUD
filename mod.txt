@@ -3,7 +3,7 @@
 	"description" : "Buffs tracker, QuickChat, ECM Timer, and more!",
 	"author" : "Offyerrocker"
 	"contact" : "Discord: Offyerrocker#3878",
-	"version" : "v0.14 beta",
+	"version" : "v0.142 beta",
 	"blt_version" : 2,
 	"image" : "khud.png",
 	"color" : "255 234 99",
@@ -206,15 +206,6 @@
 			"run_in_game" : true,
 			"run_in_menu" : false,
 			"script_path" : "lua/keybinds/firemode_safe.lua",
-			"localized" : true
-		},
-		{
-			"keybind_id" : "id_khud_hidechat_keybind",
-			"name" : "khud_hidechat_keybind_title",
-			"description" : "khud_hidechat_keybind_desc",
-			"run_in_game" : true,
-			"run_in_menu" : false,
-			"script_path" : "lua/keybinds/hidechat_keybind.lua",
 			"localized" : true
 		}
 	]

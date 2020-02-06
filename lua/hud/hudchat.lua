@@ -26,18 +26,6 @@ function HUDChat:set_khud_chat_scale(scale)
 --	self._input_panel:child(
 	
 end
---[[
-Hooks:PostHook(HUDChat,"update_caret","khud_update_hudchat_caret",function(self)
-	self._input_panel:child("input_bg"):set_gradient_points({
-		0,
-		Color.white:with_alpha(0),
-		0.2,
-		Color.white:with_alpha(0.25),
-		1,
-		Color.white:with_alpha(0)
-	})
-end)
---]]
 
 
 Hooks:PostHook(HUDChat,"receive_message","khud_hudchat_receive_message",function(self,name,message,color,icon)
@@ -63,19 +51,19 @@ Hooks:PostHook(HUDChat,"receive_message","khud_hudchat_receive_message",function
 		end
 		
 		
-		--[[
-		local sender = chatlog:text({
-			name = "sender_" .. KineticHUD.chat_lines,
-			layer = 1,
-			x = 0,
-			y = text_y,
-			text = name,
-			font = tweak_data.hud.medium_font,
-			font_size = font_size,
-			color = color
-		})
-		local _,_,sender_w,_ = sender:text_rect()
-		--]]
+--
+--	local sender = chatlog:text({
+--		name = "sender_" .. KineticHUD.chat_lines,
+--		layer = 1,
+--		x = 0,
+--		y = text_y,
+--		text = name,
+--		font = tweak_data.hud.medium_font,
+--		font_size = font_size,
+--		color = color
+--	})
+--	local _,_,sender_w,_ = sender:text_rect()
+--
 		local color_data,processed_message = KineticHUD.scan_colormacros(message)
 		local line = chatlog:text({
 			name = "message_" .. KineticHUD.chat_lines,
@@ -99,12 +87,6 @@ Hooks:PostHook(HUDChat,"receive_message","khud_hudchat_receive_message",function
 		line:set_range_color(0, namelen, color)
 --		line:set_range_color(namelen, utf8.len(line:text()), Color(1,1,0))
 		
---[[
-		local ell2 = math.max(utf8.len(line:text()) - 4,1)
-		line:set_range_color(namelen, ell2, Color(1,1,0))
-		line:set_range_color(ell2, utf8.len(line:text()), Color.white)
-	--]]
---		Log("Message:" .. tostring(message),{color = Color.orange})
 		local _,_,_,h = line:text_rect()
 		
 		chatlog:set_y(chatlog:y() - (h + text_margin_y))
@@ -137,6 +119,7 @@ Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 	end
 	local hudchat_test_frame = hud:panel({
 		name = "hudchat_test_frame",
+		visible = false,
 		w = 400,
 		h = 400
 	})
