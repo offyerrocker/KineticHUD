@@ -862,7 +862,7 @@ Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
 	local hp_r = data.current / data.total
 	local revives = data.revives
 	local health_panel = self._khud_health_panel
-	if not health_panel then 
+	if not alive(health_panel) then 
 		return 
 	end
 
@@ -875,7 +875,7 @@ end)
 
 Hooks:PostHook(HUDTeammate,"set_armor","khud_set_armor",function(self,data)
 	local health_panel = self._khud_health_panel
-	if not health_panel then 
+	if not alive(health_panel) then 
 		return
 	end
 	local current = data.current
@@ -912,6 +912,7 @@ end)
 
 Hooks:PostHook(HUDTeammate,"update_delayed_damage","khud_update_stoic_bar",function(self)
 --	if self._main_player then 
+	if alive(self._khud_health_panel) then 
 		local damage = self._delayed_damage or 0
 
 		local health_panel = self._khud_health_panel
@@ -949,11 +950,12 @@ Hooks:PostHook(HUDTeammate,"update_delayed_damage","khud_update_stoic_bar",funct
 		stoic_hp:set_w( stoic_hp_dmg )
 
 		--todo animate flash when delayed damage is more than current hp
---	end
+	end
 end)
 
 Hooks:PostHook(HUDTeammate,"set_stored_health_max","khud_set_stored_health_max",function(self,stored_health_ratio)
 --	if self._main_player then 
+	if alive(self._khud_health_panel) then 
 		local health_panel = self._khud_health_panel
 		local stored_hp_bar_bg = health_panel:child("bar_stored_hp_bg")
 		stored_hp_bar_bg:set_visible(stored_health_ratio > 0)
@@ -961,11 +963,12 @@ Hooks:PostHook(HUDTeammate,"set_stored_health_max","khud_set_stored_health_max",
 		local stored_hp_max = stored_health_ratio * hp_bg:w()
 		stored_hp_bar_bg:set_w(stored_hp_max)
 		stored_hp_bar_bg:set_x(hp_bg:x() + hp_bg:w() + - stored_hp_max)
---	end
+	end
 end)
 
 Hooks:PostHook(HUDTeammate,"set_stored_health","khud_set_stored_health",function(self,stored_health_ratio)
 --	if self._main_player then 
+	if alive(self._khud_health_panel) then 
 		local health_panel = self._khud_health_panel
 		local hp_bg = health_panel:child("bar_hp_bg_panel")
 		local stored_hp_bar = health_panel:child("bar_stored_hp")
@@ -975,12 +978,13 @@ Hooks:PostHook(HUDTeammate,"set_stored_health","khud_set_stored_health",function
 		local stored_hp = stored_health_ratio * hp_max_w
 		stored_hp_bar:set_x(hp_bg:x() + (hp_bg:w() + - stored_hp))
 		stored_hp_bar:set_w(stored_hp)
---	end
+	end
 end)
 
 Hooks:PostHook(HUDTeammate,"set_absorb_active","khud_set_absorb",function(self,absorb_amount)
 --	if self._main_player then  --this one is damage dealt
 		--add to buff instead?
+	if alive(self._khud_health_panel) then 
 		local absorb_panel = self._khud_health_panel:child("bar_absorb_panel")
 		local absorb_active = absorb_panel:child("bar_absorb_active_rect")
 		local absorb_stacks = absorb_panel:child("bar_absorb_rect")
@@ -993,7 +997,7 @@ Hooks:PostHook(HUDTeammate,"set_absorb_active","khud_set_absorb",function(self,a
 			managers.player:remove_buff("hysteria")
 		end
 --		absorb_panel_active:set_w(absorb_amount
---	end
+	end
 end)
 
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment","khud_set_deployable_equipment",function(self,data) 
