@@ -1,0 +1,3 @@
+{
+	"kinetichud" : "KineticHUD"
+}
