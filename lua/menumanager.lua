@@ -219,319 +219,70 @@ end
 
 KineticHUD._mod_path = KineticHUD._mod_path or mod_path
 
-function KineticHUD:Setup()
+--Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
+function KineticHUD:Setup(parent_panel)
+	self._gui = World:newgui()
+	self:CreateWorldPanels()
+	self:CreateHUD(parent_panel)
+	
 	BeardLib:AddUpdater("kinetichud_update",callback(self,self,"Update"))
 	
 	self:RegisterUpdateCheckPlayer()
-	self._gui = World:newgui()
 end
 
-function KineticHUD:Test()
-	self:CreateLeftPanel()
-	self:CreateRightPanel()
-	self:CreateTopPanel()
-	self:CreateBottomPanel()
-end
-
-function KineticHUD:CreateLeftPanel()
-
-	--placeholders until the panel is linked
-	local actual_w = 1000
-	local actual_h = 1000
-	
-	self._left_ws = self._gui:create_world_workspace(actual_w,actual_h,Vector3(),Vector3(),Vector3())
-	
-	self._left_panel = self._left_ws:panel():panel({
-		name = "khud_realpanel_test",
-		layer = 1
-	})
-	
-	self._left_panel:text({
-		name = "testxt",
-		color=Color.white,
-		font = self._fonts.grotesk,
-		text = "hello and welcome to zombocom",
-		vertical = "center",
-		align = "center",
-		layer = 1,
-		font_size = 32
-	})
-	self._left_panel:rect({
-		color=Color.red,
-		layer = 0,
-		alpha = 0.2
-	})
-end
-
-function KineticHUD:CreateRightPanel()
-	
-	local player = managers.player:local_player()
-	local gui_object = player:camera()._camera_object
-	
-	local onscreen_w = 5
-	local onscreen_h = 10
-	local actual_w = 1000
-	local actual_h = 1000
-	
-	local ra = gui_object:rotation()
-	
-	local rb = Rotation(-15,90,0)
-	
-	local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-	
-	local x_axis = Vector3(onscreen_w,0,0)
-	
-	mvector3.rotate_with(x_axis,rot)
-	
-	local y_axis = Vector3(0,-onscreen_h,0)
-	
-	mvector3.rotate_with(y_axis,rot)
-	
-	local center = Vector3(onscreen_w / 2,-onscreen_h / 2)
-	
-	mvector3.rotate_with(center,rot)
-	
-	local offset = Vector3(5,0,-10)
-		--x+ is distance right
-		--y+ is distance upward
-		--z+ is distance backward
+--Create world panels to be linked later, and stores them in a table. 
+function KineticHUD:CreateWorldPanels()
+	for i,panel_data in pairs(self.hud_values.world_panels) do 
+		local panel_w = panel_data.GUI_W
+		local panel_h = panel_data.GUI_H
+		local panel_name = panel_data.name
+		local panel_text = panel_data.TEXT
+		local rect_color = panel_data.RECT_COLOR
 		
-	mvector3.rotate_with(offset,rot)
+		local ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
 	
-	local position = gui_object:position()
-	
-	self._right_ws = self._gui:create_world_workspace(actual_w,actual_h,position,x_axis,y_axis)
-	
-	self._right_ws:set_linked(actual_w,actual_h,gui_object,position - center + offset,x_axis,y_axis)
-	
-	
-	
-	self._right_panel = self._right_ws:panel():panel({
-		name = "khud_realpanel_test",
-		layer = 1
-	})
-	
-	self._right_panel:text({
-		name = "testxt",
-		color=Color.white,
-		font = self._fonts.grotesk_bold,
-		text = "this is zombocom",
-		vertical = "center",
-		align = "center",
-		layer = 1,
-		font_size = 32
-	})
-	self._right_panel:rect({
-		color=Color.blue,
-		layer = 0,
-		alpha = 0.2
-	})
-end
-
-function KineticHUD:CreateTopPanel()
-	
-	local player = managers.player:local_player()
-	local gui_object = player:camera()._camera_object
-	
-	local onscreen_w = 11
-	local onscreen_h = 7
-	local actual_w = 1000
-	local actual_h = 1000
-	
-	local ra = gui_object:rotation()
-	
-	local rb = Rotation(0,90 + 5,0)
-	
-	local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-	
-	local x_axis = Vector3(onscreen_w,0,0)
-	
-	mvector3.rotate_with(x_axis,rot)
-	
-	local y_axis = Vector3(0,-onscreen_h,0)
-	
-	mvector3.rotate_with(y_axis,rot)
-	
-	local center = Vector3(onscreen_w / 2,-onscreen_h / 2)
-	
-	mvector3.rotate_with(center,rot)
-	
-	local offset = Vector3(0,2,-10)
-		--x+ is distance right
-		--y+ is distance upward
-		--z+ is distance backward
+		local panel = ws:panel():panel({
+			name = panel_name,
+			layer = 1
+		})
 		
-	mvector3.rotate_with(offset,rot)
-	
-	local position = gui_object:position()
-	
-	self._top_ws = self._gui:create_world_workspace(actual_w,actual_h,position,x_axis,y_axis)
-	
-	self._top_ws:set_linked(actual_w,actual_h,gui_object,position - center + offset,x_axis,y_axis)
-	
-	
-	
-	self._top_panel = self._top_ws:panel():panel({
-		name = "khud_realpanel_test",
-		layer = 1
-	})
-	
-	self._top_panel:text({
-		name = "testxt",
-		color=Color.white,
-		font = self._fonts.cromwell,
-		text = "you can do anything at zombocom",
-		vertical = "center",
-		align = "center",
-		layer = 1,
-		font_size = 32
-	})
-	self._top_panel:rect({
-		color=Color.green,
-		layer = 0,
-		alpha = 0.2
-	})
-end
-
-function KineticHUD:CreateBottomPanel()
-	
-	local player = managers.player:local_player()
-	local gui_object = player:camera()._camera_object
-	
-	local onscreen_w = 11
-	local onscreen_h = 7
-	local actual_w = 1000
-	local actual_h = 1000
-	
-	local ra = gui_object:rotation()
-	
-	local rb = Rotation(0,90 - 5,0)
-	
-	local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-	
-	local x_axis = Vector3(onscreen_w,0,0)
-	
-	mvector3.rotate_with(x_axis,rot)
-	
-	local y_axis = Vector3(0,-onscreen_h,0)
-	
-	mvector3.rotate_with(y_axis,rot)
-	
-	local center = Vector3(onscreen_w / 2,-onscreen_h / 2)
-	
-	mvector3.rotate_with(center,rot)
-	
-	local offset = Vector3(0,-2,-10)
-		--x+ is distance right
-		--y+ is distance upward
-		--z+ is distance backward
+		local text = panel:text({
+			name = "text",
+			color = Color.white,
+			font = self._fonts.grotesk,
+			text = panel_text,
+			vertical = "center",
+			align = "center",
+			layer = 2,
+			font_size = 32
+		})
+		local rect = panel:rect({
+			color = rect_color,
+			layer = 1,
+			alpha = 0.2
+		})
 		
-	mvector3.rotate_with(offset,rot)
-	
-	local position = gui_object:position()
-	
-	self._bottom_ws = self._gui:create_world_workspace(actual_w,actual_h,position,x_axis,y_axis)
-	
-	self._bottom_ws:set_linked(actual_w,actual_h,gui_object,position - center + offset,x_axis,y_axis)
-	
-	
-	
-	self._bottom_panel = self._bottom_ws:panel():panel({
-		name = "khud_realpanel_test",
-		layer = 1
-	})
-	
-	self._bottom_panel:text({
-		name = "testxt",
-		color=Color.white,
-		font = self._fonts.cromwell,
-		text = "the unattainable is unknown at zombocom",
-		vertical = "center",
-		align = "center",
-		layer = 1,
-		font_size = 32
-	})
-	self._bottom_panel:rect({
-		color=Color.yellow,
-		layer = 0,
-		alpha = 0.2
-	})
+		self._workspaces[panel_name] = ws
+		self._world_panels[i] = panel
+	end
 end
 
-function KineticHUD:Test2()
-	local player = managers.player:local_player()
-	local gui_object = player:camera()._camera_object
---	local gui_object = player:orientation_object()
-	
-	self._gui = World:newgui()
-	
-	local onscreen_w = 100
-	local onscreen_h = 100
-	local actual_w = 5000
-	local actual_h = 5000
-	
-	local ra = gui_object:rotation()
-	
-	local rb = Rotation(0,90,0)
-	
-	local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-	
-	
-	
-	
-	local x_axis = Vector3(onscreen_w,0,0)
-	
-	mvector3.rotate_with(x_axis,rot)
-	
-	local y_axis = Vector3(0,-onscreen_h,0)
-	
-	mvector3.rotate_with(y_axis,rot)
-	
-	local center = Vector3(onscreen_w / 2,-onscreen_h / 2)
-	
-	mvector3.rotate_with(center,rot)
-	
-	local offset = Vector3(0,0,-10)
-		--z+ is distance backward
-		--y+ is distance upward
-		
-	mvector3.rotate_with(offset,rot)
-	
-	local position = gui_object:position()
-	
-	self._ws = self._gui:create_world_workspace(actual_w,actual_h,position,x_axis,y_axis)
-	
-	self._ws:set_linked(actual_w,actual_h,gui_object,position - center + offset,x_axis,y_axis)
-	
-	
-	
-	self._panel = self._ws:panel():panel({
-		name = "khud_realpanel_test",
-		layer = 1
-	})
-	
-	self._panel:text({
-		name = "testxt",
-		color=Color.white,
-		font = self._fonts.grotesk,
-		text = "hello and welcome to zombocom",
-		vertical = "center",
-		align = "center",
-		font_size = 32
-	})
-	
-	self._rect = self._panel:rect({
-		color=Color.red,
-		alpha = 0.5
-	})
-end
-
+--Creates the main HUD elements onto the appropriate panel, depending on user options.
+--Safe to call multiple times, as it removes preexisting duplicate HUD elements.
 function KineticHUD:CreateHUD(parent_panel)
+		
 	self._parent_panel = parent_panel
+	if alive(self._base)  then 
+		parent_panel:remove(self._base)
+	end
 	local base = parent_panel:panel({
 		name = "kinetichud"
 	})
 	self._panel = base
+	
+	self:CreatePlayerVitals()
+	
+	--[[
 
 	--create teammates panel
 	self._teammates = base:panel({
@@ -542,38 +293,112 @@ function KineticHUD:CreateHUD(parent_panel)
 		name = "player"
 	})
 	self:_create_player(self._player)
-	
+--]]	
 	
 end
 
-function KineticHUD:LinkWS(link_target_object)
+--Creates the a HUD element to hold:
+--The player's health, armor, damage absorption, stored health, and revives.
+function KineticHUD:CreatePlayerVitals()
+	local selected_parent_panel = self._world_panels[4]
+	local scale = self.settings.player_panel_scale
+	
+	local vitals_panel = selected_parent_panel:panel({
+		name = "vitals_master",
+		visible = true
+		--todo custom x/y here
+	})
+	
+--VITALS
+--[[
+	local armor_label = vitals_panel:text({
+		name = "armor_label",
+		text = "AP",
+		color = Color.white,
+		font = self._fonts.grotesk,
+		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
+		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale,
+		align = "left",
+		layer = 2,
+		font_size = 32
+	})
+	local a_w,a_h,a_x,a_y = armor_label:text_rect()
+	--]]
+	local armor_bar = vitals_panel:bitmap({
+		name = "armor_bar",
+		texture = "textures/ui/health_bar",
+		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
+		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
+		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
+		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
+	})
+	local armor_fill = vitals_panel:bitmap({
+		name = "armor_fill",
+		texture = "textures/ui/health_fill",
+		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
+		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
+		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
+		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
+	})
 
-	if alive(self._left_panel) then 
-			
-		local onscreen_w = 5
-		local onscreen_h = 10
-		local actual_w = 1000
-		local actual_h = 1000
+	local health_bar = vitals_panel:bitmap({
+		name = "health_bar",
+		texture = "textures/ui/health_bar",
+		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
+		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
+		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
+		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
+	})
+	
+	local health_fill = vitals_panel:bitmap({
+		name = "health_fill",
+		texture = "textures/ui/health_fill",
+		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
+		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
+		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
+		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
+	})
+	
+end
+
+function KineticHUD:LayoutPlayerVitals()
+
+end
+
+
+--Links world panels created from CreateWorldPanels() to the player camera object.
+--If successfully attempted to link at least one panel, returns true. Else, returns false.
+--Returns: bool
+function KineticHUD:LinkWS(link_target_object)
+	local done_any = false
+	for i,panel in pairs(self._world_panels) do 
+		local hv = self.hud_values.world_panels[i]
+		local workspace = self._workspaces[hv.name]
+		
+		local world_w = hv.WORLD_W
+		local world_h = hv.WORLD_H
+		local panel_w = hv.GUI_W
+		local panel_h = hv.GUI_H
 		
 		local ra = link_target_object:rotation()
 		
-		local rb = Rotation(15,90,0)
+		local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
 		
 		local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
 		
-		local x_axis = Vector3(onscreen_w,0,0)
+		local x_axis = Vector3(world_w,0,0)
 		
 		mvector3.rotate_with(x_axis,rot)
 		
-		local y_axis = Vector3(0,-onscreen_h,0)
+		local y_axis = Vector3(0,-world_h,0)
 		
 		mvector3.rotate_with(y_axis,rot)
 		
-		local center = Vector3(onscreen_w / 2,-onscreen_h / 2)
+		local center = Vector3(world_w / 2,-world_h / 2)
 		
 		mvector3.rotate_with(center,rot)
 		
-		local offset = Vector3(-5,0,-10)
+		local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
 			--x+ is distance right
 			--y+ is distance upward
 			--z+ is distance backward
@@ -581,16 +406,20 @@ function KineticHUD:LinkWS(link_target_object)
 		mvector3.rotate_with(offset,rot)
 		
 		local position = link_target_object:position()
-		
-		self._left_ws:set_linked(actual_w,actual_h,link_target_object,position - center + offset,x_axis,y_axis)
-		return true
+		workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
+		done_any = true
 	end
+	return done_any
 end
 
+--Removes the updater from RegisterUpdateCheckPlayer(), which called UpdateCheckPlayer(). This is safe to call multiple times.
 function KineticHUD:UnregisterUpdateCheckPlayer()
 	BeardLib:RemoveUpdater(self._updater_id_check_player)
 end
 
+--Each frame, attempts to find the player unit, in order to link the world panels to the player camera.
+--Upon success, it calls its own unregistration in order to save performance.
+--Do not call manually- instead, call the update registration function RegisterUpdateCheckPlayer().
 function KineticHUD:UpdateCheckPlayer(t,dt)
 	local player = managers.player:local_player()
 	if alive(player) then 
@@ -600,10 +429,14 @@ function KineticHUD:UpdateCheckPlayer(t,dt)
 	end
 end
 
+--Adds the updater, which calls UpdateCheckPlayer(). This is safe to call multiple times.
 function KineticHUD:RegisterUpdateCheckPlayer()
 	self:UnregisterUpdateCheckPlayer()
 	BeardLib:AddUpdater(self._updater_id_check_player,callback(self,self,"UpdateCheckPlayer"))
 end
+
+
+
 
 
 function KineticHUD:SetTeammateHealth(current,total)
@@ -614,8 +447,36 @@ function KineticHUD:SetPlayerHealth(current,total)
 
 end
 
+function KineticHUD:UpdateHUD(t,dt)
+	local player = managers.player:local_player()
+	if player then
+		
+	end		
+end
 
---main player only
+
+function KineticHUD:SetRevives(i,current)
+	
+end
+
+function KineticHUD:SetHealth(i,current,total)
+--		self._worldhud_base:child("health_fill"):set_texture_rect(0,0,(self.hud_data.hp_w / self.hud_data.hp_scale) * current / total,self.hud_data.hp_h / self.hud_data.hp_scale)
+end
+
+
+--load hud buff data
+dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
+
+
+
+
+
+--marked for deprecation below this line
+
+
+
+
+--Creates the main player's vitals.
 function KineticHUD:_create_player(panel)
 	local scale = self.settings.player_panel_scale
 	
@@ -686,26 +547,5 @@ function KineticHUD:_create_teammate(panel)
 	return teammates
 end
 
-function KineticHUD:UpdateHUD(t,dt)
-	local player = managers.player:local_player()
-	if player then
-		
-	end		
-end
 
-
-function KineticHUD:SetRevives(i,current)
-	
-end
-
-function KineticHUD:SetHealth(i,current,total)
---		self._worldhud_base:child("health_fill"):set_texture_rect(0,0,(self.hud_data.hp_w / self.hud_data.hp_scale) * current / total,self.hud_data.hp_h / self.hud_data.hp_scale)
-end
-
-
-Hooks:Add("BaseNetworkSessionOnLoadComplete","kinetichud_register_updater",function() --PlayerManager_on_internal_load
-	KineticHUD:Setup()
-end)
-
---load hud buff data
-dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
+do return end

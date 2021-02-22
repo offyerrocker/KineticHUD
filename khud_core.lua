@@ -23,23 +23,93 @@ KineticHUD.color_data = {
 }
 
 KineticHUD._fonts = {
-	cromwell = "fonts/cromwell_nf",
-	grotesk = "fonts/grotesk_normal",
-	grotesk_bold = "fonts/grotesk_bold"
+	cromwell = "fonts/cromwell_nf", --custom
+	grotesk = "fonts/grotesk_normal", --custom
+	grotesk_bold = "fonts/grotesk_bold", --custom
+	digital = "fonts/font_digital" --vanilla
 }
 
 KineticHUD._USE_UNIQUE_WORKSPACE = false
+KineticHUD._world_panels = {}
+KineticHUD._workspaces = {}
 
 --number values used for sizing, positioning etc. which should not be change-able by settings
 KineticHUD.hud_values = {
-	PLAYER_ARMOR_BAR_W = 500,
+	world_panels = {
+		{
+			name = "left_panel",
+			localized_name = "khud_panel_left_title",
+			TEXT = "hello and welcome to zombocom",
+			WORLD_W = 5,
+			WORLD_H = 10,
+			GUI_W = 500,
+			GUI_H = 1000,
+			OFFSET_YAW = -15,
+			OFFSET_PITCH = 90,
+			OFFSET_ROLL = 0,
+			OFFSET_X = 5.25,
+			OFFSET_Y = 0,
+			OFFSET_Z = -10,
+			RECT_COLOR = Color.red
+		},
+		{
+			name = "right_panel",
+			localized_name = "khud_panel_right_title",
+			TEXT = "this is zombocom",
+			WORLD_W = 5,
+			WORLD_H = 10,
+			GUI_W = 500,
+			GUI_H = 1000,
+			OFFSET_YAW = 15,
+			OFFSET_PITCH = 90,
+			OFFSET_ROLL = 0,
+			OFFSET_X = -5.25,
+			OFFSET_Y = 0,
+			OFFSET_Z = -10,
+			RECT_COLOR = Color.blue
+		},
+		{
+			name = "top_panel",
+			localized_name = "khud_panel_top_title",
+			TEXT = "at zombocom, the unattainable is unknown",
+			WORLD_W = 11,
+			WORLD_H = 6,
+			GUI_W = 1100,
+			GUI_H = 600,
+			OFFSET_YAW = 0,
+			OFFSET_PITCH = 90 + 5,
+			OFFSET_ROLL = 0,
+			OFFSET_X = 0,
+			OFFSET_Y = 2.5,
+			OFFSET_Z = -10,
+			RECT_COLOR = Color.yellow
+		},
+		{
+			name = "bottom_panel",
+			localized_name = "khud_panel_bottom_title",
+			TEXT = "you can do anything at zombocom",
+			WORLD_W = 11,
+			WORLD_H = 6,
+			GUI_W = 1100,
+			GUI_H = 600,
+			OFFSET_YAW = 0,
+			OFFSET_PITCH = 90 - 5,
+			OFFSET_ROLL = 0,
+			OFFSET_X = 0,
+			OFFSET_Y = -2,
+			OFFSET_Z = -10,
+			RECT_COLOR = Color.green
+		}
+	},
+	PLAYER_ARMOR_BAR_W = 300,
 	PLAYER_ARMOR_BAR_H = 16,
-	PLAYER_ARMOR_BAR_X = 640,
-	PLAYER_ARMOR_BAR_Y = 100,
-	PLAYER_HEALTH_BAR_W = 500,
+	PLAYER_ARMOR_BAR_X = 100,
+	PLAYER_ARMOR_BAR_Y = 500,
+	PLAYER_HEALTH_BAR_W = 300,
 	PLAYER_HEALTH_BAR_H = 16,
-	PLAYER_HEALTH_BAR_X = 640,
-	PLAYER_HEALTH_BAR_Y = 132,
+	PLAYER_HEALTH_BAR_X = 700,
+	PLAYER_HEALTH_BAR_Y = 500,
+	
 	PLAYER_WEAPONS_W = 500,
 	PLAYER_WEAPONS_H = 250,
 	PLAYER_WEAPONS_X = 300,
