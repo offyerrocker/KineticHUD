@@ -12,6 +12,27 @@ AESTHETICS
 	* "Guiding lines"?
 		See: The Division's world hud placement
 	
+ASSETS
+	* better main font?
+		* also a version with a shadow?
+	* better seven-segment digital font?
+		* italicized
+		* even spacing
+		* bg shading (simulating empty leds)
+	* firemode indicator
+		* larger margins, relatively smaller circles
+		* individual dot texture?
+	* player cross/heart/revive texture?
+	* teammate deaths texture?
+		* progressively become more damaged with more revives?
+		* show significant difference when user is on predicted/synced last down? eg. bw
+	* bpm states
+		* generally okay (75 < x < 100% hp)
+		* kinda hecked up (50 < x < 75% hp)
+		* woah where's your blood (33 < x < 50% hp)
+		* you are going to die (0 < x < 33%)
+		* omae wa mou shindeiru (0 / downed)
+	
 HUD SEGMENTS
 	SPEAKING INDICATOR:
 		See: The Division's voice waveform analysis animation
@@ -219,7 +240,18 @@ end
 
 KineticHUD._mod_path = KineticHUD._mod_path or mod_path
 
+
+--Writes information for debugging to the appropriate output. Calls global function Log() with all arguments passed if defined (namely, by the Developer Console mod), else uses log() (from BLT)
+--Arguments: any (content agnostic)
+--Returns: nil
+function KineticHUD:c_log(...)
+	local f = Log or log
+	return f(...)
+end
+
 --Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
+--Arguments: parent_panel [Panel]. The panel object to create the HUD on.
+--Returns: nil
 function KineticHUD:Setup(parent_panel)
 	self._gui = World:newgui()
 	self:CreateWorldPanels()
@@ -231,6 +263,7 @@ function KineticHUD:Setup(parent_panel)
 end
 
 --Create world panels to be linked later, and stores them in a table. 
+--Returns: nil
 function KineticHUD:CreateWorldPanels()
 	for i,panel_data in pairs(self.hud_values.world_panels) do 
 		local panel_w = panel_data.GUI_W
@@ -258,7 +291,7 @@ function KineticHUD:CreateWorldPanels()
 		})
 		local rect = panel:rect({
 			color = rect_color,
-			layer = 1,
+			layer = -1,
 			alpha = 0.2
 		})
 		
@@ -269,6 +302,8 @@ end
 
 --Creates the main HUD elements onto the appropriate panel, depending on user options.
 --Safe to call multiple times, as it removes preexisting duplicate HUD elements.
+--Arguments: parent_panel [Panel]. The panel object to create the HUD on.
+--Returns: nil
 function KineticHUD:CreateHUD(parent_panel)
 		
 	self._parent_panel = parent_panel
@@ -280,8 +315,8 @@ function KineticHUD:CreateHUD(parent_panel)
 	})
 	self._panel = base
 	
-	self:CreatePlayerVitals()
-	
+	self:CreatePlayerVitalsPanel()
+	self:CreatePlayerWeaponsPanel()
 	--[[
 
 	--create teammates panel
@@ -298,8 +333,11 @@ function KineticHUD:CreateHUD(parent_panel)
 end
 
 --Creates the a HUD element to hold:
---The player's health, armor, damage absorption, stored health, and revives.
-function KineticHUD:CreatePlayerVitals()
+--The player's health, armor, damage absorption, stored health, and revives,
+--and then positions and scales each element according to user settings.
+--Arguments: skip_layout [bool]. Optional. If true, skips the HUD positioning step after creation.
+--Returns: nil
+function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 	local selected_parent_panel = self._world_panels[4]
 	local scale = self.settings.player_panel_scale
 	
@@ -358,11 +396,310 @@ function KineticHUD:CreatePlayerVitals()
 		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
 		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
 	})
-	
+	if not skip_layout then 
+		self:LayoutPlayerVitals()
+	end
 end
 
+--Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
+--Arguments: none
+--Returns: nil
 function KineticHUD:LayoutPlayerVitals()
 
+end
+
+--Creates rectangular border of varying color/thickness on the inside edge of a specified panel.
+--If the border already exists, modifies the border and returns it.
+--Arguments:
+	--panel: [Panel] panel to apply to (revolver ocelot [revolver ocelot])
+	--params; [table] table containing optional values
+		--width (also "thickness", "stroke", or "weight": [float] border thickness (w value for left/right, or h value for top/bot)
+		--color: [Color] color of border (revolver ocelot [revolver {revolver ocelot} ocelot])
+		--[NOT SUPPORTED] rotation: [float] (range [0-360])
+		--blend mode: [string] ("add","sub","normal")
+		--alpha: [float] (range [0,1]) transparency of border
+		--margin: [float] offset from square outside edges. essentially scale, but using linear pixel offset. Because of parent panel boundaries, you cannot make borders outside of its parent panel area. 
+		--layer: [float] panel layer. higher values are closer to the top (?)
+		--id_prefix: [string] appended to internal panel names. Advised, but not strictly necessary unless you're applying multiple borders to one panel object.
+--Returns: resulting border panel [Panel],whether the border already existed or not [bool]
+function KineticHUD:PanelBorder(panel,params)
+	if not (panel and alive(panel)) then
+		KineticHUD:c_log("Error: Invalid panel argument for function panel_border(" .. tostring(panel) .. ",{ " .. table.concat(params,",") .." } )")
+		return
+	end
+	local blend_mode = params.blend_mode or "normal"
+	local thiccness = params.width or params.thickness or	 params.stroke or params.weight or 1
+	local color = params.color or Color.white
+	local margin = params.margin or 0 --can be negative
+	local layer = params.layer
+	local id_prefix = params.id_prefix or ""
+	local id = id_prefix .. "panel_borders"
+	local alpha = params.alpha or 1
+	local name = panel:name()
+	local h = params.h or panel:h()
+	local w = params.w or panel:w()
+	local borders = panel:child(id)
+	local exists = false
+	if not alive(borders) then 
+		borders = panel:panel({
+			name = id,
+			layer = layer,
+--			rotation = rotation,
+			alpha = alpha
+		})
+		local left = borders:rect({
+			name = name .. "_border_left",
+			w = thiccness,
+			h = h - ((thiccness + margin ) * 2),
+			x = margin,
+			y = margin + thiccness,
+			blend_mode = blend_mode,
+			color = color
+		})
+		local right = borders:rect({
+			name = name .. "_border_right",
+			w = thiccness,
+			h = h - ((thiccness + margin ) * 2),
+			x = w - (margin + thiccness),
+			y = margin + thiccness,
+			blend_mode = blend_mode,
+			color = color
+		})
+		local top = borders:rect({
+			name = name .. "_border_top",
+			w = w - (margin * 2),
+			h = thiccness,
+			x = margin,
+			y = margin,
+			blend_mode = blend_mode,
+			color = color
+		})
+		local bottom = borders:rect({
+			name = name .. "_border_bottom",
+			w = w - (margin * 2),
+			h = thiccness,
+			x = margin,
+			y = h - (margin + thiccness),
+			blend_mode = blend_mode,
+			color = color
+		})
+	else
+		exists = true
+		local left = borders:child(name .. "_border_left")
+		local right = borders:child(name .. "_border_right")
+		local top = borders:child(name .. "_border_top")
+		local bottom = borders:child(name .. "_border_bottom")
+		if layer then
+			borders:set_layer(layer)
+		end
+--		borders:set_rotation(rotation)
+		left:set_w(thiccness)
+		left:set_h(h - (margin * 2))
+		left:set_x(margin)
+		left:set_y(margin)
+		left:set_color(color)
+		
+		right:set_w(thiccness)
+		right:set_h(h - (margin * 2))
+		right:set_x(w - (margin + thiccness))
+		right:set_y(margin)
+		right:set_color(color)
+		
+		top:set_w(w - (margin * 2))
+		top:set_h(thiccness)
+		top:set_x(margin)
+		top:set_y(margin)
+		top:set_color(color)
+		
+		bottom:set_w(w - (margin * 2))
+		bottom:set_h(thiccness)
+		bottom:set_x(margin)
+		bottom:set_y(h - (margin + thiccness))
+		bottom:set_color(color)
+	end
+	return borders,exists --rip borders, killed by amazon. you deserved better
+end
+
+
+--Creates the a HUD element to hold information about the player's current weapons. (Two weapons in vanilla, the Primary and Secondary)
+--Each weapon panel has one of the following: Kill counter, Weapon icon, Firemode indicator, Magazine counter, Reserve counter, Underbarrel ammo counter.
+--After creation, the HUD elements are positioned and scaled according to user settings.
+--Arguments: skip_layout [bool]. If true, skips the positioning step after creation.
+--Returns: nil
+function KineticHUD:CreatePlayerWeaponsPanel()
+	local selected_parent_panel = self._world_panels[2]
+	local parent_weapons_panel = selected_parent_panel:panel({
+		name = "weapons_panel",
+--		w = 400,
+		h = 400,
+		x = 0,
+		y = 800
+	})
+--todo straighten out layers (integers only)
+--todo put vertical offset in weapons_panel as well as in subpanels
+	local function create_weapon_subpanel(index,scale)
+			
+		local box_w = 200 * scale
+		local box_h = 100 * scale
+		local font_size_large = 32 * scale
+		local font_size_small = 24 * scale
+		
+		local weapon_panel = parent_weapons_panel:panel({
+			name = tostring(index),
+--			y = 500,
+--			w = 400,
+			h = box_h
+		})
+		
+		local icon_box = weapon_panel:panel({
+			name = "icon_box",
+			x = 50,
+			w = box_w,
+			h = box_h
+		})
+		local icon_bitmap = icon_box:bitmap({
+			name = "icon_bitmap",
+			texture = "",
+			w = box_w,
+			h = box_h,
+			layer = 1
+		})
+		icon_bitmap:set_image(managers.blackmarket:get_weapon_icon_path("amcar"))
+		icon_bitmap:set_size(box_w,box_h)
+		
+		local icon_bg = icon_box:bitmap({
+			name = "icon_bg",
+			texture = nil,
+			color = Color.black,
+			blend_mode = "multiply",
+			alpha = 0.5,
+			layer = 0
+		})
+		
+		local border = self:PanelBorder(icon_box,{
+			thickness = 2,
+			color = Color.white,
+			alpha = 0.8,
+			layer = 2
+		})
+		
+		--todo firemode scale
+		local firemode = weapon_panel:bitmap({
+			name = "firemode",
+			x = icon_box:right() + 4,
+			y = icon_box:y(),
+			texture = "textures/ui/firemode_dots_3",
+--			visible = false,
+			layer = 3
+		})
+		firemode:set_y((weapon_panel:h() - firemode:h()) / 2)
+		
+		
+		--note: right() seems to use world right (including x of parent panel)
+		local magazine = weapon_panel:text({
+			name = "magazine",
+			color = Color.white,
+			font = self._fonts.digital,
+			text = "123",
+			vertical = "bottom",
+			x = firemode:right() + 8,
+			y = - box_h / 20,
+			layer = 4,
+			font_size = font_size_large
+		})
+		local reserve = weapon_panel:text({
+			name = "reserve",
+			color = Color.white,
+			font = self._fonts.digital,
+			text = "999",
+			vertical = "bottom",
+			x = firemode:right() + (84 * scale),
+			y = - box_h / 20,
+			layer = 4,
+			font_size = font_size_small
+		})
+		
+		local mag_x,_,_,mag_h = magazine:text_rect()
+		
+		--[[
+		
+		name = "hp_gradient",
+		layer = 2,
+		blend_mode = "add",
+		x = (- bar_hp_bg_panel:h() + bar_hp_bg_panel:w()) / 2, --todo hp_gradient:set_center(x,y)
+		y = (bar_hp_bg_panel:h() - bar_hp_bg_panel:w()) / 2,
+		w = bar_hp_bg_panel:h(),
+		h = bar_hp_bg_panel:w(),
+		valign = "grow",
+		rotation = 90,
+		--]]
+		local gradient_bg = weapon_panel:gradient({
+			name = "gradient_bg",
+			blend_mode = "multiply",
+			valign = "grow",
+			x = magazine:x(),
+			y = box_h - (box_h - mag_h),
+			w = 200,
+			h = box_h - mag_h,
+			alpha = 1,
+			layer = 1.5,
+			gradient_points = {
+				0,
+				Color.black,
+				1,
+				Color.black:with_alpha(1)
+			}
+		})
+		
+		--todo create subpanel to hold + center these text objects
+		--todo center vertically but move each away from center? or set vertical top and bottom, from y = vertical center plus margin
+		local kill_icon = weapon_panel:text({
+			name = "kill_icon",
+			color = Color.white,
+			font = self._fonts.large,
+			text = self.special_characters.skull,
+			align = "right",
+			vertical = "top",
+			x = -8 + - (weapon_panel:w() -icon_box:x()),
+			y = box_h / 20,
+			layer = 4,
+			font_size = font_size_large
+		})
+		
+		local kill_counter = weapon_panel:text({
+			name = "kill_counter",
+			color = Color.white,
+			font = self._fonts.digital,
+			text = "0",
+			align = "right",
+			vertical = "bottom",
+			x = -8 + - (weapon_panel:w() -icon_box:x()),
+			y = - box_h / 20,
+			layer = 4,
+			font_size = font_size_large
+		})
+		local debug_rect = weapon_panel:rect({
+			name = "debug",
+			visible = false,
+			alpha = 0.2,
+			color = Color.red
+		})
+		
+		return weapon_panel
+	end
+	
+--	local inventory = managers.player:local_player():inventory()
+	
+--	for i,selection_data in ipairs(#inventory._available_selections) do
+--		create_weapon_subpanel(i)
+--	end
+	local primary = create_weapon_subpanel(1,1)
+	local secondary = create_weapon_subpanel(2,0.75)
+	secondary:set_x(100)
+	secondary:set_y(125)
+--	create_weapon_subpanel(2)
+	
+	
 end
 
 

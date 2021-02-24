@@ -1,11 +1,16 @@
 
 KineticHUD = KineticHUD or {}
 KineticHUD._mod_path = KineticHUD:GetPath()
-KineticHUD._save_path = SavePath .. "KineticHUD2.txt"
+KineticHUD._save_path = SavePath .. "KineticHUD_2.txt"
 
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
+KineticHUD.special_characters = {
+	skull = ""
+}
+
 KineticHUD.color_data = {
+	white = Color("ffffff"),
 	red = Color("ff8080"),
 	orange = Color("ffbd80"),
 	gold = Color("ffd080"),
@@ -26,7 +31,8 @@ KineticHUD._fonts = {
 	cromwell = "fonts/cromwell_nf", --custom
 	grotesk = "fonts/grotesk_normal", --custom
 	grotesk_bold = "fonts/grotesk_bold", --custom
-	digital = "fonts/font_digital" --vanilla
+	digital = "fonts/font_digital", --vanilla
+	large = "fonts/font_large_mf" --vanilla
 }
 
 KineticHUD._USE_UNIQUE_WORKSPACE = false
@@ -44,10 +50,10 @@ KineticHUD.hud_values = {
 			WORLD_H = 10,
 			GUI_W = 500,
 			GUI_H = 1000,
-			OFFSET_YAW = -15,
+			OFFSET_YAW = 15,
 			OFFSET_PITCH = 90,
 			OFFSET_ROLL = 0,
-			OFFSET_X = 5.25,
+			OFFSET_X = -5.25,
 			OFFSET_Y = 0,
 			OFFSET_Z = -10,
 			RECT_COLOR = Color.red
@@ -55,15 +61,15 @@ KineticHUD.hud_values = {
 		{
 			name = "right_panel",
 			localized_name = "khud_panel_right_title",
-			TEXT = "this is zombocom",
+			TEXT = "", --this is zombocom
 			WORLD_W = 5,
 			WORLD_H = 10,
 			GUI_W = 500,
 			GUI_H = 1000,
-			OFFSET_YAW = 15,
+			OFFSET_YAW = -15,
 			OFFSET_PITCH = 90,
 			OFFSET_ROLL = 0,
-			OFFSET_X = -5.25,
+			OFFSET_X = 5.25,
 			OFFSET_Y = 0,
 			OFFSET_Z = -10,
 			RECT_COLOR = Color.blue
@@ -120,7 +126,8 @@ KineticHUD.hud_values = {
 KineticHUD.default_settings = {
 	player_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,
-	PLAYER_HEALTH_BAR_VALIGN = 1
+	PLAYER_HEALTH_BAR_VALIGN = 1,
+	HEIST_TIMER_FONT_SIZE = 24
 }
 
 KineticHUD.valign_values = {

@@ -3,5 +3,5 @@
 	"khud_panel_left_title" : "Left Panel",
 	"khud_panel_right_title" : "Right Panel",
 	"khud_panel_top_title" : "Top Panel",
-	"khud_panel_bottom_title : "Bottom Panel"
+	"khud_panel_bottom_title" : "Bottom Panel"
 }

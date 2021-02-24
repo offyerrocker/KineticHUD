@@ -10,6 +10,9 @@
 
 		<texture path="textures/ui/health_bar"/>
 		<texture path="textures/ui/health_fill"/>
+		<texture path="textures/ui/firemode_dots_1"/>
+		<texture path="textures/ui/firemode_dots_2"/>
+		<texture path="textures/ui/firemode_dots_3"/>
 
 	</AddFiles>
 	<Localization directory="localization" default="english.txt">
