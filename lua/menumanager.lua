@@ -32,6 +32,7 @@ ASSETS
 		* woah where's your blood (33 < x < 50% hp)
 		* you are going to die (0 < x < 33%)
 		* omae wa mou shindeiru (0 / downed)
+	* generic gradient texture bc gradient doesn't work on world panels
 	
 HUD SEGMENTS
 	SPEAKING INDICATOR:
@@ -204,7 +205,12 @@ SYSTEMS:
 
 
 DEVELOPMENT TODO:
-
+	write alignment code for:
+		teammates
+		weapons
+	store teammate health from hud, use to check ekg/bpm 
+	connect hud setters to khud ui elements
+	
 	test world_to_screen on world panels (update/persist script with static location paired with console settracker)
 
 DESIRED FEATURES:
@@ -239,15 +245,6 @@ if not KineticHUD then
 end
 
 KineticHUD._mod_path = KineticHUD._mod_path or mod_path
-
-
---Writes information for debugging to the appropriate output. Calls global function Log() with all arguments passed if defined (namely, by the Developer Console mod), else uses log() (from BLT)
---Arguments: any (content agnostic)
---Returns: nil
-function KineticHUD:c_log(...)
-	local f = Log or log
-	return f(...)
-end
 
 --Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
 --Arguments: parent_panel [Panel]. The panel object to create the HUD on.
@@ -290,9 +287,11 @@ function KineticHUD:CreateWorldPanels()
 			font_size = 32
 		})
 		local rect = panel:rect({
+			name = "debug",
 			color = rect_color,
 			layer = -1,
-			alpha = 0.2
+			alpha = 0.2,
+			visible = false
 		})
 		
 		self._workspaces[panel_name] = ws
@@ -317,6 +316,8 @@ function KineticHUD:CreateHUD(parent_panel)
 	
 	self:CreatePlayerVitalsPanel()
 	self:CreatePlayerWeaponsPanel()
+	
+	self:CreateTeammatesPanel() --! temp for debug only
 	--[[
 
 	--create teammates panel
@@ -633,6 +634,7 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 		valign = "grow",
 		rotation = 90,
 		--]]
+		--[[
 		local gradient_bg = weapon_panel:gradient({
 			name = "gradient_bg",
 			blend_mode = "multiply",
@@ -650,6 +652,7 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 				Color.black:with_alpha(1)
 			}
 		})
+		--]]
 		
 		--todo create subpanel to hold + center these text objects
 		--todo center vertically but move each away from center? or set vertical top and bottom, from y = vertical center plus margin
@@ -774,6 +777,285 @@ end
 
 
 
+function KineticHUD:CreateTeammatesPanel()
+	local selected_parent_panel = self._world_panels[1]
+	local teammates_panel_parent = selected_parent_panel:panel({
+		name = "teammates_panel"
+	})
+	self._teammates_panel = teammates_panel_parent
+	
+	local NUM_TEAMMATES = 1 --BigLobbyGlobals:num_player_slots()
+	for i=1,NUM_TEAMMATES,1 do 
+		local teammate = self:CreateTeammatePanel(i) --!
+		self._teammate_panels[i] = teammate
+	end
+end
+
+function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,double)
+	local scale = 1
+	local box_w = 72 * scale
+	local box_h = 24 * scale
+	
+	local font_size = 24 * scale
+	local icon_w = 24 * scale
+	local icon_h = 24 * scale
+	local margin = 4 * scale
+	local text_x = icon_w + margin
+	local text_y = 0
+	
+	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
+	
+	if double then 
+		box_w = box_w + (48 * scale)
+	end
+	
+	local equipment_box = teammate_panel:panel({
+		name = name,
+		w = box_w,
+		h = box_h
+	})
+	
+	local icon_box = equipment_box:panel({
+		name = "icon_box",
+		w = box_h,
+		h = box_h
+	})
+	local icon = icon_box:bitmap({
+		name = "icon",
+		texture = texture,
+		texture_rect = texture_rect,
+		layer = 6
+	})
+	local _w,_h = icon:size()
+	local icon_aspect_ratio = _w/_h
+	icon:set_size(icon_aspect_ratio * icon_h,icon_h)
+	
+	local borders = self:PanelBorder(icon_box,{
+		thickness = 1,
+		layer = 4
+	})
+	
+	local icon_gradient_bg = equipment_box:bitmap({
+		name = "icon_gradient_bg",
+		texture = "textures/ui/gradient",
+		w = box_w,
+		h = box_h,
+		x = 0,
+		y = 0,
+		color = self.color_data.black,
+		alpha = 1/3
+	})
+	
+	local text = equipment_box:text({
+		name = "text",
+		text = "00",
+		font = self._fonts.digital,
+		font_size = font_size,
+		x = text_x,
+		y = text_y
+	})
+	local t_w,_,t_x,_ = text:text_rect()
+	
+	local text_2 = equipment_box:text({
+		name = "text_2",
+		text = "00",
+		font = self._fonts.digital,
+		font_size = font_size,
+		x = t_w + t_x + margin + margin,
+		y = text_y,
+		visible = double and true or false
+	})
+	
+	return equipment_box
+end
+
+function KineticHUD:CreateTeammatePanel(i)
+	local scale = 1
+	
+	local teammate_w = 400 * scale
+	local teammate_h = 56 * scale
+	
+	local nametag_panel_x = 8 * scale
+	local nametag_panel_y = 0 * scale
+	local nametag_panel_w = 128 * scale
+	local nametag_panel_h = 24 * scale
+	local nametag_font_size = 20 * scale
+	
+	local color_indicator_w = 4 * scale
+	local color_indicator_h = nametag_panel_h
+	local color_indicator_x = 0 * scale
+	local color_indicator_y = 0 * scale
+	
+	
+	local bpm_panel_w = 100 * scale
+	local bpm_panel_h = nametag_panel_h
+	local bpm_panel_x = color_indicator_w + nametag_panel_x + nametag_panel_w
+	local bpm_panel_y = 0 * scale
+	
+	local bpm_icon_w = nametag_panel_h
+	local bpm_icon_h = nametag_panel_h
+	local bpm_icon_x = 0 --color_indicator_w + nametag_panel_w
+	local bpm_icon_y = 0 * scale
+	
+	local bpm_mask_h = nametag_panel_h
+	local bpm_mask_x = bpm_icon_w / 2 --bpm_icon_w / 2 --the idea was for the ekg line to disappear under the heart, but layers/opacity aren't playing nice
+	local bpm_mask_w = bpm_panel_w - bpm_mask_x
+	local bpm_mask_y = 0 * scale
+	
+	local bpm_readout_w = 128 / 4
+	local bpm_readout_h = 96 / 4
+	
+	local speaking_icon_x = bpm_panel_x + bpm_panel_w
+	local speaking_icon_y = 0 * scale
+	local speaking_icon_w = nametag_panel_h
+	local speaking_icon_h = nametag_panel_h
+	
+	
+	local deployable_label_font_size = 24 * scale
+	local deployable_border_thickness = 1
+	
+	local deployable_1_x = 0 * scale
+	local deployable_1_y = nametag_panel_h
+	
+	local revives_font_size = 20
+	local margin = 4 * scale
+
+	
+	
+	local teammate = self._teammates_panel:panel({
+		name = tostring(i),
+		w = teammate_w,
+		h = teammate_h
+	})
+	local color_indicator = teammate:bitmap({
+		name = "color_indicator",
+		texture = nil,
+		w = color_indicator_w,
+		h = color_indicator_h,
+		x = color_indicator_x,
+		y = color_indicator_y,
+		color = self.color_data.teal,
+		layer = 4
+	})
+	
+	local nametag_panel = teammate:panel({
+		name = "nametag_panel",
+		w = nametag_panel_w,
+		h = nametag_panel_h,
+		x = nametag_panel_x,
+		y = nametag_panel_y
+	})
+	local nametag_debug = nametag_panel:rect({
+		name = "nametag_debug",
+		alpha = 0.1,
+		color = Color.yellow,
+		visible = false
+	})
+	
+	local nametag = nametag_panel:text({
+		name = "nametag",
+		text = "Sagira",
+		font = self._fonts.grotesk,
+		font_size = nametag_font_size,
+		align = "left",
+		vertical = "top",
+		layer = 6
+	})
+	
+	local bpm_panel = teammate:panel({
+		name = "bpm_panel",
+		w = bpm_panel_w,
+		h = bpm_panel_h,
+		x = bpm_panel_x,
+		y = bpm_panel_y
+	})
+	
+	local bpm_icon_box = bpm_panel:panel({
+		name = "bpm_icon_box",
+		w = bpm_icon_w,
+		h = bpm_icon_h,
+		x = bpm_icon_x,
+		y = bpm_icon_y,
+		layer = 4
+	})
+	local bpm_icon = bpm_icon_box:bitmap({
+		name = "bpm_icon",
+		texture = "textures/ui/heart",
+		w = bpm_icon_w,
+		h = bpm_icon_h,
+--		x = bpm_icon_x,
+--		y = bpm_icon_y,
+		color = self.color_data.red,
+		layer = 4
+	})
+	
+	local bpm_mask = bpm_panel:panel({
+		name = "bpm_mask",
+		w = bpm_mask_w,
+		h = bpm_mask_h,
+		x = bpm_mask_x,
+		y = bpm_mask_y,
+		layer = 2
+	})
+	
+	local bpm_readout_init = bpm_mask:bitmap({
+		name = "bpm_readout",
+		texture = "",
+--		color = self.color_data.red,
+		x = -1,
+		w = bpm_readout_w,
+		h = bpm_readout_h,
+		alpha = 0
+	})
+	
+	local revives = bpm_icon_box:text({
+		name = "revives",
+		text = "0",
+		font = self._fonts.digital,
+		font_size = revives_font_size,
+		align = "center",
+		vertical = "center",
+		layer = 5
+	})
+	
+	local bpm_debug_1 = bpm_panel:rect({
+		name = "bpm_debug_1",
+		color = Color.green,
+		alpha = 0.4,
+		visible = false
+	})
+	local bpm_debug_2 = bpm_mask:rect({
+		name = "bpm_debug_2",
+		color = Color.blue,
+		alpha = 0.1,
+		visible = false
+	})
+	
+	local speaking_icon = teammate:bitmap({
+		name = "speaking_icon",
+		texture = nil,
+		w = speaking_icon_w,
+		h = speaking_icon_h,
+		x = speaking_icon_x,
+		y = speaking_icon_y,
+		color = self.color_data.white,
+		visible = false
+	})
+	
+	local deployable_1 = self:CreateTeammateEquipmentBox(teammate,"deployable_1","equipment_soda",true)
+	deployable_1:set_position(deployable_1_x,deployable_1_y)
+	
+	local deployable_2 = self:CreateTeammateEquipmentBox(teammate,"deployable_2","equipment_chimichanga",true)
+	deployable_2:set_position(deployable_1:right(),deployable_1_y)
+	
+	local cableties = self:CreateTeammateEquipmentBox(teammate,"cable_ties","equipment_cable_ties")
+	cableties:set_position(deployable_2:right(),deployable_1_y)
+	
+	local throwable = self:CreateTeammateEquipmentBox(teammate,"cable_ties","equipment_c4")
+	throwable:set_position(cableties:right(),deployable_1_y)
+	
+	return teammate
+end
 
 
 function KineticHUD:SetTeammateHealth(current,total)
@@ -788,9 +1070,74 @@ function KineticHUD:UpdateHUD(t,dt)
 	local player = managers.player:local_player()
 	if player then
 		
-	end		
+	end
+	
+	local hud_values = self.hud_values
+	local ekg_speed = hud_values.EKG_SPEED
+	local ekg_size = hud_values.EKG_SIZE
+	for id,teammate_panel in pairs(self._teammate_panels) do 
+		if alive(teammate_panel) then 
+			local bpm_panel = teammate_panel:child("bpm_panel")
+			local bpm_mask = bpm_panel:child("bpm_mask")
+			local readouts = bpm_mask:children()
+			local all_out_of_bounds = true
+			for _i,ekg_segment in pairs(readouts) do 
+				ekg_segment:move(-ekg_speed * dt,0)
+				
+				if all_out_of_bounds and (ekg_segment:x() + ekg_segment:w() ) >= bpm_mask:w() then 
+					all_out_of_bounds = false
+				end
+				
+				if ekg_segment:x() < -ekg_segment:w() then 
+					bpm_mask:remove(ekg_segment)
+				end
+			end
+			if all_out_of_bounds then
+				local teammate_health = KineticHUD.debug_value_1
+				local ekg_atlas = hud_values.EKG_ATLAS
+				local ekg_data
+				if teammate_health <= hud_values.HEALTH_THRESHOLD_FLATLINE then 
+					ekg_data = ekg_atlas.states.flatline
+				elseif teammate_health <= hud_values.HEALTH_THRESHOLD_CRITICAL then 
+					ekg_data = ekg_atlas.states.critical
+				elseif teammate_health <= hud_values.HEALTH_THRESHOLD_STRESSED then 
+					ekg_data = ekg_atlas.states.stressed
+				else
+					ekg_data = ekg_atlas.states.normal
+				end
+				local texture_rect = ekg_data and ekg_data[math.random(#ekg_data)]
+				if texture_rect then 
+					local reading_w = texture_rect[3]
+					local reading_h = texture_rect[4]
+					local reading_r = reading_w / reading_h
+					
+					local w,h
+					if reading_r > 1 then 
+						w = ekg_size
+						h = ekg_size * reading_r
+					else
+						w = ekg_size * reading_r
+						h = ekg_size
+					end
+					
+					local new_ekg_readout = bpm_mask:bitmap({
+						name = tostring(teammate_health),
+						texture = ekg_atlas.texture,
+						texture_rect = texture_rect,
+						color = self.color_data.white,
+						w = w,
+						h = h,
+						x = bpm_mask:w(),
+						layer = hud_values.EKG_LAYER
+					})
+				else
+					self:log("ERROR! Bad EKG data for " .. tostring(teammate_health))
+				end
+			end
+		end
+	end
+	
 end
-
 
 function KineticHUD:SetRevives(i,current)
 	

@@ -1,6 +1,8 @@
 <mod name="KineticHUD" author="Offyerrocker" global_key="KineticHUD" color="Color(0.6,0.9,1)" core_class="khud_core.lua">
 	<DISABLEDAssetUpdates id="23518" version="TR-1" provider="modworkshop" install_directory = "mods/" version_is_number="false"/>
 	<AddFiles directory="assets">
+	
+	<!-- Fonts -->
 		<font path="fonts/grotesk_bold" load="true" unload="false" />
 		<texture path="fonts/grotesk_bold" />
 		<font path="fonts/grotesk_normal" load="true" unload="false" />
@@ -8,11 +10,15 @@
 		<font path="fonts/cromwell_nf" load="true" unload="false" />
 		<texture path="fonts/cromwell_nf" />
 
+	<!-- Textures -->
 		<texture path="textures/ui/health_bar"/>
 		<texture path="textures/ui/health_fill"/>
 		<texture path="textures/ui/firemode_dots_1"/>
 		<texture path="textures/ui/firemode_dots_2"/>
 		<texture path="textures/ui/firemode_dots_3"/>
+		<texture path="textures/ui/gradient"/>
+		<texture path="textures/ui/heart"/>
+		<texture path="textures/ui/ekg_atlas"/>
 
 	</AddFiles>
 	<Localization directory="localization" default="english.txt">

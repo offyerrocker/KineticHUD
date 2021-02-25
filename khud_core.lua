@@ -11,7 +11,11 @@ KineticHUD.special_characters = {
 
 KineticHUD.color_data = {
 	white = Color("ffffff"),
-	red = Color("ff8080"),
+	black = Color("000000"),
+	grey = Color("888888"),
+	gray = Color("888888"),
+	red = Color("ff0000"),
+	light_red = Color("ff8080"), --not pink. completely different color
 	orange = Color("ffbd80"),
 	gold = Color("ffd080"),
 	yellow = Color("fffb80"),
@@ -38,6 +42,8 @@ KineticHUD._fonts = {
 KineticHUD._USE_UNIQUE_WORKSPACE = false
 KineticHUD._world_panels = {}
 KineticHUD._workspaces = {}
+
+KineticHUD._teammate_panels = {}
 
 --number values used for sizing, positioning etc. which should not be change-able by settings
 KineticHUD.hud_values = {
@@ -119,8 +125,106 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPONS_W = 500,
 	PLAYER_WEAPONS_H = 250,
 	PLAYER_WEAPONS_X = 300,
-	PLAYER_WEAPONS_Y = 700
+	PLAYER_WEAPONS_Y = 700,
+	
+	HEALTH_THRESHOLD_NORMAL = 1,
+	HEALTH_THRESHOLD_STRESSED = 0.5,
+	HEALTH_THRESHOLD_CRITICAL = 1/3,
+	HEALTH_THRESHOLD_FLATLINE = 0,
+	EKG_LAYER = 2,
+	EKG_SPEED = 16, --pixels per second
+	EKG_SIZE = 24,
+	EKG_ATLAS = {
+		texture = "textures/ui/ekg_atlas",
+		states = {
+			normal = {
+				{
+					0 * 128,0 * 128,128,128
+				},
+				{
+					1 * 128,0 * 128,128,128
+				},
+				{
+					2 * 128,0 * 128,128,128
+				},
+				{
+					3 * 128,0 * 128,128,128
+				}
+			},
+			stressed = {
+				{
+					0 * 64,1 * 128,64,128
+				},
+				{
+					1 * 64,1 * 128,64,128
+				},
+				{
+					2 * 64,1 * 128,64,128
+				},
+				{
+					3 * 64,1 * 128,64,128
+				},
+				{
+					4 * 64,1 * 128,64,128
+				},
+				{
+					5 * 64,1 * 128,64,128
+				},
+				{
+					6 * 64,1 * 128,64,128
+				},
+				{
+					7 * 64,1 * 128,64,128
+				}
+			},
+			critical = {
+				{
+					0 * 64,2 * 128,128,128
+				},
+				{
+					2  * 64,2 * 128,128,128
+				},
+				{
+					4  * 64,2 * 128,64,128
+				},
+				{
+					5  * 64,2 * 128,128,128
+				},
+				{
+					7 * 64,2 * 128,64,128
+				}
+			},
+			flatline = {
+				{
+					0 * 64,3 * 128,64,128
+				},
+				{
+					1 * 64,3 * 128,64,128
+				},
+				{
+					2 * 64,3 * 128,64,128
+				},
+				{
+					3 * 64,3 * 128,64,128
+				},
+				{
+					4 * 64,3 * 128,64,128
+				},
+				{
+					5 * 64,3 * 128,64,128
+				},
+				{
+					6 * 64,3 * 128,64,128
+				},
+				{
+					7 * 64,3 * 128,64,128
+				}
+			}
+		}
+	}
 }
+
+KineticHUD.debug_value_1 = 0.5
 
 --default settings
 KineticHUD.default_settings = {
@@ -161,6 +265,17 @@ end
 
 
 --misc management
+
+
+--Writes information for debugging to the appropriate output. Calls global function Log() with all arguments passed if defined (namely, by the Developer Console mod), else uses log() (from BLT)
+--Arguments: any (content agnostic)
+--Returns: nil
+function KineticHUD:c_log(...)
+	local f = Log or log
+	return f(...)
+end
+
+
 function KineticHUD:Update(t,dt)
 	self:UpdateAnimate(t,dt)
 	self:UpdateHUD(t,dt)

@@ -1,6 +1,6 @@
 
 Hooks:PostHook(HUDManager,"_setup_player_info_hud_pd2","khud_hudpd2_create",function(self)
-	if KineticHUD then 
+	if KineticHUD and KineticHUD.Setup then 
 		local hm = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2)
 		local parent_panel = hm and hm.panel
 		if alive(parent_panel) then 
