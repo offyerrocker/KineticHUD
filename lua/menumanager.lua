@@ -1,4 +1,52 @@
 --[[
+
+DEVELOPMENT:
+	CURRENT TODO:
+		write alignment code for:
+			weapons
+			player vitals
+			player equipment
+		connect player set_health to health bar
+		event hooks for player join/leave to reset values like hud, hp, etc.
+		add maniac/expres hud elements
+		store teammate health from hud, use to check ekg/bpm?
+		add player cartographer hud element
+		add player compass hud element
+		implement player/team mission equipments
+		dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
+		
+		
+		re-link player hud on (re)spawn
+		underbarrel weapon support for main player
+		test world_to_screen on world panels (update/persist script with static location paired with console settracker)
+
+		placeholder icons for deployables/grenades?
+		set grenade icons
+		non-focused weapon icon is not properly resized on setting the icon image
+		weapon swap animation
+		
+		
+	DESIRED FEATURES:
+		button prompts next to hud icons?
+
+		april fool's: when shot, there is a 1% chance your hud will fall off of your face and to the ground, and you will need to pick it up or wait x minutes for it to regrow
+
+		teammates:
+		option to show data on their waypoint, or data on the hud, or both (or neither)
+
+		"titles" (dredgen etc)
+		grenade charge meter animation
+
+	SYSTEMS:
+		* down counter implementation/cross-compat
+		* get/set color through settings
+		* buff tracker
+			* allow intuitive menu enabling/disabling of buffs
+				* see khud organization
+
+----
+
+
 AESTHETICS
 	* Digital-retro?
 		Filament displays
@@ -19,20 +67,16 @@ ASSETS
 		* italicized
 		* even spacing
 		* bg shading (simulating empty leds)
-	* firemode indicator
-		* larger margins, relatively smaller circles
-		* individual dot texture?
-	* player cross/heart/revive texture?
 	* teammate deaths texture?
 		* progressively become more damaged with more revives?
 		* show significant difference when user is on predicted/synced last down? eg. bw
 	* bpm states
+		(add one more of these?)
 		* generally okay (75 < x < 100% hp)
 		* kinda hecked up (50 < x < 75% hp)
 		* woah where's your blood (33 < x < 50% hp)
 		* you are going to die (0 < x < 33%)
 		* omae wa mou shindeiru (0 / downed)
-	* generic gradient texture bc gradient doesn't work on world panels
 	
 HUD SEGMENTS
 	SPEAKING INDICATOR:
@@ -149,7 +193,7 @@ HUD SEGMENTS
 	INTERACTION
 		
 	DETECTION:
-		* Enemy detection icon animations instead of simple exclamation points appearing?
+		* Enemy detection icon animations instead of simple exclamation points appearing? (cool lightning bolts crown!)
 		* Replace the boring DETECTED text
 
 	ASSAULT:
@@ -162,11 +206,15 @@ HUD SEGMENTS
 			* Name?
 
 	HIT DIRECTION:
+		* Yes
 		
 	WAYPOINTS:
 		* waypoints on compass??????
 		* teammate health
 		* sentries
+	
+	MENU:
+		* Hoo boy this is gonna be rough
 	
 	MISC:
 		* Trade Timer
@@ -174,7 +222,7 @@ HUD SEGMENTS
 		* Camera Overlay
 		* Driving
 
-
+	
 
 CORE TENETS:
 	hud customizability:
@@ -194,50 +242,6 @@ CORE TENETS:
 
 
 
-
-
-SYSTEMS:
-	* get/set color through settings
-	* buff tracker
-		* allow intuitive menu enabling/disabling of buffs
-			* see khud organization
-
-
-
-DEVELOPMENT TODO:
-	write alignment code for:
-		teammates
-		weapons
-	store teammate health from hud, use to check ekg/bpm 
-	connect hud setters to khud ui elements
-	
-	test world_to_screen on world panels (update/persist script with static location paired with console settracker)
-
-DESIRED FEATURES:
-
-	button prompts next to hud icons?
-
-	april fool's: when shot, there is a 1% chance your hud will fall off of your face and to the ground, and you will need to pick it up or wait x minutes for it to regrow
-
-	buff counter
-
-
-
-teammates:
-option to show data on their waypoint, or data on the hud, or both (or neither)
-
-
-
-
-TODO
-Fix down counter
-
-
-"titles" (dredgen etc)
-grenade charge meter
-removed secondary deployable meter
-
-
 --]]
 local mod_path = KineticHUD and KineticHUD._mod_path or (KineticHUD.GetPath and KineticHUD:GetPath()) or ModPath
 if not KineticHUD then 
@@ -245,169 +249,6 @@ if not KineticHUD then
 end
 
 KineticHUD._mod_path = KineticHUD._mod_path or mod_path
-
---Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
---Arguments: parent_panel [Panel]. The panel object to create the HUD on.
---Returns: nil
-function KineticHUD:Setup(parent_panel)
-	self._gui = World:newgui()
-	self:CreateWorldPanels()
-	self:CreateHUD(parent_panel)
-	
-	BeardLib:AddUpdater("kinetichud_update",callback(self,self,"Update"))
-	
-	self:RegisterUpdateCheckPlayer()
-end
-
---Create world panels to be linked later, and stores them in a table. 
---Returns: nil
-function KineticHUD:CreateWorldPanels()
-	for i,panel_data in pairs(self.hud_values.world_panels) do 
-		local panel_w = panel_data.GUI_W
-		local panel_h = panel_data.GUI_H
-		local panel_name = panel_data.name
-		local panel_text = panel_data.TEXT
-		local rect_color = panel_data.RECT_COLOR
-		
-		local ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
-	
-		local panel = ws:panel():panel({
-			name = panel_name,
-			layer = 1
-		})
-		
-		local text = panel:text({
-			name = "text",
-			color = Color.white,
-			font = self._fonts.grotesk,
-			text = panel_text,
-			vertical = "center",
-			align = "center",
-			layer = 2,
-			font_size = 32
-		})
-		local rect = panel:rect({
-			name = "debug",
-			color = rect_color,
-			layer = -1,
-			alpha = 0.2,
-			visible = false
-		})
-		
-		self._workspaces[panel_name] = ws
-		self._world_panels[i] = panel
-	end
-end
-
---Creates the main HUD elements onto the appropriate panel, depending on user options.
---Safe to call multiple times, as it removes preexisting duplicate HUD elements.
---Arguments: parent_panel [Panel]. The panel object to create the HUD on.
---Returns: nil
-function KineticHUD:CreateHUD(parent_panel)
-		
-	self._parent_panel = parent_panel
-	if alive(self._base)  then 
-		parent_panel:remove(self._base)
-	end
-	local base = parent_panel:panel({
-		name = "kinetichud"
-	})
-	self._panel = base
-	
-	self:CreatePlayerVitalsPanel()
-	self:CreatePlayerWeaponsPanel()
-	
-	self:CreateTeammatesPanel() --! temp for debug only
-	--[[
-
-	--create teammates panel
-	self._teammates = base:panel({
-		name = "teammates"
-	})
-	
-	self._player = base:panel({
-		name = "player"
-	})
-	self:_create_player(self._player)
---]]	
-	
-end
-
---Creates the a HUD element to hold:
---The player's health, armor, damage absorption, stored health, and revives,
---and then positions and scales each element according to user settings.
---Arguments: skip_layout [bool]. Optional. If true, skips the HUD positioning step after creation.
---Returns: nil
-function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[4]
-	local scale = self.settings.player_panel_scale
-	
-	local vitals_panel = selected_parent_panel:panel({
-		name = "vitals_master",
-		visible = true
-		--todo custom x/y here
-	})
-	
---VITALS
---[[
-	local armor_label = vitals_panel:text({
-		name = "armor_label",
-		text = "AP",
-		color = Color.white,
-		font = self._fonts.grotesk,
-		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
-		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale,
-		align = "left",
-		layer = 2,
-		font_size = 32
-	})
-	local a_w,a_h,a_x,a_y = armor_label:text_rect()
-	--]]
-	local armor_bar = vitals_panel:bitmap({
-		name = "armor_bar",
-		texture = "textures/ui/health_bar",
-		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
-		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
-		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
-		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
-	})
-	local armor_fill = vitals_panel:bitmap({
-		name = "armor_fill",
-		texture = "textures/ui/health_fill",
-		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
-		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
-		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
-		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
-	})
-
-	local health_bar = vitals_panel:bitmap({
-		name = "health_bar",
-		texture = "textures/ui/health_bar",
-		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
-		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
-		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
-		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
-	})
-	
-	local health_fill = vitals_panel:bitmap({
-		name = "health_fill",
-		texture = "textures/ui/health_fill",
-		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
-		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
-		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
-		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
-	})
-	if not skip_layout then 
-		self:LayoutPlayerVitals()
-	end
-end
-
---Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
---Arguments: none
---Returns: nil
-function KineticHUD:LayoutPlayerVitals()
-
-end
 
 --Creates rectangular border of varying color/thickness on the inside edge of a specified panel.
 --If the border already exists, modifies the border and returns it.
@@ -421,11 +262,11 @@ end
 		--alpha: [float] (range [0,1]) transparency of border
 		--margin: [float] offset from square outside edges. essentially scale, but using linear pixel offset. Because of parent panel boundaries, you cannot make borders outside of its parent panel area. 
 		--layer: [float] panel layer. higher values are closer to the top (?)
-		--id_prefix: [string] appended to internal panel names. Advised, but not strictly necessary unless you're applying multiple borders to one panel object.
+		--id_prefix: [string] append	ed to internal panel names. Advised, but not strictly necessary unless you're applying multiple borders to one panel object.
 --Returns: resulting border panel [Panel],whether the border already existed or not [bool]
 function KineticHUD:PanelBorder(panel,params)
 	if not (panel and alive(panel)) then
-		KineticHUD:c_log("Error: Invalid panel argument for function panel_border(" .. tostring(panel) .. ",{ " .. table.concat(params,",") .." } )")
+		self:c_log("Error: Invalid panel argument for function panel_border(" .. tostring(panel) .. ",{ " .. table.concat(params,",") .." } )")
 		return
 	end
 	local blend_mode = params.blend_mode or "normal"
@@ -522,6 +363,419 @@ function KineticHUD:PanelBorder(panel,params)
 end
 
 
+--Sets a text panel's text to a formatted number.
+--The number is formatted by clamping it between 0 and the maximum base-10 number of the given number of digits:
+--eg. given a digits value of 3, the amount is clamped between 0 and 999; given digits = 5, amount is clamped between 0 and 99999.
+--The text object's text is then set to the amount formatted as an integer, padding the result with zeroes.
+--This is intended for use with text objects that use the digital (7-segment) font from the base game, since it only supports characters 0-9,
+--and digit counters in this HUD are designed with static spacing/kerning in mind.
+--Example: SetDigitalText(myTextPanel,12.5,4) --> (text is set to "0012")
+--Example 2: SetDigitalText(myTextPanel,413,2) --> (text is set to "99")
+--Arguments: text_gui [Text], amount [number], digits [integer]
+--Returns: nil
+function KineticHUD.SetDigitalText(text_gui,amount,digits)
+	text_gui:set_text(string.format("%0" .. tostring(digits) .. "i",math.clamp(0,amount or 0,math.pow(10,digits or 1) - 1) ) )
+end
+
+--Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
+--Arguments: parent_panel [Panel]. The panel object to create the HUD on.
+--Returns: nil
+function KineticHUD:Setup(parent_panel)
+	self._gui = World:newgui()
+	self:CreateWorldPanels()
+	self:CreateHUD(parent_panel)
+	
+	BeardLib:AddUpdater("kinetichud_update",callback(self,self,"Update"))
+	
+	self:RegisterUpdateCheckPlayer()
+end
+
+--Create world panels to be linked later, and stores them in a table. 
+--Returns: nil
+function KineticHUD:CreateWorldPanels()
+	for i,panel_data in pairs(self.hud_values.world_panels) do 
+		local panel_w = panel_data.GUI_W
+		local panel_h = panel_data.GUI_H
+		local panel_name = panel_data.name
+		local panel_text = panel_data.TEXT
+		local rect_color = panel_data.RECT_COLOR
+		
+		local ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
+	
+		local panel = ws:panel():panel({
+			name = panel_name,
+			layer = 1
+		})
+		
+		local text = panel:text({
+			name = "text",
+			color = Color.white,
+			font = self._fonts.syke,
+			text = panel_text,
+			vertical = "center",
+			align = "center",
+			layer = 2,
+			font_size = 32
+		})
+		local rect = panel:rect({
+			name = "debug",
+			color = rect_color,
+			layer = -1,
+			alpha = 0.2,
+			visible = false
+		})
+		
+		self._workspaces[panel_name] = ws
+		self._world_panels[i] = panel
+	end
+end
+
+--Links world panels created from CreateWorldPanels() to the player camera object.
+--If successfully attempted to link at least one panel, returns true. Else, returns false.
+--Returns: bool
+function KineticHUD:LinkWS(link_target_object)
+	local done_any = false
+	for i,panel in pairs(self._world_panels) do 
+		local hv = self.hud_values.world_panels[i]
+		local workspace = self._workspaces[hv.name]
+		
+		local world_w = hv.WORLD_W
+		local world_h = hv.WORLD_H
+		local panel_w = hv.GUI_W
+		local panel_h = hv.GUI_H
+		
+		local ra = link_target_object:rotation()
+		
+		local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
+		
+		local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
+		
+		local x_axis = Vector3(world_w,0,0)
+		
+		mvector3.rotate_with(x_axis,rot)
+		
+		local y_axis = Vector3(0,-world_h,0)
+		
+		mvector3.rotate_with(y_axis,rot)
+		
+		local center = Vector3(world_w / 2,-world_h / 2)
+		
+		mvector3.rotate_with(center,rot)
+		
+		local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
+			--x+ is distance right
+			--y+ is distance upward
+			--z+ is distance backward
+			
+		mvector3.rotate_with(offset,rot)
+		
+		local position = link_target_object:position()
+		workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
+		done_any = true
+	end
+	return done_any
+end
+
+--Removes the updater from RegisterUpdateCheckPlayer(), which called UpdateCheckPlayer(). This is safe to call multiple times.
+function KineticHUD:UnregisterUpdateCheckPlayer()
+	BeardLib:RemoveUpdater(self._updater_id_check_player)
+end
+
+--Each frame, attempts to find the player unit, in order to link the world panels to the player camera.
+--Upon success, it calls its own unregistration in order to save performance.
+--Do not call manually- instead, call the update registration function RegisterUpdateCheckPlayer().
+function KineticHUD:UpdateCheckPlayer(t,dt)
+	local player = managers.player:local_player()
+	if alive(player) then 
+		if self:LinkWS(player:camera()._camera_object) then
+			self:UnregisterUpdateCheckPlayer()
+		end
+		
+		local inventory = player:inventory()
+		if inventory then 
+			for i,selection in pairs(inventory._available_selections) do 
+				local weapon_unit = selection.unit
+				if alive(weapon_unit) then 
+					local weapon_id = weapon_unit:base():get_name_id()
+					if weapon_id then 
+						self:SetPlayerWeaponIcon(i,weapon_id)
+					end
+				end
+			end
+		end
+	end
+end
+
+--Adds the updater, which calls UpdateCheckPlayer(). This is safe to call multiple times.
+function KineticHUD:RegisterUpdateCheckPlayer()
+	self:UnregisterUpdateCheckPlayer()
+	BeardLib:AddUpdater(self._updater_id_check_player,callback(self,self,"UpdateCheckPlayer"))
+end
+
+--Creates the main HUD elements onto the appropriate panel, depending on user options.
+--Safe to call multiple times, as it removes preexisting duplicate HUD elements.
+--Arguments: parent_panel [Panel]. The panel object to create the HUD on.
+--Returns: nil
+function KineticHUD:CreateHUD(parent_panel)
+		
+	self._parent_panel = parent_panel
+	if alive(self._base)  then 
+		parent_panel:remove(self._base)
+	end
+	local base = parent_panel:panel({
+		name = "kinetichud"
+	})
+	self._panel = base
+	
+	self:CreatePlayerVitalsPanel()
+	self:CreatePlayerWeaponsPanel()
+	
+	self:CreateTeammatesPanel() --! temp for debug only
+	
+	self:CreateHints()
+	self:CreatePresenter()
+	
+end
+
+--Creates the a HUD element to hold:
+--The player's health, armor, damage absorption, stored health, and revives,
+--and then positions and scales each element according to user settings.
+--Arguments: skip_layout [bool]. Optional. If true, skips the HUD positioning step after creation.
+--Returns: nil
+function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
+	local selected_parent_panel = self._world_panels[4]
+	local scale = self.settings.player_panel_scale
+	
+	local VITALS_H = 100 * scale
+	
+	local margin = 4 * scale
+	
+	local label_font_size = 32
+	local counter_large_font_size = 32
+	local counter_medium_font_size = 24
+	
+	local PLAYER_HEALTH_PANEL_W = 520 * scale
+	local PLAYER_HEALTH_PANEL_H = 100 * scale
+	local PLAYER_HEALTH_PANEL_X = 0 * scale
+	local PLAYER_HEALTH_PANEL_Y = -12 * scale
+	
+	local PLAYER_ARMOR_PANEL_W = 520 * scale
+	local PLAYER_ARMOR_PANEL_H = 100 * scale
+	local PLAYER_ARMOR_PANEL_X = 0 * scale
+	local PLAYER_ARMOR_PANEL_Y = -12 * scale
+	
+	local PLAYER_VITALS_BAR_OUTLINE_W = 512 * scale
+	local PLAYER_VITALS_BAR_OUTLINE_H = 24 * scale
+	local PLAYER_VITALS_BAR_OUTLINE_X = margin
+	local PLAYER_VITALS_BAR_OUTLINE_Y = 0 * scale
+	local PLAYER_VITALS_BAR_FILL_W = 512 * scale
+	local PLAYER_VITALS_BAR_FILL_H = 16 * scale
+	local PLAYER_VITALS_BAR_FILL_X = PLAYER_VITALS_BAR_OUTLINE_X
+	local PLAYER_VITALS_BAR_FILL_Y = - (PLAYER_VITALS_BAR_OUTLINE_H - PLAYER_VITALS_BAR_FILL_H) / 2
+	
+	local PLAYER_VITALS_LABELS_X = 0 * scale
+	local PLAYER_VITALS_LABELS_Y = PLAYER_VITALS_BAR_FILL_Y - (margin + PLAYER_VITALS_BAR_FILL_H)
+	
+	--valign bottom
+	local vitals_panel = selected_parent_panel:panel({
+		name = "vitals_master",
+		h = VITALS_H,
+		y = selected_parent_panel:h() - VITALS_H
+	})
+	local vitals_debug = vitals_panel:rect({
+		name = "debug",
+		color = Color.red,
+		alpha = 0.1,
+		visible = false
+	})
+	
+	
+--VITALS
+
+	local armor_panel = vitals_panel:panel({
+		name = "armor_panel",
+		w = PLAYER_ARMOR_PANEL_W,
+		h = PLAYER_ARMOR_PANEL_H,
+		x = PLAYER_ARMOR_PANEL_X,
+		y = PLAYER_ARMOR_PANEL_Y,
+		layer = 4
+	})
+	local health_panel = vitals_panel:panel({
+		name = "health_panel",
+		w = PLAYER_HEALTH_PANEL_W,
+		h = PLAYER_HEALTH_PANEL_H,
+		x = PLAYER_HEALTH_PANEL_X + vitals_panel:w() - PLAYER_HEALTH_PANEL_W,
+		y = PLAYER_HEALTH_PANEL_Y,
+		layer = 4
+	})
+	local health_debug = health_panel:rect({
+		name = "health_debug",
+		color = Color.blue,
+		alpha = 0.1,
+		visible = false
+	})
+	local armor_debug = armor_panel:rect({
+		name = "armor_debug",
+		color = Color.red,
+		alpha = 0.1,
+		visible = false
+	})
+	
+	
+	local armor_label = armor_panel:text({
+		name = "armor_label",
+		text = "AP",
+		color = Color.white,
+		font = self._fonts.tommy_bold,
+		x = PLAYER_VITALS_LABELS_X + margin,
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "left",
+		vertical = "bottom",
+		layer = 2,
+		font_size = label_font_size
+	})
+	local al_x,al_y,al_w,al_h = armor_label:text_rect()
+	
+	local armor_current = armor_panel:text({
+		name = "armor_current",
+		text = "123",
+		color = Color.white,
+		font = self._fonts.digital,
+		x = PLAYER_VITALS_LABELS_X + al_w + al_x + margin,
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "left",
+		vertical = "bottom",
+		layer = 2,
+		font_size = counter_large_font_size
+	})
+	local ac_x,ac_y,ac_w,ac_h = armor_current:text_rect()
+	
+	local armor_total = armor_panel:text({
+		name = "armor_total",
+		text = "456",
+		color = Color.white,
+		font = self._fonts.digital,
+		x = PLAYER_VITALS_LABELS_X + ac_w + ac_x + margin,
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "left",
+		vertical = "bottom",
+		layer = 2,
+		font_size = counter_medium_font_size
+	})
+	
+--health
+	local health_label = health_panel:text({
+		name = "health_label",
+		text = "HP",
+		color = Color.white,
+		font = self._fonts.tommy_bold,
+		x = - (PLAYER_VITALS_LABELS_X + margin),
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "right",
+		vertical = "bottom",
+		layer = 2,
+		font_size = label_font_size
+	})
+	local hl_x,hl_y,hl_w,hl_h = health_label:text_rect()
+	
+	local health_current = health_panel:text({
+		name = "health_current",
+		text = "789",
+		color = Color.white,
+		font = self._fonts.digital,
+		x = - (PLAYER_VITALS_LABELS_X + margin + hl_w + margin),
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "right",
+		vertical = "bottom",
+		layer = 2,
+		font_size = counter_large_font_size
+	})
+	local hc_x,hc_y,hc_w,hc_h = health_current:text_rect()
+	
+	
+	local health_total = health_panel:text({
+		name = "health_total",
+		text = "000",
+		color = Color.white,
+		font = self._fonts.digital,
+		x = - (PLAYER_VITALS_LABELS_X + margin + hl_w + margin + hc_w + margin),
+		y = PLAYER_VITALS_LABELS_Y,
+		align = "right",
+		vertical = "bottom",
+		layer = 2,
+		font_size = counter_medium_font_size
+	})
+	
+	
+	
+	local armor_outline = armor_panel:bitmap({
+		name = "armor_outline",
+		texture = "textures/ui/armor_bar_outline",
+		w = PLAYER_VITALS_BAR_OUTLINE_W,
+		h = PLAYER_VITALS_BAR_OUTLINE_H,
+		x = PLAYER_VITALS_BAR_OUTLINE_X,
+		y = PLAYER_VITALS_BAR_OUTLINE_Y + (PLAYER_ARMOR_PANEL_H - PLAYER_VITALS_BAR_OUTLINE_H),
+		visible = true,
+		layer = 5
+	})
+	local armor_fill = armor_panel:bitmap({
+		name = "armor_fill",
+		texture = "textures/ui/armor_bar_fill",
+		w = PLAYER_VITALS_BAR_FILL_W,
+		h = PLAYER_VITALS_BAR_FILL_H,
+		x = PLAYER_VITALS_BAR_FILL_X,
+		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_ARMOR_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
+		color = self.color_data.light_red,
+		layer = 4
+	})
+
+	local health_outline = health_panel:bitmap({
+		name = "health_outline",
+		texture = "textures/ui/health_bar_outline",
+		w = PLAYER_VITALS_BAR_OUTLINE_W,
+		h = PLAYER_VITALS_BAR_OUTLINE_H,
+		x = -PLAYER_VITALS_BAR_OUTLINE_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_OUTLINE_W),
+		y = PLAYER_VITALS_BAR_OUTLINE_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_OUTLINE_H),
+		visible = true,
+		layer = 5
+	})
+	
+	local health_fill = health_panel:bitmap({
+		name = "health_fill",
+		texture = "textures/ui/health_bar_fill",
+		w = PLAYER_VITALS_BAR_FILL_W,
+		h = PLAYER_VITALS_BAR_FILL_H,
+		x = -PLAYER_VITALS_BAR_FILL_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W),
+		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
+		color = self.color_data.light_green,
+		layer = 4
+	})
+	
+	local revives_text = vitals_panel:text({
+		name = "revives_text",
+		text = "0",
+		color = Color.white,
+		font = self._fonts.digital,
+		align = "center",
+		vertical = "bottom",
+		layer = 7,
+		font_size = counter_medium_font_size
+		
+	})
+	
+	self._player_vitals_panel = vitals_panel
+	if not skip_layout then 
+		self:LayoutPlayerVitals()
+	end
+end
+
+--Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
+--Arguments: none
+--Returns: nil
+function KineticHUD:LayoutPlayerVitals()
+
+end
+
 --Creates the a HUD element to hold information about the player's current weapons. (Two weapons in vanilla, the Primary and Secondary)
 --Each weapon panel has one of the following: Kill counter, Weapon icon, Firemode indicator, Magazine counter, Reserve counter, Underbarrel ammo counter.
 --After creation, the HUD elements are positioned and scaled according to user settings.
@@ -536,6 +790,7 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 		x = 0,
 		y = 800
 	})
+	self._player_weapons_panel = parent_weapons_panel
 --todo straighten out layers (integers only)
 --todo put vertical offset in weapons_panel as well as in subpanels
 	local function create_weapon_subpanel(index,scale)
@@ -589,6 +844,8 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 			name = "firemode",
 			x = icon_box:right() + 4,
 			y = icon_box:y(),
+			w = 16 * 0.5,
+			h = 80 * 0.5,
 			texture = "textures/ui/firemode_dots_3",
 --			visible = false,
 			layer = 3
@@ -705,108 +962,31 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 	
 end
 
-
---Links world panels created from CreateWorldPanels() to the player camera object.
---If successfully attempted to link at least one panel, returns true. Else, returns false.
---Returns: bool
-function KineticHUD:LinkWS(link_target_object)
-	local done_any = false
-	for i,panel in pairs(self._world_panels) do 
-		local hv = self.hud_values.world_panels[i]
-		local workspace = self._workspaces[hv.name]
-		
-		local world_w = hv.WORLD_W
-		local world_h = hv.WORLD_H
-		local panel_w = hv.GUI_W
-		local panel_h = hv.GUI_H
-		
-		local ra = link_target_object:rotation()
-		
-		local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
-		
-		local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-		
-		local x_axis = Vector3(world_w,0,0)
-		
-		mvector3.rotate_with(x_axis,rot)
-		
-		local y_axis = Vector3(0,-world_h,0)
-		
-		mvector3.rotate_with(y_axis,rot)
-		
-		local center = Vector3(world_w / 2,-world_h / 2)
-		
-		mvector3.rotate_with(center,rot)
-		
-		local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
-			--x+ is distance right
-			--y+ is distance upward
-			--z+ is distance backward
-			
-		mvector3.rotate_with(offset,rot)
-		
-		local position = link_target_object:position()
-		workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
-		done_any = true
-	end
-	return done_any
-end
-
---Removes the updater from RegisterUpdateCheckPlayer(), which called UpdateCheckPlayer(). This is safe to call multiple times.
-function KineticHUD:UnregisterUpdateCheckPlayer()
-	BeardLib:RemoveUpdater(self._updater_id_check_player)
-end
-
---Each frame, attempts to find the player unit, in order to link the world panels to the player camera.
---Upon success, it calls its own unregistration in order to save performance.
---Do not call manually- instead, call the update registration function RegisterUpdateCheckPlayer().
-function KineticHUD:UpdateCheckPlayer(t,dt)
-	local player = managers.player:local_player()
-	if alive(player) then 
-		if self:LinkWS(player:camera()._camera_object) then
-			self:UnregisterUpdateCheckPlayer()
-		end
-	end
-end
-
---Adds the updater, which calls UpdateCheckPlayer(). This is safe to call multiple times.
-function KineticHUD:RegisterUpdateCheckPlayer()
-	self:UnregisterUpdateCheckPlayer()
-	BeardLib:AddUpdater(self._updater_id_check_player,callback(self,self,"UpdateCheckPlayer"))
-end
-
-
-
 function KineticHUD:CreateTeammatesPanel()
 	local selected_parent_panel = self._world_panels[1]
 	local teammates_panel_parent = selected_parent_panel:panel({
 		name = "teammates_panel"
 	})
 	self._teammates_panel = teammates_panel_parent
-	
-	local NUM_TEAMMATES = 1 --BigLobbyGlobals:num_player_slots()
-	for i=1,NUM_TEAMMATES,1 do 
-		local teammate = self:CreateTeammatePanel(i) --!
-		self._teammate_panels[i] = teammate
-	end
 end
 
 function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,double)
-	local scale = 1
-	local box_w = 72 * scale
-	local box_h = 24 * scale
+	local scale = self.settings.teammate_panel_scale
+	local hv = self.hud_values
+	local box_w = hv.TEAMMATE_EQUIPMENT_BOX_W * scale
+	local box_h = hv.TEAMMATE_EQUIPMENT_BOX_H * scale
 	
-	local font_size = 24 * scale
-	local icon_w = 24 * scale
-	local icon_h = 24 * scale
-	local margin = 4 * scale
-	local text_x = icon_w + margin
-	local text_y = 0
+	local font_size = hv.TEAMMATE_EQUIPMENT_FONT_SIZE * scale
+	local icon_w = hv.TEAMMATE_EQUIPMENT_ICON_SIZE * scale
+	local icon_h = hv.TEAMMATE_EQUIPMENT_ICON_SIZE * scale
+	local margin = hv.MARGIN_XSMALL * scale
+	local text_x = (hv.TEAMMATE_EQUIPMENT_TEXT_X * scale) + icon_w + margin
+	local text_y = hv.TEAMMATE_EQUIPMENT_TEXT_Y * scale
 	
 	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
 	
 	if double then 
-		box_w = box_w + (48 * scale)
+		box_w = box_w * hv.TEAMMATE_EQUIPMENT_BOX_DOUBLE_W_MUL
 	end
 	
 	local equipment_box = teammate_panel:panel({
@@ -831,7 +1011,7 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 	icon:set_size(icon_aspect_ratio * icon_h,icon_h)
 	
 	local borders = self:PanelBorder(icon_box,{
-		thickness = 1,
+		thickness = hv.TEAMMATE_EQUIPMENT_BOX_OUTLINE_THICKNESS,
 		layer = 4
 	})
 	
@@ -843,7 +1023,8 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 		x = 0,
 		y = 0,
 		color = self.color_data.black,
-		alpha = 1/3
+		alpha = 1/3,
+		layer = 2
 	})
 	
 	local text = equipment_box:text({
@@ -852,9 +1033,10 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 		font = self._fonts.digital,
 		font_size = font_size,
 		x = text_x,
-		y = text_y
+		y = text_y,
+		layer = 6
 	})
-	local t_w,_,t_x,_ = text:text_rect()
+	local t_x,_,t_w,_ = text:text_rect()
 	
 	local text_2 = equipment_box:text({
 		name = "text_2",
@@ -863,63 +1045,61 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 		font_size = font_size,
 		x = t_w + t_x + margin + margin,
 		y = text_y,
-		visible = double and true or false
+		visible = false, --visibility is checked on layout
+		layer = 6
 	})
 	
 	return equipment_box
 end
 
-function KineticHUD:CreateTeammatePanel(i)
-	local scale = 1
+function KineticHUD:CreateTeammatePanel(i,skip_layout)
+	local scale = self.settings.teammate_panel_scale
+	local hv = self.hud_values
+	local margin = hv.MARGIN_XSMALL * scale
+
+	local teammate_w = hv.TEAMMATE_PANEL_W * scale
+	local teammate_h = hv.TEAMMATE_PANEL_H * scale
 	
-	local teammate_w = 400 * scale
-	local teammate_h = 56 * scale
+	local nametag_panel_x = hv.TEAMMATE_NAMETAG_PANEL_X * scale
+	local nametag_panel_y = hv.TEAMMATE_NAMETAG_PANEL_Y -margin
+	local nametag_panel_w = hv.TEAMMATE_NAMETAG_PANEL_W * scale
+	local nametag_panel_h = hv.TEAMMATE_NAMETAG_PANEL_H * scale
+	local nametag_font_size = hv.TEAMMATE_NAMETAG_FONT_SIZE * scale
 	
-	local nametag_panel_x = 8 * scale
-	local nametag_panel_y = 0 * scale
-	local nametag_panel_w = 128 * scale
-	local nametag_panel_h = 24 * scale
-	local nametag_font_size = 20 * scale
-	
-	local color_indicator_w = 4 * scale
-	local color_indicator_h = nametag_panel_h
-	local color_indicator_x = 0 * scale
-	local color_indicator_y = 0 * scale
+	local color_indicator_w = hv.TEAMMATE_COLOR_INDICATOR_W * scale
+	local color_indicator_h = (hv.TEAMMATE_COLOR_INDICATOR_H * scale) + nametag_panel_h
+	local color_indicator_x = hv.TEAMMATE_COLOR_INDICATOR_X * scale
+	local color_indicator_y = hv.TEAMMATE_COLOR_INDICATOR_Y * scale
 	
 	
-	local bpm_panel_w = 100 * scale
-	local bpm_panel_h = nametag_panel_h
-	local bpm_panel_x = color_indicator_w + nametag_panel_x + nametag_panel_w
-	local bpm_panel_y = 0 * scale
+	local bpm_panel_w = hv.TEAMMATE_BPM_PANEL_W * scale
+	local bpm_panel_h = (hv.TEAMMATE_BPM_PANEL_H * scale) + nametag_panel_h
+	local bpm_panel_x = (hv.TEAMMATE_BPM_PANEL_X * scale) + color_indicator_w + nametag_panel_x + nametag_panel_w
+	local bpm_panel_y = hv.TEAMMATE_BPM_PANEL_Y * scale
 	
-	local bpm_icon_w = nametag_panel_h
-	local bpm_icon_h = nametag_panel_h
-	local bpm_icon_x = 0 --color_indicator_w + nametag_panel_w
-	local bpm_icon_y = 0 * scale
+	local bpm_icon_w = nametag_panel_h * hv.TEAMMATE_BPM_ICON_SIZE_MUL
+	local bpm_icon_h = nametag_panel_h * hv.TEAMMATE_BPM_ICON_SIZE_MUL
+	local bpm_icon_x = hv.TEAMMATE_BPM_ICON_X * scale --color_indicator_w + nametag_panel_w
+	local bpm_icon_y = hv.TEAMMATE_BPM_ICON_Y * scale
 	
 	local bpm_mask_h = nametag_panel_h
-	local bpm_mask_x = bpm_icon_w / 2 --bpm_icon_w / 2 --the idea was for the ekg line to disappear under the heart, but layers/opacity aren't playing nice
+	local bpm_mask_x = (hv.TEAMMATE_BPM_MASK_X * scale) + (bpm_icon_w / 2) --bpm_icon_w / 2 --the idea was for the ekg line to disappear under the heart, but layers/opacity aren't playing nice
 	local bpm_mask_w = bpm_panel_w - bpm_mask_x
-	local bpm_mask_y = 0 * scale
+	local bpm_mask_y = hv.TEAMMATE_BPM_MASK_Y * scale
 	
 	local bpm_readout_w = 128 / 4
 	local bpm_readout_h = 96 / 4
 	
-	local speaking_icon_x = bpm_panel_x + bpm_panel_w
-	local speaking_icon_y = 0 * scale
-	local speaking_icon_w = nametag_panel_h
-	local speaking_icon_h = nametag_panel_h
+	local speaking_icon_x = (hv.TEAMMATE_SPEAKING_ICON_X * scale) + bpm_panel_x + bpm_panel_w
+	local speaking_icon_y = hv.TEAMMATE_SPEAKING_ICON_Y * scale
+	local speaking_icon_w = (nametag_panel_h * hv.TEAMMATE_SPEAKING_ICON_SIZE_MUL)
+	local speaking_icon_h = (nametag_panel_h * hv.TEAMMATE_SPEAKING_ICON_SIZE_MUL)
 	
 	
-	local deployable_label_font_size = 24 * scale
-	local deployable_border_thickness = 1
+	local deployable_1_x = hv.TEAMMATE_DEPLOYABLE_X * scale
+	local deployable_1_y = (hv.TEAMMATE_DEPLOYABLE_Y * scale) + nametag_panel_h
 	
-	local deployable_1_x = 0 * scale
-	local deployable_1_y = nametag_panel_h
-	
-	local revives_font_size = 20
-	local margin = 4 * scale
-
+	local revives_font_size = hv.TEAMMATE_REVIVES_FONT_SIZE * scale
 	
 	
 	local teammate = self._teammates_panel:panel({
@@ -954,8 +1134,8 @@ function KineticHUD:CreateTeammatePanel(i)
 	
 	local nametag = nametag_panel:text({
 		name = "nametag",
-		text = "Sagira",
-		font = self._fonts.grotesk,
+		text = "acbdefghijklmnopqrs",
+		font = self._fonts.syke,
 		font_size = nametag_font_size,
 		align = "left",
 		vertical = "top",
@@ -983,8 +1163,6 @@ function KineticHUD:CreateTeammatePanel(i)
 		texture = "textures/ui/heart",
 		w = bpm_icon_w,
 		h = bpm_icon_h,
---		x = bpm_icon_x,
---		y = bpm_icon_y,
 		color = self.color_data.red,
 		layer = 4
 	})
@@ -1042,28 +1220,418 @@ function KineticHUD:CreateTeammatePanel(i)
 		visible = false
 	})
 	
+	local location_text = teammate:text({
+		name = "location_text",
+		text = "" or "In Lobby abcdefghij",
+		font = self._fonts.syke,
+		font_size = nametag_font_size,
+		align = "left",
+		vertical = "top",
+		x = bpm_panel:right() + margin,
+		y = -margin,
+		layer = 6
+	})
+
 	local deployable_1 = self:CreateTeammateEquipmentBox(teammate,"deployable_1","equipment_soda",true)
 	deployable_1:set_position(deployable_1_x,deployable_1_y)
 	
 	local deployable_2 = self:CreateTeammateEquipmentBox(teammate,"deployable_2","equipment_chimichanga",true)
 	deployable_2:set_position(deployable_1:right(),deployable_1_y)
+	deployable_2:hide() 
 	
 	local cableties = self:CreateTeammateEquipmentBox(teammate,"cable_ties","equipment_cable_ties")
 	cableties:set_position(deployable_2:right(),deployable_1_y)
 	
-	local throwable = self:CreateTeammateEquipmentBox(teammate,"cable_ties","equipment_c4")
+	local throwable = self:CreateTeammateEquipmentBox(teammate,"throwable","equipment_c4")
 	throwable:set_position(cableties:right(),deployable_1_y)
 	
+	self._teammate_panels[i] = teammate
+	if not skip_layout then 
+		self:LayoutTeammatePanel(i)
+	end
 	return teammate
 end
 
+function KineticHUD:CreateHints()
+	--target panel is 2
+	--you can't stand up here, etc.
+end
 
-function KineticHUD:SetTeammateHealth(current,total)
+function KineticHUD:CreatePresenter()
+	--target panel is 3
+	--mission objectives and pickups, etc
+end
+
+function KineticHUD:LayoutTeammatePanel(i,RECREATE_TEXT_OBJECTS)
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+--		local RECREATE_TEXT_OBJECTS = true
+			
+		local hv = self.hud_values
+		local scale = self.settings.teammate_panel_scale
+		local margin = hv.MARGIN_XSMALL * scale
+		local margin_medium = hv.MARGIN_MEDIUM * scale
+		local teammate_x = hv.TEAMMATE_PANEL_X * scale
+		local teammate_y = hv.TEAMMATE_PANEL_Y * scale
+		local teammate_w = hv.TEAMMATE_PANEL_W * scale
+		local teammate_h = hv.TEAMMATE_PANEL_H * scale
+		local nametag_panel_w = hv.TEAMMATE_NAMETAG_PANEL_W * scale
+		local nametag_panel_h = hv.TEAMMATE_NAMETAG_PANEL_H * scale
+		local nametag_panel_x = hv.TEAMMATE_NAMETAG_PANEL_X * scale
+		local nametag_panel_y = hv.TEAMMATE_NAMETAG_PANEL_Y -margin
+		local nametag_font_size = hv.TEAMMATE_NAMETAG_FONT_SIZE * scale
+		local color_indicator_w = hv.TEAMMATE_COLOR_INDICATOR_W * scale
+		local color_indicator_h = (hv.TEAMMATE_COLOR_INDICATOR_H * scale) + nametag_panel_h
+		local color_indicator_x = hv.TEAMMATE_COLOR_INDICATOR_X * scale
+		local color_indicator_y = hv.TEAMMATE_COLOR_INDICATOR_Y * scale
+		local bpm_panel_w = hv.TEAMMATE_BPM_PANEL_W * scale
+		local bpm_panel_h = (hv.TEAMMATE_BPM_PANEL_H * scale) + nametag_panel_h
+		local bpm_panel_x = (hv.TEAMMATE_BPM_PANEL_X * scale) + color_indicator_w + nametag_panel_x + nametag_panel_w
+		local bpm_panel_y = hv.TEAMMATE_BPM_PANEL_Y * scale
+		local bpm_icon_w = nametag_panel_h * hv.TEAMMATE_BPM_ICON_SIZE_MUL
+		local bpm_icon_h = nametag_panel_h * hv.TEAMMATE_BPM_ICON_SIZE_MUL
+		local bpm_icon_x = hv.TEAMMATE_BPM_ICON_X * scale
+		local bpm_icon_y = hv.TEAMMATE_BPM_ICON_Y * scale
+		local bpm_mask_h = nametag_panel_h
+		local bpm_mask_x = (hv.TEAMMATE_BPM_MASK_X * scale) + (bpm_icon_w / 2)
+		local bpm_mask_w = bpm_panel_w - bpm_mask_x
+		local bpm_mask_y = hv.TEAMMATE_BPM_MASK_Y * scale
+		
+		local speaking_icon_x = (hv.TEAMMATE_SPEAKING_ICON_X * scale) + bpm_panel_x + bpm_panel_w
+		local speaking_icon_y = hv.TEAMMATE_SPEAKING_ICON_Y * scale
+		local speaking_icon_w = (nametag_panel_h * hv.TEAMMATE_SPEAKING_ICON_SIZE_MUL)
+		local speaking_icon_h = (nametag_panel_h * hv.TEAMMATE_SPEAKING_ICON_SIZE_MUL)
+		
+		
+		local deployable_1_x = hv.TEAMMATE_DEPLOYABLE_X * scale
+		local deployable_1_y = (hv.TEAMMATE_DEPLOYABLE_Y * scale) + nametag_panel_h
+		
+		
+		local revives_font_size = hv.TEAMMATE_REVIVES_FONT_SIZE * scale
+		
+		local eq_box_w = hv.TEAMMATE_EQUIPMENT_BOX_W * scale
+		local eq_box_h = hv.TEAMMATE_EQUIPMENT_BOX_H * scale
+		local eq_box_w_double_mul = hv.TEAMMATE_EQUIPMENT_BOX_DOUBLE_W_MUL
+		
+		teammate:set_size(teammate_w,teammate_h)
+		teammate:set_position(teammate_x,teammate_y + ((teammate_h + margin_medium)* (i - 1)))
+		
+		local color_indicator = teammate:child("color_indicator")
+		color_indicator:set_size(color_indicator_w,color_indicator_h)
+		color_indicator:set_position(color_indicator_x,color_indicator_y)
+		
+		local nametag_panel = teammate:child("nametag_panel")
+		local nametag = nametag_panel:child("nametag")
+		if RECREATE_TEXT_OBJECTS then 
+			local nametag_text = nametag:text()
+			self:animate_stop(nametag,false)
+			nametag:stop()
+			nametag_panel:remove(nametag)
+			nametag = nametag_panel:text({
+				name = "nametag",
+				text = nametag_text,
+				font = self._fonts.syke,
+				font_size = nametag_font_size,
+				align = "left",
+				vertical = "top",
+				layer = 6
+			})
+		else
+			nametag:set_font_size(nametag_font_size)
+		end
+		local bpm_panel = teammate:child("bpm_panel")
+		bpm_panel:set_size(bpm_panel_w,bpm_panel_h)
+		bpm_panel:set_position(bpm_panel_x,bpm_panel_y)
+		
+		local bpm_icon_box = bpm_panel:child("bpm_icon_box")
+		bpm_icon_box:set_size(bpm_icon_w,bpm_icon_h)
+		bpm_icon_box:set_position(bpm_icon_x,bpm_icon_y)
+		local bpm_icon = bpm_icon_box:child("bpm_icon")
+		bpm_icon:set_size(bpm_icon_w,bpm_icon_h)
+		bpm_icon:set_position(0,0)
+		local bpm_mask = bpm_panel:child("bpm_mask")
+		bpm_mask:set_size(bpm_mask_w,bpm_mask_h)
+		bpm_mask:set_position(bpm_mask_x,bpm_mask_y)
+		
+		local revives = bpm_icon_box:child("revives")
+		if RECREATE_TEXT_OBJECTS then 
+			local revives_text = revives:text()
+			revives:stop()
+			self:animate_stop(revives,false)
+			bpm_icon_box:remove(revives)
+			revives = bpm_icon_box:text({
+				name = "revives",
+				text = "0",
+				font = self._fonts.digital,
+				font_size = revives_font_size,
+				align = "center",
+				vertical = "center",
+				layer = 5
+			})
+		else
+			revives:set_font_size(revives_font_size)
+		end
+		
+		local speaking_icon = teammate:child("speaking_icon")
+		local location_text = teammate:child("location_text")
+		if RECREATE_TEXT_OBJECTS then 
+			local location = location_text:text()
+			location_text:stop()
+			self:animate_stop(location_text,false)
+			teammate:remove(location_text)
+			location_text = teammate:text({
+				name = "location_text",
+				text = "",
+				font = self._fonts.syke,
+				font_size = nametag_font_size,
+				align = "left",
+				vertical = "top",
+				x = bpm_panel:right() + margin,
+				y = -margin,
+				layer = 6
+			})
+		else
+			location_text:set_font_size(nametag_font_size)
+		end
+		local deployable_1 = teammate:child("deployable_1")
+		local deployable_2 = teammate:child("deployable_2")
+		local cable_ties = teammate:child("cable_ties")
+		local throwable = teammate:child("throwable")
+		
+		local deployable_1_text_2 = deployable_1:child("text_2")
+		if deployable_1_text_2:visible() then 
+			--local d1t2x,d1t2y,d1t2w,d1t2h = deployable_1_text_2:text_rect()
+			--deployable_1:set_size(d1t2x + d1t2w,eq_box_h)
+			deployable_1:set_size(eq_box_w * eq_box_w_double_mul,eq_box_h)
+		else
+			deployable_1:set_size(eq_box_w,eq_box_h)
+		end
+		deployable_1:set_position(deployable_1_x,deployable_1_y)
+		
+		if deployable_2:visible() then 
+			local deployable_2_text_2 = deployable_2:child("text_2")
+			if deployable_2_text_2:visible() then 
+--				local d2t2x,d2t2y,d2t2w,d2t2h = deployable_2_text_2:text_rect()
+--				deployable_2:set_size(d2t2x + d2t2w + margin,eq_box_h)
+				deployable_2:set_size(eq_box_w * eq_box_w_double_mul,eq_box_h)
+			else
+				deployable_2:set_size(eq_box_w,eq_box_h)
+			end
+			deployable_2:set_position(deployable_1:right(),deployable_1_y)
+			cable_ties:set_x(deployable_2:right())
+		else
+			cable_ties:set_x(deployable_1:right())
+		end
+		cable_ties:set_size(eq_box_w,eq_box_h)
+		cable_ties:set_y(deployable_1_y)
+		throwable:set_size(eq_box_w,eq_box_h)
+		throwable:set_position(cable_ties:right(),deployable_1_y)
+		
+	end
+end
+
+------  HUD setters  ------
+
+	--player weapon
+function KineticHUD:SetPlayerWeaponSelected(i)
+	
+end
+	
+function KineticHUD:SetPlayerWeaponFiremode(i,firemode)
+	if alive(self._player_weapons_panel) then 
+		local weapon_panel = self._player_weapons_panel:child(tostring(i))
+		if alive(weapon_panel) then 
+			local hud_values = self.hud_values
+			local texture
+			local w = hud_values.FIREMODE_TEXTURE_W
+			local h = hud_values.FIREMODE_TEXTURE_H
+			if firemode == "auto" then 
+				texture = hud_values.FIREMODE_AUTO_TEXTURE
+			elseif firemode == "single" then 
+				texture = hud_values.FIREMODE_SINGLE_TEXTURE
+			elseif firemode == "burst" then 
+				texture = hud_values.FIREMODE_BURST_TEXTURE
+			elseif firemode == "safety" then 
+				texture = hud_values.FIREMODE_AUTO_TEXTURE
+				w = 0
+				h = 0
+			end
+			local firemode_icon = weapon_panel:child("firemode")
+			if alive(firemode_icon) then 
+				firemode_icon:set_image(texture)
+--				firemode_icon:set_size(w,h)
+			end
+		end
+	end
+end
+
+function KineticHUD:SetPlayerWeaponReserve(i,amount)
+	if alive(self._player_weapons_panel) then 
+		local weapon_panel = self._player_weapons_panel:child(tostring(i))
+		if alive(weapon_panel) then 
+			self.SetDigitalText(weapon_panel:child("reserve"),amount,3)
+		end
+	end
+end
+
+function KineticHUD:SetPlayerWeaponMagazine(i,amount)
+	if alive(self._player_weapons_panel) then 
+		local weapon_panel = self._player_weapons_panel:child(tostring(i))
+		if alive(weapon_panel) then 
+			self.SetDigitalText(weapon_panel:child("magazine"),amount,3)
+		end
+	end
+end
+
+function KineticHUD:SetPlayerWeaponIcon(i,weapon_id)
+	if alive(self._player_weapons_panel) then 
+		local weapon_panel = self._player_weapons_panel:child(tostring(i))
+		if alive(weapon_panel) then
+			local texture,texture_rect = managers.blackmarket:get_weapon_icon_path(weapon_id)
+			weapon_panel:child("icon_box"):child("icon_bitmap"):set_image(texture,texture_rect and unpack(texture_rect))
+		end
+	end
+end
+
+function KineticHUD:SetPlayerWeaponKills(i,n)
+	if alive(self._player_weapons_panel) then 
+		local weapon_panel = self._player_weapons_panel:child(tostring(i))
+		if alive(weapon_panel) then 
+			self.SetDigitalText(weapon_panel:child("kill_counter"),n,3)
+		end
+	end
+end
+
+function KineticHUD:AnimateAmmoLow(id)
+	
+end
+
+function KineticHUD:AnimateAmmoEmpty(id)
+	
+end
+
+	--player loadout
+function KineticHUD:CheckPlayerDeployableEquipment()
+	
+end
+
+function KineticHUD:SetPlayerDeployableEquipment(data)
+	
+end
+
+function KineticHUD:SetPlayerCableTies(amount)
 	
 end
 
 function KineticHUD:SetPlayerHealth(current,total)
+	if alive(self._player_vitals_panel) then 
+		local health_panel = self._player_vitals_panel:child("health_panel")
+		self.SetDigitalText(health_panel:child("health_current"),current,3)
+		self.SetDigitalText(health_panel:child("health_total"),total,3)
+	end
+end
 
+function KineticHUD:SetPlayerArmor(current,total)
+	if alive(self._player_vitals_panel) then 
+		local armor_panel = self._player_vitals_panel:child("armor_panel")
+		self.SetDigitalText(armor_panel:child("armor_current"),current,3)
+		self.SetDigitalText(armor_panel:child("armor_total"),total,3)
+--		if total <= 0 then 
+--			armor_panel:hide()
+--		end
+	end
+end
+
+function KineticHUD:SetPlayerRevives(amount)
+	if alive(self._player_vitals_panel) then 
+		self.SetDigitalText(self._player_vitals_panel:child("revives_text"),amount,1)
+	end
+end
+
+-- teammate
+function KineticHUD:SetTeammateName(i,name)
+	local teammate_panel = self._teammate_panels[i]
+	if teammate_panel then 
+		teammate_panel:child("nametag_panel"):child("nametag"):set_text(name)
+	end
+end
+
+function KineticHUD:SetTeammatePeerId(i,id)
+	local teammate_panel = self._teammate_panels[i]
+	if teammate_panel then 
+		teammate_panel:child("color_indicator"):set_color(tweak_data.chat_colors[#tweak_data.chat_colors])
+	end
+end
+
+function KineticHUD:SetTeammateHealth(i,current,total)
+	
+end
+
+function KineticHUD:SetTeammateRevives(i,current)
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		teammate:child("bpm_panel"):child("bpm_icon_box"):child("revives"):set_text(string.format("%01i",math.clamp(current,0,99)))
+	end
+end
+
+function KineticHUD:SetTeammateCableTies(i,amount)
+	local teammate_panel = self._teammate_panels[i]
+	if teammate_panel then 
+		self.SetDigitalText(teammate_panel:child("cable_ties"):child("text"),amount,2)
+	end
+end
+
+function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
+	index = index or 1
+	local teammate = self._teammate_panels[i]
+	local queue_layout = false
+	if alive(teammate) then 
+		local deployable
+		if index == 2 then
+			deployable = teammate:child("deployable_2")
+			if not deployable:visible() then 
+				queue_layout = true
+			end
+		else
+			deployable = teammate:child("deployable_1")
+		end
+		
+		if data.icon then 
+			local deployable_icon = deployable:child("icon_box"):child("icon")
+			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
+			deployable_icon:set_image(texture,unpack(texture_rect))
+		end
+		if data.amount then
+			local amount
+			local deployable_text = deployable:child("text")
+			if type(data.amount) == "table" then 
+				if data.amount[1] then 
+					self.SetDigitalText(deployable_text,data.amount[1],2)
+				end
+				if data.amount[2] then 
+					local deployable_text_2 = deployable:child("text_2")
+					self.SetDigitalText(deployable_text_2,data.amount[2],2)
+					if not deployable_text_2:visible() then 
+						deployable_text_2:show()
+						queue_layout = true
+					end
+				end
+			else
+				self.SetDigitalText(deployable_text,data.amount,2)
+			end
+		end
+	end
+	if queue_layout then 
+		self:LayoutTeammatePanel(i)
+	end
+end
+
+function KineticHUD:ShowPresenterPopup(params)
+	--add to queue, queue should have its own update function
+end
+
+function KineticHUD:ShowHintPopup(params)
+	--take from noblehud?
 end
 
 function KineticHUD:UpdateHUD(t,dt)
@@ -1075,6 +1643,7 @@ function KineticHUD:UpdateHUD(t,dt)
 	local hud_values = self.hud_values
 	local ekg_speed = hud_values.EKG_SPEED
 	local ekg_size = hud_values.EKG_SIZE
+	local ekg_y = hud_values.EKG_Y
 	for id,teammate_panel in pairs(self._teammate_panels) do 
 		if alive(teammate_panel) then 
 			local bpm_panel = teammate_panel:child("bpm_panel")
@@ -1128,6 +1697,7 @@ function KineticHUD:UpdateHUD(t,dt)
 						w = w,
 						h = h,
 						x = bpm_mask:w(),
+						y = ekg_y,
 						layer = hud_values.EKG_LAYER
 					})
 				else
@@ -1139,13 +1709,6 @@ function KineticHUD:UpdateHUD(t,dt)
 	
 end
 
-function KineticHUD:SetRevives(i,current)
-	
-end
-
-function KineticHUD:SetHealth(i,current,total)
---		self._worldhud_base:child("health_fill"):set_texture_rect(0,0,(self.hud_data.hp_w / self.hud_data.hp_scale) * current / total,self.hud_data.hp_h / self.hud_data.hp_scale)
-end
 
 
 --load hud buff data
@@ -1156,80 +1719,5 @@ dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
 
 
 --marked for deprecation below this line
-
-
-
-
---Creates the main player's vitals.
-function KineticHUD:_create_player(panel)
-	local scale = self.settings.player_panel_scale
-	
-	local vitals_panel = panel:panel({
-		name = "vitals_master",
-		visible = false
-		--todo custom x/y here
-	})
-	
---VITALS	
-	local armor_bar = vitals_panel:bitmap({
-		name = "armor_bar",
-		texture = "textures/ui/health_bar",
-		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
-		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
-		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
-		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
-	})
-	local armor_fill = vitals_panel:bitmap({
-		name = "armor_fill",
-		texture = "textures/ui/health_fill",
-		w = self.hud_values.PLAYER_ARMOR_BAR_W * scale,
-		h = self.hud_values.PLAYER_ARMOR_BAR_H * scale,
-		x = self.hud_values.PLAYER_ARMOR_BAR_X * scale,
-		y = self.hud_values.PLAYER_ARMOR_BAR_Y * scale
-	})
-	
-	local health_bar = vitals_panel:bitmap({
-		name = "health_bar",
-		texture = "textures/ui/health_bar",
-		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
-		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
-		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
-		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
-	})
-	
-	local health_fill = vitals_panel:bitmap({
-		name = "health_fill",
-		texture = "textures/ui/health_fill",
-		w = self.hud_values.PLAYER_HEALTH_BAR_W * scale,
-		h = self.hud_values.PLAYER_HEALTH_BAR_H * scale,
-		x = self.hud_values.PLAYER_HEALTH_BAR_X * scale,
-		y = self.hud_values.PLAYER_HEALTH_BAR_Y * scale
-	})
-	
-	
---WEAPONS	
-	local weapons = panel:panel({
-		name = "weapons",
-		w = self.hud_values.PLAYER_WEAPONS_W * scale,
-		h = self.hud_values.PLAYER_WEAPONS_H * scale,
-		x = self.hud_values.PLAYER_WEAPONS_X * scale,
-		y = self.hud_values.PLAYER_WEAPONS_Y * scale
-	})
-	--make each weapon here
-
---LOADOUT
-	--(grenade,melee,zipties,deployable)
-	local loadout = panel:panel({
-		name = "loadout"
-	})
-	
-	
-end
-
---all teammates, but main player is hidden after call
-function KineticHUD:_create_teammate(panel)
-	return teammates
-end
-
-
 do return end
+

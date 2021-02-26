@@ -1,25 +1,140 @@
 Hooks:PostHook(HUDTeammate,"init","khud_hudteammate_init",function(self,i,teammates_panel,is_player,width)
-	if self._main_player then 
-		if KineticHUD._panel then 
---			KineticHUD._panel:child()
---		local panel = teammates_panel:child(tostring(i))
-		end
+	if not self._main_player then 
+		KineticHUD:CreateTeammatePanel(i)
+	end
+end)
+
+--criminal information
+Hooks:PostHook(HUDTeammate,"set_callsign","khud_set_teammate_id",function(self,id)
+--	local color = KineticHUD.chat_colors_dark[id] or tweak_data.chat_colors[#tweak_data.chat_colors]
+	if not self._main_player then 
+		KineticHUD:SetTeammatePeerId(self._id,id)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"set_name","khud_hudteammate_set_name",function(self,teammate_name)
+	if not self._main_player then 
+		KineticHUD:SetTeammateName(self._id,teammate_name)
 	end
 end)
 
 
+--vitals
 Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
+	local current = data.current
+	local total = data.total
+	local revives = data.revives
 	if self._main_player then 
-		KineticHUD:SetHealth(self._id,data.current,data.total)
+		if revives then 
+			KineticHUD:SetPlayerRevives(revives)
+		end
+		KineticHUD:SetPlayerHealth(current,total)
+	else
+		if revives then 
+			KineticHUD:SetTeammateRevives(self._id,revives)
+		end
+		KineticHUD:SetTeammateHealth(self._id,current,total)
 	end
-	if data.revives then 
-		KineticHUD:SetRevives(self._id,data.revives)
+end)
+
+Hooks:PostHook(HUDTeammate,"set_armor","khud_set_armor",function(self,data)
+	local current = data.current * 10
+	local total = data.total * 10
+	if self._main_player then 
+		KineticHUD:SetPlayerArmor(current,total)
+	else
+		KineticHUD:SetTeammateArmor(self._id,current,total)
+	end
+end)
+
+--equipment/loadout
+Hooks:PostHook(HUDTeammate,"set_cable_ties_amount","khud_set_cable_ties_amount",function(self,amount)
+	if self._main_player then 
+		KineticHUD:SetPlayerCableTies(amount)
+	else
+		KineticHUD:SetTeammateCableTies(self._id,amount)
+	end
+end)
+
+--weapon
+Hooks:PostHook(HUDTeammate,"set_weapon_firemode","khud_hudteammate_set_weapon_firemode",function(self,id,firemode)
+	if self._main_player then 
+		KineticHUD:SetPlayerWeaponFiremode(id,firemode)
+	end
+end)
+
+function HUDTeammate:set_weapon_firemode_burst(id,firemode,burst_fire)
+	if self._main_player then 
+		KineticHUD:SetPlayerWeaponFiremode(id,"burst")
+	end
+end
+
+Hooks:PostHook(HUDTeammate,"set_ammo_amount_by_type","khud_set_ammo_amount_by_type",function(self,weapon_slot,max_clip,current_clip,current_left,max,weapon_panel)
+--,type,max_clip,current_clip,current_left,max,weapon_panel,
+	if self._main_player then 
+		local slot
+		if weapon_slot == "primary" then 
+			slot = 2
+		else
+			slot = 1
+		end
+		local reserve = current_left
+		
+		if KineticHUD:UseWeaponRealAmmo() then 	
+			reserve = current_left - current_clip
+			if reserve < 0 then
+				reserve = current_left
+			end
+		end
+		
+		KineticHUD:SetPlayerWeaponMagazine(slot,current_clip)
+		KineticHUD:SetPlayerWeaponReserve(slot,reserve)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"set_weapon_selected","khud_set_weapon_selected",function(self,id,hud_icon)
+	if self._main_player then
+		KineticHUD:SetPlayerWeaponSelected(id)
+	else
+		--nothing
 	end
 end)
 
 
+Hooks:PostHook(HUDTeammate,"set_deployable_equipment","khud_set_deployable_equipment",function(self,data) 
+	if self._main_player then 
+		KineticHUD:CheckPlayerDeployableEquipment(data)
+	else
+		KineticHUD:SetTeammateDeployableEquipment(self._id,nil,data)
+	end
+end)
 
-if true then return end
+Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount","khud_set_deployable_equipment_amount",function(self,index,data)
+	if self._main_player then 
+		KineticHUD:CheckPlayerDeployableEquipment(data)
+	else
+		KineticHUD:SetTeammateDeployableEquipment(self._id,index,data)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"set_deployable_equipment_from_string","khud_set_deployable_from_string",function(self,data)
+	if self._main_player then 
+		KineticHUD:CheckPlayerDeployableEquipment(data)
+	else
+		KineticHUD:SetTeammateDeployableEquipment(self._id,nil,data)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_set_deployable_amount_from_string",function(self,index,data)
+	if self._main_player then 
+		KineticHUD:CheckPlayerDeployableEquipment(data)
+	else
+		KineticHUD:SetTeammateDeployableEquipment(self._id,index,data)
+	end
+end)
+
+
+do return end
 
 local perkdeck_atlas = "guis/textures/pd2/specialization/icons_atlas"
 local weapons_dir = "guis/textures/pd2/blackmarket/icons/weapons" --folder, not file

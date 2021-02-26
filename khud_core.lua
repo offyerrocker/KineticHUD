@@ -19,7 +19,8 @@ KineticHUD.color_data = {
 	orange = Color("ffbd80"),
 	gold = Color("ffd080"),
 	yellow = Color("fffb80"),
-	green = Color("80ff82"),
+	light_green = Color("80ff82"),
+	green = Color("00ff00"),
 	teal = Color("80ffbb"),
 	cyan = Color("80ffea"),
 	sky_blue = Color("80e3ff"),
@@ -35,8 +36,10 @@ KineticHUD._fonts = {
 	cromwell = "fonts/cromwell_nf", --custom
 	grotesk = "fonts/grotesk_normal", --custom
 	grotesk_bold = "fonts/grotesk_bold", --custom
+	tommy_bold = "fonts/made_tommy_xb", --custom; 48
+	syke = "fonts/syke", --custom; 24(?)
 	digital = "fonts/font_digital", --vanilla
-	large = "fonts/font_large_mf" --vanilla
+	large = "fonts/font_large_mf", --vanilla
 }
 
 KineticHUD._USE_UNIQUE_WORKSPACE = false
@@ -89,10 +92,10 @@ KineticHUD.hud_values = {
 			GUI_W = 1100,
 			GUI_H = 600,
 			OFFSET_YAW = 0,
-			OFFSET_PITCH = 90 + 5,
+			OFFSET_PITCH = 90 + 10,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0,
-			OFFSET_Y = 2.5,
+			OFFSET_Y = 1.5,
 			OFFSET_Z = -10,
 			RECT_COLOR = Color.yellow
 		},
@@ -105,14 +108,21 @@ KineticHUD.hud_values = {
 			GUI_W = 1100,
 			GUI_H = 600,
 			OFFSET_YAW = 0,
-			OFFSET_PITCH = 90 - 5,
+			OFFSET_PITCH = 90 - 10,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0,
-			OFFSET_Y = -2,
+			OFFSET_Y = -1.5,
 			OFFSET_Z = -10,
 			RECT_COLOR = Color.green
 		}
 	},
+	
+	FIREMODE_SINGLE_TEXTURE = "textures/ui/firemode_dots_1",
+	FIREMODE_BURST_TEXTURE = "textures/ui/firemode_dots_2",
+	FIREMODE_AUTO_TEXTURE = "textures/ui/firemode_dots_3",
+	FIREMODE_TEXTURE_W = 16 / 2,
+	FIREMODE_TEXTURE_H = 80 / 2,
+	
 	PLAYER_ARMOR_BAR_W = 300,
 	PLAYER_ARMOR_BAR_H = 16,
 	PLAYER_ARMOR_BAR_X = 100,
@@ -127,6 +137,58 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPONS_X = 300,
 	PLAYER_WEAPONS_Y = 700,
 	
+	MARGIN_XXXSMALL = 1,
+	MARGIN_XXSMALL = 2,
+	MARGIN_XSMALL = 4,
+	MARGIN_SMALL = 8,
+	MARGIN_MEDIUM = 16,
+	MARGIN_XMEDIUM = 32, --that's right. extra medium
+	MARGIN_LARGE = 48,
+	MARGIN_XLARGE = 56,
+	MARGIN_XXLARGE = 64,
+	
+	TEAMMATE_PANEL_X = 0,
+	TEAMMATE_PANEL_Y = 0,
+	TEAMMATE_PANEL_W = 400,
+	TEAMMATE_PANEL_H = 56,
+	
+	TEAMMATE_NAMETAG_PANEL_X = 8,
+	TEAMMATE_NAMETAG_PANEL_Y = 0,
+	TEAMMATE_NAMETAG_PANEL_W = 128,
+	TEAMMATE_NAMETAG_PANEL_H = 32,
+	TEAMMATE_NAMETAG_FONT_SIZE = 32,
+	TEAMMATE_COLOR_INDICATOR_W = 4,
+	TEAMMATE_COLOR_INDICATOR_H = 0,
+	TEAMMATE_COLOR_INDICATOR_X = 0,
+	TEAMMATE_COLOR_INDICATOR_Y = 0,
+	TEAMMATE_BPM_PANEL_W = 100,
+	TEAMMATE_BPM_PANEL_H = 0,
+	TEAMMATE_BPM_PANEL_X = 0,
+	TEAMMATE_BPM_PANEL_Y = 0,
+	TEAMMATE_BPM_ICON_SIZE_MUL = 1,
+	TEAMMATE_BPM_ICON_X = 0,
+	TEAMMATE_BPM_ICON_Y = 0,
+	
+	TEAMMATE_EQUIPMENT_BOX_OUTLINE_THICKNESS = 1,
+	TEAMMATE_EQUIPMENT_BOX_W = 72,
+	TEAMMATE_EQUIPMENT_BOX_H = 24,
+	TEAMMATE_EQUIPMENT_FONT_SIZE = 24,
+	TEAMMATE_EQUIPMENT_ICON_SIZE = 24,
+	TEAMMATE_EQUIPMENT_TEXT_X = 0,
+	TEAMMATE_EQUIPMENT_TEXT_Y = 0,
+	TEAMMATE_EQUIPMENT_BOX_DOUBLE_W_MUL = 1.5, --yes i know it says "double"
+	
+	TEAMMATE_BPM_MASK_X = 0,
+	TEAMMATE_BPM_MASK_Y = 0,
+	
+	TEAMMATE_SPEAKING_ICON_X = 0,
+	TEAMMATE_SPEAKING_ICON_Y = 0,
+	TEAMMATE_SPEAKING_ICON_SIZE_MUL = 1,	
+	
+	TEAMMATE_DEPLOYABLE_X = 0,
+	TEAMMATE_DEPLOYABLE_Y = 0,
+	TEAMMATE_REVIVES_FONT_SIZE = 20,
+	
 	HEALTH_THRESHOLD_NORMAL = 1,
 	HEALTH_THRESHOLD_STRESSED = 0.5,
 	HEALTH_THRESHOLD_CRITICAL = 1/3,
@@ -134,6 +196,7 @@ KineticHUD.hud_values = {
 	EKG_LAYER = 2,
 	EKG_SPEED = 16, --pixels per second
 	EKG_SIZE = 24,
+	EKG_Y = 2,
 	EKG_ATLAS = {
 		texture = "textures/ui/ekg_atlas",
 		states = {
@@ -229,6 +292,7 @@ KineticHUD.debug_value_1 = 0.5
 --default settings
 KineticHUD.default_settings = {
 	player_panel_scale = 1,
+	teammate_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,
 	PLAYER_HEALTH_BAR_VALIGN = 1,
 	HEIST_TIMER_FONT_SIZE = 24
@@ -257,6 +321,9 @@ function KineticHUD:GetHorizontalAlignFromIndex(index)
 	return self.halign_values[index]
 end
 
+function KineticHUD:UseWeaponRealAmmo()
+	return true
+end
 
 function KineticHUD:ResetSettings()
 	self.settings = table.deep_map_copy(self.default_settings)

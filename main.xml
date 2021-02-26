@@ -3,16 +3,16 @@
 	<AddFiles directory="assets">
 	
 	<!-- Fonts -->
-		<font path="fonts/grotesk_bold" load="true" unload="false" />
-		<texture path="fonts/grotesk_bold" />
-		<font path="fonts/grotesk_normal" load="true" unload="false" />
-		<texture path="fonts/grotesk_normal" />
-		<font path="fonts/cromwell_nf" load="true" unload="false" />
-		<texture path="fonts/cromwell_nf" />
+		<font path="fonts/syke" load="true" unload="false" />
+		<texture path="fonts/syke" />
+		<font path="fonts/made_tommy_xb" load="true" unload="false" />
+		<texture path="fonts/made_tommy_xb" />
 
 	<!-- Textures -->
-		<texture path="textures/ui/health_bar"/>
-		<texture path="textures/ui/health_fill"/>
+		<texture path="textures/ui/health_bar_outline"/>
+		<texture path="textures/ui/health_bar_fill"/>
+		<texture path="textures/ui/armor_bar_outline"/>
+		<texture path="textures/ui/armor_bar_fill"/>
 		<texture path="textures/ui/firemode_dots_1"/>
 		<texture path="textures/ui/firemode_dots_2"/>
 		<texture path="textures/ui/firemode_dots_3"/>
