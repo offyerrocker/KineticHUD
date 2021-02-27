@@ -46,6 +46,11 @@ KineticHUD._USE_UNIQUE_WORKSPACE = false
 KineticHUD._world_panels = {}
 KineticHUD._workspaces = {}
 
+KineticHUD._cache = {
+	selections_by_unit = {},
+	kills_by_weapon_unit = {}
+}
+
 KineticHUD._teammate_panels = {}
 
 --number values used for sizing, positioning etc. which should not be change-able by settings
@@ -122,6 +127,39 @@ KineticHUD.hud_values = {
 	FIREMODE_AUTO_TEXTURE = "textures/ui/firemode_dots_3",
 	FIREMODE_TEXTURE_W = 16 / 2,
 	FIREMODE_TEXTURE_H = 80 / 2,
+	
+	PLAYER_VITALS_PANEL_W = 1000,
+	PLAYER_VITALS_PANEL_H = 100,
+	PLAYER_VITALS_LABEL_FONT_SIZE = 32,
+	PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE = 32,
+	PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM = 24,
+	
+	PLAYER_HEALTH_PANEL_W = 520,
+	PLAYER_HEALTH_PANEL_H = 100,
+	PLAYER_HEALTH_PANEL_X = 0,
+	PLAYER_HEALTH_PANEL_Y = -12,
+	
+	PLAYER_ARMOR_PANEL_W = 520,
+	PLAYER_ARMOR_PANEL_H = 100,
+	PLAYER_ARMOR_PANEL_X = 0,
+	PLAYER_ARMOR_PANEL_Y = -12,
+	
+	PLAYER_VITALS_BAR_OUTLINE_W = 512,
+	PLAYER_VITALS_BAR_OUTLINE_H = 24,
+	PLAYER_VITALS_BAR_OUTLINE_X = 0,
+	PLAYER_VITALS_BAR_OUTLINE_Y = 0,
+	
+	PLAYER_VITALS_BAR_FILL_W = 512,
+	PLAYER_VITALS_BAR_FILL_H = 16,
+	PLAYER_VITALS_BAR_FILL_X = 0,
+	PLAYER_VITALS_BAR_FILL_Y = 0,
+	
+	PLAYER_VITALS_LABELS_X = 0,
+	PLAYER_VITALS_LABELS_Y = 0,
+	
+	
+	
+	
 	
 	PLAYER_ARMOR_BAR_W = 300,
 	PLAYER_ARMOR_BAR_H = 16,
@@ -316,7 +354,8 @@ KineticHUD.debug_value_1 = 0.5
 
 --default settings
 KineticHUD.default_settings = {
-	player_panel_scale = 1,
+	player_panel_scale = 1, --deprecated
+	player_vitals_panel_scale = 1,
 	player_weapon_panel_scale = 1,
 	teammate_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,

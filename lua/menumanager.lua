@@ -366,6 +366,25 @@ function KineticHUD:PanelBorder(panel,params)
 	return borders,exists --rip borders, killed by amazon. you deserved better
 end
 
+function KineticHUD:RegisterCurrentWeaponSelections()
+	for i,selection in pairs(player:inventory()) do
+		self:RegisterWeaponSelectionByUnit(selection.unit,i)
+	end
+end
+
+function KineticHUD:RegisterWeaponSelectionByUnit(unit,selection)
+	self._cache.selections_by_unit[unit:key()] = selection
+end
+
+function KineticHUD:GetSelectionIndexByUnit(unit)
+	if alive(unit) then 
+		local result = self._cache.selections_by_unit[unit:key()]
+		if result == nil then 
+			self:RegisterWeaponSelectionByUnit(unit,false)
+		end
+		return result or false
+	end
+end
 
 --Sets a text panel's text to a formatted number.
 --The number is formatted by clamping it between 0 and the maximum base-10 number of the given number of digits:
@@ -500,6 +519,7 @@ function KineticHUD:UpdateCheckPlayer(t,dt)
 			for i,selection in pairs(inventory._available_selections) do 
 				local weapon_unit = selection.unit
 				if alive(weapon_unit) then 
+					self:RegisterWeaponSelectionByUnit(weapon_unit,i)
 					local weapon_id = weapon_unit:base():get_name_id()
 					if weapon_id then 
 						self:SetPlayerWeaponIcon(i,weapon_id)
@@ -548,37 +568,37 @@ end
 --Returns: nil
 function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 	local selected_parent_panel = self._world_panels[4]
-	local scale = self.settings.player_panel_scale
+	local scale = self.settings.player_vitals_panel_scale
+	local hv = self.hud_values
+	local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
 	
-	local VITALS_H = 100 * scale
+	local margin_xsmall = hv.MARGIN_XSMALL * scale
 	
-	local margin = 4 * scale
+	local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
+	local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
+	local counter_medium_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM * scale
 	
-	local label_font_size = 32
-	local counter_large_font_size = 32
-	local counter_medium_font_size = 24
+	local PLAYER_HEALTH_PANEL_W = hv.PLAYER_HEALTH_PANEL_W * scale
+	local PLAYER_HEALTH_PANEL_H = hv.PLAYER_HEALTH_PANEL_H * scale
+	local PLAYER_HEALTH_PANEL_X = hv.PLAYER_HEALTH_PANEL_X * scale
+	local PLAYER_HEALTH_PANEL_Y = hv.PLAYER_HEALTH_PANEL_Y * scale
 	
-	local PLAYER_HEALTH_PANEL_W = 520 * scale
-	local PLAYER_HEALTH_PANEL_H = 100 * scale
-	local PLAYER_HEALTH_PANEL_X = 0 * scale
-	local PLAYER_HEALTH_PANEL_Y = -12 * scale
+	local PLAYER_ARMOR_PANEL_W = hv.PLAYER_ARMOR_PANEL_W * scale
+	local PLAYER_ARMOR_PANEL_H = hv.PLAYER_ARMOR_PANEL_H * scale
+	local PLAYER_ARMOR_PANEL_X = hv.PLAYER_ARMOR_PANEL_X * scale
+	local PLAYER_ARMOR_PANEL_Y = hv.PLAYER_ARMOR_PANEL_Y * scale
 	
-	local PLAYER_ARMOR_PANEL_W = 520 * scale
-	local PLAYER_ARMOR_PANEL_H = 100 * scale
-	local PLAYER_ARMOR_PANEL_X = 0 * scale
-	local PLAYER_ARMOR_PANEL_Y = -12 * scale
+	local PLAYER_VITALS_BAR_OUTLINE_W = hv.PLAYER_VITALS_BAR_OUTLINE_W * scale
+	local PLAYER_VITALS_BAR_OUTLINE_H = hv.PLAYER_VITALS_BAR_OUTLINE_H * scale
+	local PLAYER_VITALS_BAR_OUTLINE_X = (hv.PLAYER_VITALS_BAR_OUTLINE_X * scale) + margin_xsmall
+	local PLAYER_VITALS_BAR_OUTLINE_Y = hv.PLAYER_VITALS_BAR_OUTLINE_Y * scale
+	local PLAYER_VITALS_BAR_FILL_W = hv.PLAYER_VITALS_BAR_FILL_W * scale
+	local PLAYER_VITALS_BAR_FILL_H = hv.PLAYER_VITALS_BAR_FILL_H * scale
+	local PLAYER_VITALS_BAR_FILL_X = (hv.PLAYER_VITALS_BAR_FILL_X * scale) + PLAYER_VITALS_BAR_OUTLINE_X
+	local PLAYER_VITALS_BAR_FILL_Y = (hv.PLAYER_VITALS_BAR_FILL_Y * scale) - ((PLAYER_VITALS_BAR_OUTLINE_H - PLAYER_VITALS_BAR_FILL_H) / 2)
 	
-	local PLAYER_VITALS_BAR_OUTLINE_W = 512 * scale
-	local PLAYER_VITALS_BAR_OUTLINE_H = 24 * scale
-	local PLAYER_VITALS_BAR_OUTLINE_X = margin
-	local PLAYER_VITALS_BAR_OUTLINE_Y = 0 * scale
-	local PLAYER_VITALS_BAR_FILL_W = 512 * scale
-	local PLAYER_VITALS_BAR_FILL_H = 16 * scale
-	local PLAYER_VITALS_BAR_FILL_X = PLAYER_VITALS_BAR_OUTLINE_X
-	local PLAYER_VITALS_BAR_FILL_Y = - (PLAYER_VITALS_BAR_OUTLINE_H - PLAYER_VITALS_BAR_FILL_H) / 2
-	
-	local PLAYER_VITALS_LABELS_X = 0 * scale
-	local PLAYER_VITALS_LABELS_Y = PLAYER_VITALS_BAR_FILL_Y - (margin + PLAYER_VITALS_BAR_FILL_H)
+	local PLAYER_VITALS_LABELS_X = hv.PLAYER_VITALS_LABELS_X * scale
+	local PLAYER_VITALS_LABELS_Y = (hv.PLAYER_VITALS_LABELS_Y * scale) + (PLAYER_VITALS_BAR_FILL_Y - (margin_xsmall + PLAYER_VITALS_BAR_FILL_H))
 	
 	--valign bottom
 	local vitals_panel = selected_parent_panel:panel({
@@ -631,7 +651,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "AP",
 		color = Color.white,
 		font = self._fonts.tommy_bold,
-		x = PLAYER_VITALS_LABELS_X + margin,
+		x = PLAYER_VITALS_LABELS_X + margin_xsmall,
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "left",
 		vertical = "bottom",
@@ -645,7 +665,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "123",
 		color = Color.white,
 		font = self._fonts.digital,
-		x = PLAYER_VITALS_LABELS_X + al_w + al_x + margin,
+		x = PLAYER_VITALS_LABELS_X + al_w + al_x + margin_xsmall,
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "left",
 		vertical = "bottom",
@@ -659,7 +679,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "456",
 		color = Color.white,
 		font = self._fonts.digital,
-		x = PLAYER_VITALS_LABELS_X + ac_w + ac_x + margin,
+		x = PLAYER_VITALS_LABELS_X + ac_w + ac_x + margin_xsmall,
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "left",
 		vertical = "bottom",
@@ -673,7 +693,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "HP",
 		color = Color.white,
 		font = self._fonts.tommy_bold,
-		x = - (PLAYER_VITALS_LABELS_X + margin),
+		x = - (PLAYER_VITALS_LABELS_X + margin_xsmall),
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "right",
 		vertical = "bottom",
@@ -687,7 +707,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "789",
 		color = Color.white,
 		font = self._fonts.digital,
-		x = - (PLAYER_VITALS_LABELS_X + margin + hl_w + margin),
+		x = - (PLAYER_VITALS_LABELS_X + margin_xsmall + hl_w + margin_xsmall),
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "right",
 		vertical = "bottom",
@@ -702,15 +722,14 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		text = "000",
 		color = Color.white,
 		font = self._fonts.digital,
-		x = - (PLAYER_VITALS_LABELS_X + margin + hl_w + margin + hc_w + margin),
+		x = - (PLAYER_VITALS_LABELS_X + margin_xsmall + hl_w + margin_xsmall + hc_w + margin_xsmall),
 		y = PLAYER_VITALS_LABELS_Y,
 		align = "right",
 		vertical = "bottom",
 		layer = 2,
 		font_size = counter_medium_font_size
 	})
-	
-	
+
 	
 	local armor_outline = armor_panel:bitmap({
 		name = "armor_outline",
@@ -971,7 +990,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	secondary:set_position(weapon_secondary_x,weapon_secondary_y)
 	
 	if not skip_layout then 
-		self:LayoutPlayerWeaponsPanel(false,1)
+		self:LayoutPlayerWeaponsPanel(false,2)
 	end
 end
 
@@ -1287,7 +1306,9 @@ end
 --Arguments: none
 --Returns: nil
 function KineticHUD:LayoutPlayerVitals(RECREATE_TEXT_OBJECTS)
-	
+	if alive(self._player_vitals_panel) then 
+		
+	end
 end
 
 function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_index)
@@ -1719,11 +1740,12 @@ function KineticHUD:SetPlayerWeaponIcon(i,weapon_id)
 	end
 end
 
-function KineticHUD:SetPlayerWeaponKills(i,n)
+function KineticHUD:SetPlayerWeaponKillCount(i,amount)
 	if alive(self._player_weapons_panel) then 
 		local weapon_panel = self._player_weapons_panel:child(tostring(i))
 		if alive(weapon_panel) then 
-			self.SetDigitalText(weapon_panel:child("kill_counter"),n,3)
+			weapon_panel:child("kill_counter"):set_text(string.format("%i",amount)) 
+			--don't use SetDigitalText() because i don't want padded zeroes
 		end
 	end
 end
@@ -1969,7 +1991,27 @@ function KineticHUD:UpdateHUD(t,dt)
 	
 end
 
+function KineticHUD:AddKillCountByUnit(unit,count)
+	local current = self._cache.kills_by_weapon_unit[unit] or 0
+	local new = current + count
+	self._cache.kills_by_weapon_unit[unit] = new
+	return new
+end
 
+function KineticHUD:OnKill(data)
+	
+	if type(data) == "table" and alive(data.weapon_unit) then 
+		local selection_index = self:GetSelectionIndexByUnit(data.weapon_unit)
+		if selection_index then 
+			local kill_count = self:AddKillCountByUnit(data.weapon_unit,1)
+			self:SetPlayerWeaponKillCount(selection_index,kill_count)
+		end
+	end
+end
+
+function KineticHUD:OnMissionEnd(data)
+
+end
 
 --load hud buff data
 dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
