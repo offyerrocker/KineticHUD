@@ -48,7 +48,8 @@ KineticHUD._workspaces = {}
 
 KineticHUD._cache = {
 	selections_by_unit = {},
-	kills_by_weapon_unit = {}
+	kills_by_weapon_unit = {},
+	teammate_health = {}
 }
 
 KineticHUD._teammate_panels = {}
@@ -157,10 +158,6 @@ KineticHUD.hud_values = {
 	PLAYER_VITALS_LABELS_X = 0,
 	PLAYER_VITALS_LABELS_Y = 0,
 	
-	
-	
-	
-	
 	PLAYER_ARMOR_BAR_W = 300,
 	PLAYER_ARMOR_BAR_H = 16,
 	PLAYER_ARMOR_BAR_X = 100,
@@ -173,7 +170,7 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPONS_W = 500,
 	PLAYER_WEAPONS_H = 400,
 	PLAYER_WEAPONS_X = 0,
-	PLAYER_WEAPONS_Y = 800,
+	PLAYER_WEAPONS_Y = 750,
 	
 	PLAYER_WEAPON_PRIMARY_SCALE = 1,
 	PLAYER_WEAPON_SECONDARY_SCALE = 0.75,
@@ -187,8 +184,8 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPON_SECONDARY_X = 100, --this is a relative coordinate, and is dependent on another setting value (PLAYER_WEAPON_X). also, scaled
 	PLAYER_WEAPON_SECONDARY_Y = 50, --relative/scaled (PLAYER_WEAPON_PRIMARY_Y)
 	
-	PLAYER_WEAPON_FONT_SIZE_SMALL = 24,
-	PLAYER_WEAPON_FONT_SIZE_LARGE = 32,
+	PLAYER_WEAPON_FONT_SIZE_SMALL = 20, --reserve
+	PLAYER_WEAPON_FONT_SIZE_LARGE = 32, --magazine
 	PLAYER_WEAPON_ICON_X = 50,
 	PLAYER_WEAPON_ICON_Y = 0,
 	PLAYER_WEAPON_ICON_W = 200,
@@ -198,7 +195,7 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPON_BORDER_THICKNESS = 2,
 	PLAYER_WEAPON_FIREMODE_W = 16 * 0.5,
 	PLAYER_WEAPON_FIREMODE_H = 80 * 0.5,
-	PLAYER_WEAPON_RESERVE_X = 84,
+	PLAYER_WEAPON_RESERVE_X = 20,
 	
 	MARGIN_XXXSMALL = 1,
 	MARGIN_XXSMALL = 2,

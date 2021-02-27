@@ -2,6 +2,17 @@ Hooks:PostHook(HUDTeammate,"init","khud_hudteammate_init",function(self,i,teamma
 	if not self._main_player then 
 		KineticHUD:CreateTeammatePanel(i)
 	end
+	self._panel:hide()
+	self._panel:set_alpha(0)
+end)
+
+Hooks:PostHook(HUDTeammate,"_create_primary_weapon_firemode","hevhud_disable_primary_firemode_panel",function(self)
+	local primary_weapon_panel = self._player_panel:child("weapons_panel"):child("primary_weapon_panel")
+	primary_weapon_panel:child("weapon_selection"):hide()
+end)
+Hooks:PostHook(HUDTeammate,"_create_secondary_weapon_firemode","hevhud_disable_secondary_firemode_panel",function(self)
+	local secondary_weapon_panel = self._player_panel:child("weapons_panel"):child("secondary_weapon_panel")
+	secondary_weapon_panel:child("weapon_selection"):hide()
 end)
 
 --criminal information

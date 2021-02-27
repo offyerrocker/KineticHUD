@@ -12,6 +12,13 @@ Hooks:PreHook(HUDManager,"_setup_player_info_hud_pd2","khud_hudpd2_create",funct
 end)
 
 
+Hooks:PostHook(HUDManager,"set_disabled","khud_hudmanager_hidehud",function(self)
+	KineticHUD:HideHUD()
+end)
+
+Hooks:PostHook(HUDManager,"set_enabled","khud_hudmanager_showhud",function(self)
+	KineticHUD:ShowHUD()
+end)
 
 Hooks:PostHook(HUDManager,"_create_heist_timer","khudf_hudmanager_create_heist_timer",function(self,...)
 	if self._hud_heist_timer then 

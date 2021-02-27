@@ -2,14 +2,14 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
+		weapon panel swap animation
+		write player equipment
 		write alignment code for:
-			weapons
 			player vitals
 			player equipment
 		connect player set_health to health bar
 		event hooks for player join/leave to reset values like hud, hp, etc.
 		add maniac/expres hud elements
-		store teammate health from hud, use to check ekg/bpm?
 		add player cartographer hud element
 		add player compass hud element
 		implement player/team mission equipments
@@ -19,15 +19,8 @@ DEVELOPMENT:
 		re-link player hud on (re)spawn
 		underbarrel weapon support for main player
 		test world_to_screen on world panels (update/persist script with static location paired with console settracker)
-
-		placeholder icons for deployables/grenades?
-		set grenade icons
+		test set grenade icons
 		non-focused weapon icon is not properly resized on setting the icon image
-		weapon swap animation
-		
-		set weapon kills:
-			* save kills by id/weapontype? search for weapon/panel matching weapontype?
-			* save kills by checking current selection index? get panel by selection index?
 			
 		
 	DESIRED FEATURES:
@@ -65,13 +58,9 @@ AESTHETICS
 		See: The Division's world hud placement
 	
 ASSETS
-	* better main font?
-		* also a version with a shadow?
-	* better seven-segment digital font?
-		* italicized
-		* even spacing
-		* bg shading (simulating empty leds)
-	* teammate deaths texture?
+	* version of fonts that have shadows?
+		* teammate deaths texture?
+			* must be distinct from the "revives" icon since it cannot, by default, indicate actual revives counter
 		* progressively become more damaged with more revives?
 		* show significant difference when user is on predicted/synced last down? eg. bw
 	* bpm states
@@ -86,23 +75,21 @@ HUD SEGMENTS
 	SPEAKING INDICATOR:
 		See: The Division's voice waveform analysis animation
 	
-	HEIST TIMER:
-		* seven-segment number display?
-	
 	COMPASS:
 		- Top
 		* Linear style?
 		* Circular icon style?
 	
 	HEIST NAME
-		- Top left
+		- Top right
 		- region popup at mission start? eg. WASHINGTON DC a la Destiny 2
 	
 	OBJECTIVE
-		- Top left?
+		- Top right
 		
 		* Title
 		* Description
+		
 	
 	
 	CRIMINALS:
@@ -117,12 +104,10 @@ HUD SEGMENTS
 				- Secondary
 			* Vitals
 				* Health
-					* heartrate animation?
 					* health meter/number above head in waypoint?
 				* ExPres
 				* Maniac
 				* Armor
-				* Revives
 			* Mission Equipment
 			* Deployables
 			* Throwables
@@ -139,11 +124,8 @@ HUD SEGMENTS
 				* Title (Dredgen etc)
 			* Concealment?
 				- Stealth Only
-			* Weapons (Primary, Secondary, Current Underbarrel)
-				* Current / Total Ammo
-				* Firemode
-				* Icons?
-				* Kills
+			* Weapons 
+				* Underbarrel
 				
 			* Melee
 				* Icon?
@@ -163,39 +145,28 @@ HUD SEGMENTS
 				* Cooldown meter
 			* Vitals
 				* Health
-					- Counter?
-					- Bottom of screen?
 					* Health Lost chunking animation?
 					* low health screen effect?
 						* division red screen border style?
 						* cod blood spatter style?
-				* Armor
-					- Counter?
 				* Revives
-					- Counter
+					- Label?
 					- Icon?
-					- Name?
 				* ExPres
 				* Maniac
 				* Stamina
-					- Counter?
-						* probably not
 					- Meter?
 					- Name?
 					- Icon?
 	
-	CROSSHAIR:
-		* bullet prediction
-			( concentric targeting boxes in 3d space )
-	
 	HINT:
-		* Yes
+		* Top right, below assault/objective
 		
 	CHAT:
 		- Bottom left?
 	
 	INTERACTION
-		
+		* something good i hope
 	DETECTION:
 		* Enemy detection icon animations instead of simple exclamation points appearing? (cool lightning bolts crown!)
 		* Replace the boring DETECTED text
@@ -226,6 +197,9 @@ HUD SEGMENTS
 		* Camera Overlay
 		* Driving
 
+	
+	HEIST TIMER: (DONE)
+		* seven-segment number display?
 	
 
 CORE TENETS:
@@ -399,6 +373,22 @@ end
 --Returns: nil
 function KineticHUD.SetDigitalText(text_gui,amount,digits)
 	text_gui:set_text(string.format("%0" .. tostring(digits) .. "i",math.clamp(0,amount or 0,math.pow(10,digits or 1) - 1) ) )
+end
+
+function KineticHUD:HideHUD()
+	for panel_name,ws in pairs(self._workspaces) do 
+		if alive(ws) then 
+			ws:hide()
+		end
+	end
+end
+
+function KineticHUD:ShowHUD()
+	for panel_name,ws in pairs(self._workspaces) do 
+		if alive(ws) then 
+			ws:show()
+		end
+	end
 end
 
 --Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
@@ -935,13 +925,14 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 			layer = 4,
 			font_size = font_size_large
 		})
+		local m_x,m_y,m_w,m_h = magazine:text_rect()
 		local reserve = weapon_panel:text({
 			name = "reserve",
 			color = Color.white,
 			font = self._fonts.digital,
 			text = "999",
 			vertical = "bottom",
-			x = firemode:right() + (reserve_x * scale),
+			x = m_x + m_w + reserve_x,
 			y = ammo_text_bottom,
 			layer = 4,
 			font_size = font_size_small
@@ -1372,6 +1363,8 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			local icon_h = weapon_icon_h * scale
 			local box_w = weapon_panel_w * scale
 			local box_h = weapon_panel_h * scale
+			local box_x = weapon_panel_x * scale
+			local box_y = weapon_panel_y * scale
 			local font_size_large = weapon_font_size_large * scale
 			local font_size_small = weapon_font_size_small * scale
 			local border_alpha = weapon_border_alpha * scale
@@ -1432,6 +1425,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 					layer = 4,
 					font_size = font_size_large
 				})
+				local m_x,m_y,m_w,m_h = magazine:text_rect()
 				
 				local reserve_text = reserve:text()
 				self:animate_stop(reserve)
@@ -1443,7 +1437,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 					font = self._fonts.digital,
 					text = reserve_text,
 					vertical = "bottom",
-					x = firemode:right() + (reserve_x * scale),
+					x = m_x + m_w + reserve_x,
 					y = ammo_text_bottom,
 					layer = 4,
 					font_size = font_size_small
@@ -1833,7 +1827,7 @@ function KineticHUD:SetTeammatePeerId(i,id)
 end
 
 function KineticHUD:SetTeammateHealth(i,current,total)
-	
+	self._cache.teammate_health[i] = current/total
 end
 
 function KineticHUD:SetTeammateRevives(i,current)
@@ -1956,7 +1950,7 @@ function KineticHUD:UpdateHUD(t,dt)
 				end
 			end
 			if all_out_of_bounds then
-				local teammate_health = KineticHUD.debug_value_1
+				local teammate_health = self._cache.teammate_health[id] or 1
 				local ekg_atlas = hud_values.EKG_ATLAS
 				local ekg_data
 				if teammate_health <= hud_values.HEALTH_THRESHOLD_FLATLINE then 
