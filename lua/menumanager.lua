@@ -932,7 +932,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 			font = self._fonts.digital,
 			text = "999",
 			vertical = "bottom",
-			x = m_x + m_w + reserve_x,
+			x = magazine:x() + m_w + reserve_x,
 			y = ammo_text_bottom,
 			layer = 4,
 			font_size = font_size_small
@@ -940,7 +940,6 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 		
 		local mag_x,_,_,mag_h = magazine:text_rect()
 
-		--todo create subpanel to hold + center these text objects
 		--todo center vertically but move each away from center? or set vertical top and bottom, from y = vertical center plus margin
 		local kill_icon = weapon_panel:text({
 			name = "kill_icon",
@@ -983,7 +982,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	secondary:set_position(weapon_primary_x + weapon_secondary_x,weapon_primary_y + weapon_secondary_y)
 	
 	if not skip_layout then 
-		self:LayoutPlayerWeaponsPanel(true,2)
+		self:LayoutPlayerWeaponsPanel({recreate_text_objects=true,highlighted_index=2})
 	end
 end
 
@@ -1304,20 +1303,38 @@ function KineticHUD:LayoutPlayerVitals(RECREATE_TEXT_OBJECTS)
 	end
 end
 
-function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_index)
+function KineticHUD:LayoutPlayerWeaponsPanel(params)
 	local parent_weapons_panel = self._player_weapons_panel
 	if alive(parent_weapons_panel) then
-		local player_scale = self.settings.player_weapon_panel_scale
-		highlighted_index = highlighted_index or 1
-		
+		if not (params and type(params) == "table") then 
+			params = {}
+		end
 		local hv = self.hud_values
+		local player_scale = self.settings.player_weapon_panel_scale
+		
+		local recreate_text_objects = params.recreate_text_objects
+		local skip_reposition = params.skip_reposition
+		local skip_parent = params.skip_parent
+		local highlighted_index = params.highlighted_index or 1
+		local single_layout = params.single_layout
+		local lerp_override = params.lerp_override
+		
+		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
+		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+		
+		if lerp_override then 
+			local s1 = weapon_secondary_scale + ((weapon_primary_scale - weapon_secondary_scale) * lerp_override)
+			local s2 = weapon_primary_scale + ((weapon_secondary_scale - weapon_primary_scale) * lerp_override)
+			weapon_primary_scale = s1
+			weapon_secondary_scale = s2
+		end
+		
+		
 		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
 		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
 		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
 		local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
 		
-		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
-		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
 		
 		local weapons_panel_w = hv.PLAYER_WEAPONS_W
 		local weapons_panel_h = hv.PLAYER_WEAPONS_H
@@ -1345,9 +1362,12 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			
 		local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
 		
-		parent_weapons_panel:set_size(weapons_panel_w,weapons_panel_h)
-		parent_weapons_panel:set_position(weapons_panel_x,weapons_panel_y)
-		
+		if not skip_parent then 
+			if not skip_reposition then 
+				parent_weapons_panel:set_position(weapons_panel_x,weapons_panel_y)
+			end
+			parent_weapons_panel:set_size(weapons_panel_w,weapons_panel_h)
+		end
 		
 		local function layout_weapon_subpanel(index)
 			local scale
@@ -1379,7 +1399,9 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			
 			local weapon_panel = parent_weapons_panel:child(tostring(index))
 			weapon_panel:set_size(box_w,box_h)
-			weapon_panel:set_position(box_x,box_y)
+			if not skip_reposition then 
+				weapon_panel:set_position(box_x,box_y)
+			end
 			
 			local icon_box = weapon_panel:child("icon_box")
 			icon_box:set_position(icon_x,icon_y)
@@ -1409,7 +1431,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			local reserve = weapon_panel:child("reserve")
 			local kill_icon = weapon_panel:child("kill_icon")
 			local kill_counter = weapon_panel:child("kill_counter")
-			if RECREATE_TEXT_OBJECTS then 
+			if recreate_text_objects then 
 				local magazine_text = magazine:text()
 				self:animate_stop(magazine)
 				magazine:stop()
@@ -1437,7 +1459,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 					font = self._fonts.digital,
 					text = reserve_text,
 					vertical = "bottom",
-					x = m_x + m_w + reserve_x,
+					x = magazine:x() + m_w + reserve_x,
 					y = ammo_text_bottom,
 					layer = 4,
 					font_size = font_size_small
@@ -1496,20 +1518,24 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			
 		end
 		
-		layout_weapon_subpanel(2)
-		layout_weapon_subpanel(1)
-		
-		local w1,w2
-		if highlighted_index == 1 then 
-			w1 = parent_weapons_panel:child("1")
-			w2 = parent_weapons_panel:child("2")
+		if single_layout then 
+			layout_weapon_subpanel(single_layout)
 		else
-			w1 = parent_weapons_panel:child("2")
-			w2 = parent_weapons_panel:child("1")
+			layout_weapon_subpanel(2)
+			layout_weapon_subpanel(1)
+			if not skip_reposition then 
+				local w1,w2
+				if highlighted_index == 1 then 
+					w1 = parent_weapons_panel:child("1")
+					w2 = parent_weapons_panel:child("2")
+				else
+					w1 = parent_weapons_panel:child("2")
+					w2 = parent_weapons_panel:child("1")
+				end
+				w1:set_position(weapon_primary_x,weapon_primary_y)
+				w2:set_position(weapon_primary_x + weapon_secondary_x,weapon_panel_y + (player_scale * weapon_panel_h) + weapon_secondary_y)
+			end
 		end
-		w1:set_position(weapon_primary_x,weapon_primary_y)
-		w2:set_position(weapon_primary_x + weapon_secondary_x,w1:bottom() + weapon_secondary_y)
-		
 		
 	end
 end
@@ -1687,7 +1713,7 @@ end
 
 	--player weapon
 function KineticHUD:SetPlayerWeaponSelected(i)
-	
+	KineticHUD:AnimateSwitchWeapons(i)
 end
 	
 function KineticHUD:SetPlayerWeaponFiremode(i,firemode)
@@ -1762,6 +1788,77 @@ end
 
 function KineticHUD:AnimateAmmoEmpty(id)
 	
+end
+
+function KineticHUD:AnimateSwitchWeapons(highlighted_index)
+	local weapons_panel = self._player_weapons_panel
+	if alive(weapons_panel) then 
+		local w1,w2,params1,params2
+		if highlighted_index == 1 then 
+			w1 = weapons_panel:child("1")
+			w2 = weapons_panel:child("2")
+			params1 = {
+				recreate_text_objects = true,
+				skip_reposition = true,
+				skip_parent = true,
+				highlighted_index = highlighted_index,
+				single_layout = 1
+			}
+			params2 = {
+				recreate_text_objects = true,
+				skip_reposition = true,
+				skip_parent = true,
+				highlighted_index = highlighted_index,
+				single_layout = 2
+			}
+		else
+			params1 = {
+				recreate_text_objects = true,
+				skip_reposition = true,
+				skip_parent = true,
+				highlighted_index = highlighted_index,
+				single_layout = 2
+			}
+			params2 = {
+				recreate_text_objects = true,
+				skip_reposition = true,
+				skip_parent = true,
+				highlighted_index = highlighted_index,
+				single_layout = 1
+			}
+			w2 = weapons_panel:child("1")
+			w1 = weapons_panel:child("2")
+		end
+		
+		local player_scale = self.settings.player_weapon_panel_scale
+		
+		local hv = self.hud_values
+		
+		
+		local weapons_panel_w = hv.PLAYER_WEAPONS_W
+		local weapons_panel_h = hv.PLAYER_WEAPONS_H
+		local weapons_panel_x = hv.PLAYER_WEAPONS_X
+		local weapons_panel_y = hv.PLAYER_WEAPONS_Y
+		
+		local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
+		local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
+		local weapon_panel_x = hv.PLAYER_WEAPON_X
+		local weapon_panel_y = hv.PLAYER_WEAPON_Y
+		
+		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
+		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
+		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
+		local weapon_secondary_y = (hv.PLAYER_WEAPON_SECONDARY_Y + weapon_panel_h) * player_scale
+		
+		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
+		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+		
+		local swap_time = hv.PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION
+		
+		local cb1,cb2
+		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,2,params2)
+		self:animate(w1,"animate_weapon_panels_switch",cb1,swap_time,w1:x(),w1:y(),weapon_primary_x,weapon_primary_y,2,params1)
+	end
 end
 
 	--player loadout
@@ -1989,7 +2086,7 @@ function KineticHUD:UpdateHUD(t,dt)
 						layer = hud_values.EKG_LAYER
 					})
 				else
-					self:log("ERROR! Bad EKG data for " .. tostring(teammate_health))
+					self:c_log("ERROR! Bad EKG data for " .. tostring(teammate_health))
 				end
 			end
 		end
@@ -2039,7 +2136,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 			local scale = tonumber(item:value())
 			KineticHUD.settings.player_weapon_panel_scale = scale
 			
-			KineticHUD:LayoutPlayerWeaponsPanel(true)
+			KineticHUD:LayoutPlayerWeaponsPanel({recreate_text_objects = true})
 		end
 	end
 	MenuCallbackHandler.callback_khud_close = function(this)

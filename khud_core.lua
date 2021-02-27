@@ -167,6 +167,8 @@ KineticHUD.hud_values = {
 	PLAYER_HEALTH_BAR_X = 700,
 	PLAYER_HEALTH_BAR_Y = 500,
 	
+	PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION = 1/3,
+	
 	PLAYER_WEAPONS_W = 500,
 	PLAYER_WEAPONS_H = 400,
 	PLAYER_WEAPONS_X = 0,
@@ -454,6 +456,69 @@ function KineticHUD:animate_stop(name,do_cb)
 	local item = self._animate_targets[tostring(name)]
 	if item and do_cb and (type(item.done_cb) == "function") then 
 		return item.done_cb(item.target,unpack(item.params))
+	end
+end
+
+--lerp movement between two sets of 2d coordinates
+function KineticHUD.animate_move(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y)
+	local progress = (t - start_t) / duration
+	local lerp = math.clamp(progress,0,1)
+	local d_x = end_x - start_x
+	local d_y = end_y - start_y
+	o:set_position(start_x + (d_x * lerp),start_y + (d_y * lerp))
+	if lerp >= 1 then 
+		return true
+	end
+end
+
+function KineticHUD.animate_move_sin(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y)
+	local progress = (t - start_t) / duration
+	local lerp = math.clamp(math.sin(progress * 90),0,1)
+	local d_x = end_x - start_x
+	local d_y = end_y - start_y
+	o:set_position(start_x + (d_x * lerp),start_y + (d_y * lerp))
+	if progress >= 1 then 
+		return true
+	end
+end
+
+function KineticHUD.animate_weapon_panels_switch(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power,params)
+	power = power or 2
+	
+	local progress = (t - start_t) / duration
+	local lerp_x = math.pow(progress,1/power)
+	local lerp_y = math.pow(progress,power)
+	if progress >= 1 then 
+		lerp_x = 1
+		lerp_y = 1
+	end
+	local d_x = end_x - start_x
+	local d_y = end_y - start_y
+	o:set_position(start_x + (d_x * lerp_x),start_y + (d_y * lerp_y))
+	
+	params.lerp_override = lerp_x
+	KineticHUD:LayoutPlayerWeaponsPanel(params)
+	
+	if progress >= 1 then 
+		return true
+	end
+end
+
+function KineticHUD.animate_move_rotate_clockwise(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power)
+	power = power or 2
+	
+	local progress = (t - start_t) / duration
+	local lerp_x = math.pow(progress,1/power)
+	local lerp_y = math.pow(progress,power)
+	if progress >= 1 then 
+		lerp_x = 1
+		lerp_y = 1
+	end
+	local d_x = end_x - start_x
+	local d_y = end_y - start_y
+	o:set_position(start_x + (d_x * lerp_x),start_y + (d_y * lerp_y))
+	if progress >= 1 then 
+		return true
 	end
 end
 
