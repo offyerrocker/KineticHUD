@@ -2,7 +2,7 @@
 KineticHUD = KineticHUD or {}
 KineticHUD._mod_path = KineticHUD:GetPath()
 KineticHUD._save_path = SavePath .. "KineticHUD_2.txt"
-
+KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
 KineticHUD.special_characters = {
@@ -180,12 +180,12 @@ KineticHUD.hud_values = {
 	
 	PLAYER_WEAPON_W = 500,
 	PLAYER_WEAPON_H = 100,
-	PLAYER_WEAPON_X = 0,
-	PLAYER_WEAPON_Y = 0,
-	PLAYER_WEAPON_PRIMARY_X = 0,
-	PLAYER_WEAPON_PRIMARY_Y = 0,
-	PLAYER_WEAPON_SECONDARY_X = 100,
-	PLAYER_WEAPON_SECONDARY_Y = 125,
+	PLAYER_WEAPON_X = 0, --this is an absolute coordinate. also, unscaled (unaffected by scale settings)
+	PLAYER_WEAPON_Y = 0, --absolute/unscaled
+	PLAYER_WEAPON_PRIMARY_X = 0, --absolute/unscaled
+	PLAYER_WEAPON_PRIMARY_Y = 0, --absolute/unscaled
+	PLAYER_WEAPON_SECONDARY_X = 100, --this is a relative coordinate, and is dependent on another setting value (PLAYER_WEAPON_X). also, scaled
+	PLAYER_WEAPON_SECONDARY_Y = 50, --relative/scaled (PLAYER_WEAPON_PRIMARY_Y)
 	
 	PLAYER_WEAPON_FONT_SIZE_SMALL = 24,
 	PLAYER_WEAPON_FONT_SIZE_LARGE = 32,

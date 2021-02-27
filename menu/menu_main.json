@@ -1,0 +1,20 @@
+{
+	"menu_id" : "khud_options",
+	"parent_menu_id" : "blt_options",
+	"title" : "khud_title",
+	"back_callback" : "callback_khud_close",
+	"items" : [
+		{
+			"type" : "slider",
+			"id" : "khud_player_weapon_panel_set_scale",
+			"title" : "khud_player_weapon_panel_set_scale_title",
+			"description" : "khud_player_weapon_panel_set_scale_desc",
+			"callback" : "callback_khud_player_weapon_panel_set_scale",
+			"value" : "player_weapon_panel_scale",
+			"default_value" : 1,
+			"min" : 0,
+			"max" : 2,
+			"step" : 1
+		}
+	]
+}

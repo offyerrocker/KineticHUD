@@ -331,6 +331,7 @@ function KineticHUD:PanelBorder(panel,params)
 		})
 	else
 		exists = true
+		borders:set_size(w,h)
 		local left = borders:child(name .. "_border_left")
 		local right = borders:child(name .. "_border_right")
 		local top = borders:child(name .. "_border_top")
@@ -805,18 +806,18 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	local player_scale = self.settings.player_panel_scale
 	
 	local hv = self.hud_values
-	local weapons_panel_w = hv.PLAYER_WEAPONS_W * player_scale
-	local weapons_panel_h = hv.PLAYER_WEAPONS_H * player_scale
-	local weapons_panel_x = hv.PLAYER_WEAPONS_X * player_scale
-	local weapons_panel_y = hv.PLAYER_WEAPONS_Y * player_scale
+	local weapons_panel_w = hv.PLAYER_WEAPONS_W
+	local weapons_panel_h = hv.PLAYER_WEAPONS_H
+	local weapons_panel_x = hv.PLAYER_WEAPONS_X
+	local weapons_panel_y = hv.PLAYER_WEAPONS_Y
 	
 	local margin_xsmall = hv.MARGIN_XSMALL * player_scale
 	local margin_small = hv.MARGIN_SMALL * player_scale
 	
 	local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
 	local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
-	local weapon_panel_x = hv.PLAYER_WEAPON_X * player_scale
-	local weapon_panel_y = hv.PLAYER_WEAPON_Y * player_scale
+	local weapon_panel_x = hv.PLAYER_WEAPON_X
+	local weapon_panel_y = hv.PLAYER_WEAPON_Y
 	local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
 	local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
 	local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
@@ -830,8 +831,8 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
 	local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
 	local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
-	local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X * player_scale
-	local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y * player_scale
+	local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
+	local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
 	local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
 	local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
 	local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
@@ -900,6 +901,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 			alpha = icon_bg_alpha,
 			layer = 0
 		})
+		icon_bg:set_size(box_w,box_h)
 		
 		local border = self:PanelBorder(icon_box,{
 			thickness = border_thickness,
@@ -987,10 +989,10 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	local primary = create_weapon_subpanel(1,weapon_primary_scale)
 	primary:set_position(weapon_primary_x,weapon_primary_y)
 	local secondary = create_weapon_subpanel(2,weapon_secondary_scale)
-	secondary:set_position(weapon_secondary_x,weapon_secondary_y)
+	secondary:set_position(weapon_primary_x + weapon_secondary_x,weapon_primary_y + weapon_secondary_y)
 	
 	if not skip_layout then 
-		self:LayoutPlayerWeaponsPanel(false,2)
+		self:LayoutPlayerWeaponsPanel(true,2)
 	end
 end
 
@@ -1318,18 +1320,26 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 		highlighted_index = highlighted_index or 1
 		
 		local hv = self.hud_values
-		local weapons_panel_w = hv.PLAYER_WEAPONS_W * player_scale
-		local weapons_panel_h = hv.PLAYER_WEAPONS_H * player_scale
-		local weapons_panel_x = hv.PLAYER_WEAPONS_X * player_scale
-		local weapons_panel_y = hv.PLAYER_WEAPONS_Y * player_scale
+		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
+		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
+		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
+		local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
+		
+		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
+		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+		
+		local weapons_panel_w = hv.PLAYER_WEAPONS_W
+		local weapons_panel_h = hv.PLAYER_WEAPONS_H
+		local weapons_panel_x = hv.PLAYER_WEAPONS_X
+		local weapons_panel_y = hv.PLAYER_WEAPONS_Y
 		
 		local margin_xsmall = hv.MARGIN_XSMALL * player_scale
 		local margin_small = hv.MARGIN_SMALL * player_scale
 		
 		local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
 		local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
-		local weapon_panel_x = hv.PLAYER_WEAPON_X * player_scale
-		local weapon_panel_y = hv.PLAYER_WEAPON_Y * player_scale
+		local weapon_panel_x = hv.PLAYER_WEAPON_X
+		local weapon_panel_y = hv.PLAYER_WEAPON_Y
 		local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
 		local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
 		local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
@@ -1342,12 +1352,6 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 		local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * player_scale
 		local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
 			
-		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
-		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
-		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X * player_scale
-		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y * player_scale
-		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
-		local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
 		local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
 		
 		parent_weapons_panel:set_size(weapons_panel_w,weapons_panel_h)
@@ -1393,6 +1397,8 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			icon_bitmap:set_size(icon_w,icon_h)
 			
 			local icon_bg = icon_box:child("icon_bg")
+			icon_bg:set_position(0,0)
+			icon_bg:set_size(box_w,box_h)
 			icon_bg:set_alpha(icon_bg_alpha)
 			
 			local border = self:PanelBorder(icon_box,{
@@ -1443,7 +1449,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 					font_size = font_size_small
 				})
 		
-				local kill_icon_text = kill_icon_text:text()
+				local kill_icon_text = kill_icon:text()
 				self:animate_stop(kill_icon)
 				kill_icon:stop()
 				weapon_panel:remove(kill_icon)
@@ -1494,15 +1500,22 @@ function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_i
 			debug_rect:set_size(weapon_panel:size())
 			debug_rect:set_position(0,0)
 			
-			if index == highlighted_index then 
-				weapon_panel:set_position(weapon_primary_x,weapon_primary_y)
-			else
-				weapon_panel:set_position(weapon_secondary_x,weapon_secondary_y)
-			end
 		end
 		
-		layout_weapon_subpanel(1)
 		layout_weapon_subpanel(2)
+		layout_weapon_subpanel(1)
+		
+		local w1,w2
+		if highlighted_index == 1 then 
+			w1 = parent_weapons_panel:child("1")
+			w2 = parent_weapons_panel:child("2")
+		else
+			w1 = parent_weapons_panel:child("2")
+			w2 = parent_weapons_panel:child("1")
+		end
+		w1:set_position(weapon_primary_x,weapon_primary_y)
+		w2:set_position(weapon_primary_x + weapon_secondary_x,w1:bottom() + weapon_secondary_y)
+		
 		
 	end
 end
@@ -1510,8 +1523,7 @@ end
 function KineticHUD:LayoutTeammatePanel(i,RECREATE_TEXT_OBJECTS)
 	local teammate = self._teammate_panels[i]
 	if alive(teammate) then 
---		local RECREATE_TEXT_OBJECTS = true
-			
+	
 		local hv = self.hud_values
 		local scale = self.settings.teammate_panel_scale
 		local margin = hv.MARGIN_XSMALL * scale
@@ -2012,6 +2024,40 @@ end
 function KineticHUD:OnMissionEnd(data)
 
 end
+
+
+
+Hooks:Add("MenuManagerSetupCustomMenus", "MenuManagerSetupCustomMenus_khud", function(menu_manager, nodes)
+
+end)
+
+Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
+
+end)
+
+Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", function(menu_manager, nodes)
+
+end)
+
+Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)
+	MenuCallbackHandler.callback_khud_player_weapon_panel_set_scale = function(self,item)
+		if alive(KineticHUD._player_weapons_panel) then 
+			local scale = tonumber(item:value())
+			KineticHUD.settings.player_weapon_panel_scale = scale
+			
+			KineticHUD:LayoutPlayerWeaponsPanel(true)
+		end
+	end
+	MenuCallbackHandler.callback_khud_close = function(this)
+		KineticHUD:Save()
+		--note to self: weapons menu and compass menu use this generic callback
+	end
+	KineticHUD:Load()
+	
+	MenuHelper:LoadFromJsonFile(KineticHUD._menu_path .. "menu_main.json", KineticHUD, KineticHUD.settings)
+
+end)
+
 
 --load hud buff data
 dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
