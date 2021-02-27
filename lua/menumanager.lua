@@ -773,13 +773,6 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 	end
 end
 
---Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
---Arguments: none
---Returns: nil
-function KineticHUD:LayoutPlayerVitals()
-
-end
-
 --Creates the a HUD element to hold information about the player's current weapons. (Two weapons in vanilla, the Primary and Secondary)
 --Each weapon panel has one of the following: Kill counter, Weapon icon, Firemode indicator, Magazine counter, Reserve counter, Underbarrel ammo counter.
 --After creation, the HUD elements are positioned and scaled according to user settings.
@@ -964,7 +957,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 		})
 		local debug_rect = weapon_panel:rect({
 			name = "debug_rect",
-			visible = true,
+			visible = false,
 			alpha = 0.2,
 			color = Color.red
 		})
@@ -1003,7 +996,12 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 	local text_x = (hv.TEAMMATE_EQUIPMENT_TEXT_X * scale) + icon_w + margin
 	local text_y = hv.TEAMMATE_EQUIPMENT_TEXT_Y * scale
 	
-	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
+	local texture,texture_rect
+	if icon_id and icon_id ~= "" then 
+		texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
+	else
+		--hacky fix to make the equipment invisible if there is no icon
+	end
 	
 	if double then 
 		box_w = box_w * hv.TEAMMATE_EQUIPMENT_BOX_DOUBLE_W_MUL
@@ -1020,15 +1018,16 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 		w = box_h,
 		h = box_h
 	})
-	local icon = icon_box:bitmap({
-		name = "icon",
+	local icon_bitmap = icon_box:bitmap({
+		name = "icon_bitmap",
 		texture = texture,
 		texture_rect = texture_rect,
 		layer = 6
 	})
-	local _w,_h = icon:size()
+	local _w,_h = icon_bitmap:size()
 	local icon_aspect_ratio = _w/_h
-	icon:set_size(icon_aspect_ratio * icon_h,icon_h)
+	
+	icon_bitmap:set_size(icon_aspect_ratio * icon_h,icon_h)
 	
 	local borders = self:PanelBorder(icon_box,{
 		thickness = hv.TEAMMATE_EQUIPMENT_BOX_OUTLINE_THICKNESS,
@@ -1252,18 +1251,20 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		layer = 6
 	})
 
-	local deployable_1 = self:CreateTeammateEquipmentBox(teammate,"deployable_1","equipment_soda",true)
+	local deployable_1 = self:CreateTeammateEquipmentBox(teammate,"deployable_1","",true)
 	deployable_1:set_position(deployable_1_x,deployable_1_y)
+	deployable_1:hide() 
 	
-	local deployable_2 = self:CreateTeammateEquipmentBox(teammate,"deployable_2","equipment_chimichanga",true)
+	local deployable_2 = self:CreateTeammateEquipmentBox(teammate,"deployable_2","",true)
 	deployable_2:set_position(deployable_1:right(),deployable_1_y)
 	deployable_2:hide() 
 	
 	local cableties = self:CreateTeammateEquipmentBox(teammate,"cable_ties","equipment_cable_ties")
 	cableties:set_position(deployable_2:right(),deployable_1_y)
 	
-	local throwable = self:CreateTeammateEquipmentBox(teammate,"throwable","equipment_c4")
+	local throwable = self:CreateTeammateEquipmentBox(teammate,"throwable","")
 	throwable:set_position(cableties:right(),deployable_1_y)
+	throwable:hide()
 	
 	self._teammate_panels[i] = teammate
 	if not skip_layout then 
@@ -1280,6 +1281,13 @@ end
 function KineticHUD:CreatePresenter()
 	--target panel is 3
 	--mission objectives and pickups, etc
+end
+
+--Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
+--Arguments: none
+--Returns: nil
+function KineticHUD:LayoutPlayerVitals(RECREATE_TEXT_OBJECTS)
+	
 end
 
 function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_index)
@@ -1635,8 +1643,10 @@ function KineticHUD:LayoutTeammatePanel(i,RECREATE_TEXT_OBJECTS)
 			end
 			deployable_2:set_position(deployable_1:right(),deployable_1_y)
 			cable_ties:set_x(deployable_2:right())
-		else
+		elseif deployable_1:visible() then 
 			cable_ties:set_x(deployable_1:right())
+		else
+			cable_ties:set_x(deployable_1_x)
 		end
 		cable_ties:set_size(eq_box_w,eq_box_h)
 		cable_ties:set_y(deployable_1_y)
@@ -1739,6 +1749,15 @@ function KineticHUD:SetPlayerCableTies(amount)
 	
 end
 
+
+function KineticHUD:SetPlayerGrenadesIcon()
+
+end
+
+function KineticHUD:SetPlayerGrenadesAmount()
+
+end
+
 function KineticHUD:SetPlayerHealth(current,total)
 	if alive(self._player_vitals_panel) then 
 		local health_panel = self._player_vitals_panel:child("health_panel")
@@ -1797,6 +1816,30 @@ function KineticHUD:SetTeammateCableTies(i,amount)
 	end
 end
 
+function KineticHUD:SetTeammateGrenadesIcon(i,icon_id)
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local grenades_panel = teammate:child("throwable")
+
+		local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
+		if texture then 
+			if true or not grenades_panel:visible() then 
+				grenades_panel:child("icon_box"):child("icon_bitmap"):set_image(texture,texture_rect)
+				grenades_panel:show()
+				self:LayoutTeammatePanel()
+			end
+		end
+	end
+end
+--return KineticHUD._teammate_panels[2]:child("throwable")
+function KineticHUD:SetTeammateGrenadesAmount(i,amount)
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local grenades_panel = teammate:child("throwable")
+		self.SetDigitalText(grenades_panel:child("text"),amount,2)
+	end
+end
+
 function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 	index = index or 1
 	local teammate = self._teammate_panels[i]
@@ -1805,17 +1848,18 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 		local deployable
 		if index == 2 then
 			deployable = teammate:child("deployable_2")
-			if not deployable:visible() then 
-				queue_layout = true
-			end
 		else
 			deployable = teammate:child("deployable_1")
+		end
+		if not deployable:visible() then 
+			queue_layout = true
 		end
 		
 		if data.icon then 
 			local deployable_icon = deployable:child("icon_box"):child("icon")
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 			deployable_icon:set_image(texture,unpack(texture_rect))
+			queue_layout = true
 		end
 		if data.amount then
 			local amount

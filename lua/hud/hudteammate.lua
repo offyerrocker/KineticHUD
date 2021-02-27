@@ -56,6 +56,23 @@ Hooks:PostHook(HUDTeammate,"set_cable_ties_amount","khud_set_cable_ties_amount",
 	end
 end)
 
+--todo set_grenade_cooldown
+--todo activate_ability_radial
+--todo set_ability_radial
+
+Hooks:PostHook(HUDTeammate,"set_grenades","khud_set_grenades",function(self,data)
+	if not PlayerBase.USE_GRENADES then
+		return
+	end
+	if self._main_player then 
+		KineticHUD:SetPlayerGrenadesIcon(data.icon)
+		KineticHUD:SetPlayerGrenadesAmount(data.amount)
+	else
+		KineticHUD:SetTeammateGrendadesIcon(self._id,data.icon)
+		KineticHUD:SetTeammateGrenadesAmount(self._id,data.amount)
+	end
+end)
+
 --weapon
 Hooks:PostHook(HUDTeammate,"set_weapon_firemode","khud_hudteammate_set_weapon_firemode",function(self,id,firemode)
 	if self._main_player then 
@@ -132,6 +149,8 @@ Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_s
 		KineticHUD:SetTeammateDeployableEquipment(self._id,index,data)
 	end
 end)
+
+
 
 
 do return end
