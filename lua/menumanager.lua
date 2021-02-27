@@ -25,6 +25,10 @@ DEVELOPMENT:
 		non-focused weapon icon is not properly resized on setting the icon image
 		weapon swap animation
 		
+		set weapon kills:
+			* save kills by id/weapontype? search for weapon/panel matching weapontype?
+			* save kills by checking current selection index? get panel by selection index?
+			
 		
 	DESIRED FEATURES:
 		button prompts next to hud icons?
@@ -530,7 +534,7 @@ function KineticHUD:CreateHUD(parent_panel)
 	self:CreatePlayerVitalsPanel()
 	self:CreatePlayerWeaponsPanel()
 	
-	self:CreateTeammatesPanel() --! temp for debug only
+	self:CreateTeammatesPanel()
 	
 	self:CreateHints()
 	self:CreatePresenter()
@@ -781,76 +785,128 @@ end
 --After creation, the HUD elements are positioned and scaled according to user settings.
 --Arguments: skip_layout [bool]. If true, skips the positioning step after creation.
 --Returns: nil
-function KineticHUD:CreatePlayerWeaponsPanel()
+function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 	local selected_parent_panel = self._world_panels[2]
+	if not alive(self._world_panels[2]) then 
+		return
+	end
+	local player_scale = self.settings.player_panel_scale
+	
+	local hv = self.hud_values
+	local weapons_panel_w = hv.PLAYER_WEAPONS_W * player_scale
+	local weapons_panel_h = hv.PLAYER_WEAPONS_H * player_scale
+	local weapons_panel_x = hv.PLAYER_WEAPONS_X * player_scale
+	local weapons_panel_y = hv.PLAYER_WEAPONS_Y * player_scale
+	
+	local margin_xsmall = hv.MARGIN_XSMALL * player_scale
+	local margin_small = hv.MARGIN_SMALL * player_scale
+	
+	local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
+	local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
+	local weapon_panel_x = hv.PLAYER_WEAPON_X * player_scale
+	local weapon_panel_y = hv.PLAYER_WEAPON_Y * player_scale
+	local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
+	local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
+	local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
+	local weapon_icon_y = hv.PLAYER_WEAPON_ICON_Y * player_scale
+	local weapon_icon_w = hv.PLAYER_WEAPON_ICON_W * player_scale
+	local weapon_icon_h = hv.PLAYER_WEAPON_ICON_H * player_scale
+	local weapon_icon_bg_alpha = hv.PLAYER_WEAPON_ICON_BG_ALPHA * player_scale
+	local weapon_border_alpha = hv.PLAYER_WEAPON_BORDER_ALPHA * player_scale
+	local weapon_border_thickness = hv.PLAYER_WEAPON_BORDER_THICKNESS * player_scale
+	local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * player_scale
+	local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
+	local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
+	local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+	local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X * player_scale
+	local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y * player_scale
+	local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
+	local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
+	local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
+	
+	
 	local parent_weapons_panel = selected_parent_panel:panel({
 		name = "weapons_panel",
---		w = 400,
-		h = 400,
-		x = 0,
-		y = 800
+		w = weapons_panel_w,
+		h = weapons_panel_h,
+		x = weapons_panel_x,
+		y = weapons_panel_y
 	})
 	self._player_weapons_panel = parent_weapons_panel
+	
 --todo straighten out layers (integers only)
 --todo put vertical offset in weapons_panel as well as in subpanels
 	local function create_weapon_subpanel(index,scale)
+		local icon_x = weapon_icon_x * scale
+		local icon_y = weapon_icon_y * scale
+		local icon_w = weapon_icon_w * scale
+		local icon_h = weapon_icon_h * scale
+		local box_w = weapon_panel_w * scale
+		local box_h = weapon_panel_h * scale
+		local box_x = weapon_panel_x * scale
+		local box_y = weapon_panel_y * scale
+		local font_size_large = weapon_font_size_large * scale
+		local font_size_small = weapon_font_size_small * scale
+		local border_alpha = weapon_border_alpha * scale
+		local border_thickness = weapon_border_thickness * scale
+		local icon_bg_alpha = weapon_icon_bg_alpha * scale
+		local firemode_w = weapon_firemode_w * scale
+		local firemode_h = weapon_firemode_h * scale
+		local reserve_x = weapon_reserve_x * scale
 			
-		local box_w = 200 * scale
-		local box_h = 100 * scale
-		local font_size_large = 32 * scale
-		local font_size_small = 24 * scale
+		local ammo_text_bottom = -box_h / 20
+		local ammo_text_top = box_h / 20
 		
 		local weapon_panel = parent_weapons_panel:panel({
 			name = tostring(index),
---			y = 500,
---			w = 400,
+--			x = box_x,
+--			y = box_y,
+			w = box_w,
 			h = box_h
 		})
 		
 		local icon_box = weapon_panel:panel({
 			name = "icon_box",
-			x = 50,
-			w = box_w,
-			h = box_h
+			x = icon_x,
+			y = icon_y,
+			w = icon_w,
+			h = icon_h
 		})
 		local icon_bitmap = icon_box:bitmap({
 			name = "icon_bitmap",
 			texture = "",
-			w = box_w,
-			h = box_h,
 			layer = 1
 		})
 		icon_bitmap:set_image(managers.blackmarket:get_weapon_icon_path("amcar"))
-		icon_bitmap:set_size(box_w,box_h)
+		icon_bitmap:set_size(icon_w,icon_h)
 		
 		local icon_bg = icon_box:bitmap({
 			name = "icon_bg",
 			texture = nil,
 			color = Color.black,
 			blend_mode = "multiply",
-			alpha = 0.5,
+			alpha = icon_bg_alpha,
 			layer = 0
 		})
 		
 		local border = self:PanelBorder(icon_box,{
-			thickness = 2,
+			thickness = border_thickness,
 			color = Color.white,
-			alpha = 0.8,
+			alpha = border_alpha,
 			layer = 2
 		})
 		
-		--todo firemode scale
 		local firemode = weapon_panel:bitmap({
 			name = "firemode",
-			x = icon_box:right() + 4,
+			x = icon_box:right() + margin_xsmall,
 			y = icon_box:y(),
-			w = 16 * 0.5,
-			h = 80 * 0.5,
+			w = firemode_w,
+			h = firemode_h,
 			texture = "textures/ui/firemode_dots_3",
 --			visible = false,
 			layer = 3
 		})
-		firemode:set_y((weapon_panel:h() - firemode:h()) / 2)
+		firemode:set_y((weapon_panel:h() - firemode:h()) / 2) --vertically centered
 		
 		
 		--note: right() seems to use world right (including x of parent panel)
@@ -860,8 +916,8 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 			font = self._fonts.digital,
 			text = "123",
 			vertical = "bottom",
-			x = firemode:right() + 8,
-			y = - box_h / 20,
+			x = firemode:right() + margin_small,
+			y = ammo_text_bottom,
 			layer = 4,
 			font_size = font_size_large
 		})
@@ -871,46 +927,14 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 			font = self._fonts.digital,
 			text = "999",
 			vertical = "bottom",
-			x = firemode:right() + (84 * scale),
-			y = - box_h / 20,
+			x = firemode:right() + (reserve_x * scale),
+			y = ammo_text_bottom,
 			layer = 4,
 			font_size = font_size_small
 		})
 		
 		local mag_x,_,_,mag_h = magazine:text_rect()
-		
-		--[[
-		
-		name = "hp_gradient",
-		layer = 2,
-		blend_mode = "add",
-		x = (- bar_hp_bg_panel:h() + bar_hp_bg_panel:w()) / 2, --todo hp_gradient:set_center(x,y)
-		y = (bar_hp_bg_panel:h() - bar_hp_bg_panel:w()) / 2,
-		w = bar_hp_bg_panel:h(),
-		h = bar_hp_bg_panel:w(),
-		valign = "grow",
-		rotation = 90,
-		--]]
-		--[[
-		local gradient_bg = weapon_panel:gradient({
-			name = "gradient_bg",
-			blend_mode = "multiply",
-			valign = "grow",
-			x = magazine:x(),
-			y = box_h - (box_h - mag_h),
-			w = 200,
-			h = box_h - mag_h,
-			alpha = 1,
-			layer = 1.5,
-			gradient_points = {
-				0,
-				Color.black,
-				1,
-				Color.black:with_alpha(1)
-			}
-		})
-		--]]
-		
+
 		--todo create subpanel to hold + center these text objects
 		--todo center vertically but move each away from center? or set vertical top and bottom, from y = vertical center plus margin
 		local kill_icon = weapon_panel:text({
@@ -920,8 +944,8 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 			text = self.special_characters.skull,
 			align = "right",
 			vertical = "top",
-			x = -8 + - (weapon_panel:w() -icon_box:x()),
-			y = box_h / 20,
+			x = -margin_small + - (weapon_panel:w() -icon_box:x()),
+			y = ammo_text_top,
 			layer = 4,
 			font_size = font_size_large
 		})
@@ -933,14 +957,14 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 			text = "0",
 			align = "right",
 			vertical = "bottom",
-			x = -8 + - (weapon_panel:w() -icon_box:x()),
-			y = - box_h / 20,
+			x = -margin_small + - (weapon_panel:w() -icon_box:x()),
+			y = ammo_text_bottom,
 			layer = 4,
 			font_size = font_size_large
 		})
 		local debug_rect = weapon_panel:rect({
-			name = "debug",
-			visible = false,
+			name = "debug_rect",
+			visible = true,
 			alpha = 0.2,
 			color = Color.red
 		})
@@ -948,18 +972,14 @@ function KineticHUD:CreatePlayerWeaponsPanel()
 		return weapon_panel
 	end
 	
---	local inventory = managers.player:local_player():inventory()
+	local primary = create_weapon_subpanel(1,weapon_primary_scale)
+	primary:set_position(weapon_primary_x,weapon_primary_y)
+	local secondary = create_weapon_subpanel(2,weapon_secondary_scale)
+	secondary:set_position(weapon_secondary_x,weapon_secondary_y)
 	
---	for i,selection_data in ipairs(#inventory._available_selections) do
---		create_weapon_subpanel(i)
---	end
-	local primary = create_weapon_subpanel(1,1)
-	local secondary = create_weapon_subpanel(2,0.75)
-	secondary:set_x(100)
-	secondary:set_y(125)
---	create_weapon_subpanel(2)
-	
-	
+	if not skip_layout then 
+		self:LayoutPlayerWeaponsPanel(false,1)
+	end
 end
 
 function KineticHUD:CreateTeammatesPanel()
@@ -1260,6 +1280,202 @@ end
 function KineticHUD:CreatePresenter()
 	--target panel is 3
 	--mission objectives and pickups, etc
+end
+
+function KineticHUD:LayoutPlayerWeaponsPanel(RECREATE_TEXT_OBJECTS,highlighted_index)
+	local parent_weapons_panel = self._player_weapons_panel
+	if alive(parent_weapons_panel) then
+		local player_scale = self.settings.player_weapon_panel_scale
+		highlighted_index = highlighted_index or 1
+		
+		local hv = self.hud_values
+		local weapons_panel_w = hv.PLAYER_WEAPONS_W * player_scale
+		local weapons_panel_h = hv.PLAYER_WEAPONS_H * player_scale
+		local weapons_panel_x = hv.PLAYER_WEAPONS_X * player_scale
+		local weapons_panel_y = hv.PLAYER_WEAPONS_Y * player_scale
+		
+		local margin_xsmall = hv.MARGIN_XSMALL * player_scale
+		local margin_small = hv.MARGIN_SMALL * player_scale
+		
+		local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
+		local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
+		local weapon_panel_x = hv.PLAYER_WEAPON_X * player_scale
+		local weapon_panel_y = hv.PLAYER_WEAPON_Y * player_scale
+		local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
+		local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
+		local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
+		local weapon_icon_y = hv.PLAYER_WEAPON_ICON_Y * player_scale
+		local weapon_icon_w = hv.PLAYER_WEAPON_ICON_W * player_scale
+		local weapon_icon_h = hv.PLAYER_WEAPON_ICON_H * player_scale
+		local weapon_icon_bg_alpha = hv.PLAYER_WEAPON_ICON_BG_ALPHA * player_scale
+		local weapon_border_alpha = hv.PLAYER_WEAPON_BORDER_ALPHA * player_scale
+		local weapon_border_thickness = hv.PLAYER_WEAPON_BORDER_THICKNESS * player_scale
+		local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * player_scale
+		local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
+			
+		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
+		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X * player_scale
+		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y * player_scale
+		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
+		local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
+		local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
+		
+		parent_weapons_panel:set_size(weapons_panel_w,weapons_panel_h)
+		parent_weapons_panel:set_position(weapons_panel_x,weapons_panel_y)
+		
+		
+		local function layout_weapon_subpanel(index)
+			local scale
+			if index == highlighted_index then 
+				scale = weapon_primary_scale
+			else
+				scale = weapon_secondary_scale
+			end
+			
+			local icon_x = weapon_icon_x * scale
+			local icon_y = weapon_icon_y * scale
+			local icon_w = weapon_icon_w * scale
+			local icon_h = weapon_icon_h * scale
+			local box_w = weapon_panel_w * scale
+			local box_h = weapon_panel_h * scale
+			local font_size_large = weapon_font_size_large * scale
+			local font_size_small = weapon_font_size_small * scale
+			local border_alpha = weapon_border_alpha * scale
+			local border_thickness = weapon_border_thickness * scale
+			local icon_bg_alpha = weapon_icon_bg_alpha * scale
+			local firemode_w = weapon_firemode_w * scale
+			local firemode_h = weapon_firemode_h * scale
+			local reserve_x = weapon_reserve_x * scale
+			
+			local ammo_text_bottom = -box_h / 20
+			local ammo_text_top = box_h / 20
+			
+			local weapon_panel = parent_weapons_panel:child(tostring(index))
+			weapon_panel:set_size(box_w,box_h)
+			weapon_panel:set_position(box_x,box_y)
+			
+			local icon_box = weapon_panel:child("icon_box")
+			icon_box:set_position(icon_x,icon_y)
+			icon_box:set_size(icon_w,icon_h)
+			
+			local icon_bitmap = icon_box:child("icon_bitmap")
+			icon_bitmap:set_position(0,0)
+			icon_bitmap:set_size(icon_w,icon_h)
+			
+			local icon_bg = icon_box:child("icon_bg")
+			icon_bg:set_alpha(icon_bg_alpha)
+			
+			local border = self:PanelBorder(icon_box,{
+				thickness = border_thickness,
+				color = Color.white,
+				alpha = border_alpha,
+				layer = 2
+			}) --only creates a new panel border if one does not exist
+			
+			local firemode = weapon_panel:child("firemode")
+			firemode:set_size(firemode_w,firemode_h)
+			firemode:set_position(icon_box:right() + margin_xsmall,(weapon_panel:h() - firemode:h()) / 2) --vertically centered
+			
+			local magazine = weapon_panel:child("magazine")
+			local reserve = weapon_panel:child("reserve")
+			local kill_icon = weapon_panel:child("kill_icon")
+			local kill_counter = weapon_panel:child("kill_counter")
+			if RECREATE_TEXT_OBJECTS then 
+				local magazine_text = magazine:text()
+				self:animate_stop(magazine)
+				magazine:stop()
+				weapon_panel:remove(magazine)
+				magazine = weapon_panel:text({
+					name = "magazine",
+					color = Color.white,
+					font = self._fonts.digital,
+					text = magazine_text,
+					vertical = "bottom",
+					x = firemode:right() + margin_small,
+					y = ammo_text_bottom,
+					layer = 4,
+					font_size = font_size_large
+				})
+				
+				local reserve_text = reserve:text()
+				self:animate_stop(reserve)
+				reserve:stop()
+				weapon_panel:remove(reserve)
+				reserve = weapon_panel:text({
+					name = "reserve",
+					color = Color.white,
+					font = self._fonts.digital,
+					text = reserve_text,
+					vertical = "bottom",
+					x = firemode:right() + (reserve_x * scale),
+					y = ammo_text_bottom,
+					layer = 4,
+					font_size = font_size_small
+				})
+		
+				local kill_icon_text = kill_icon_text:text()
+				self:animate_stop(kill_icon)
+				kill_icon:stop()
+				weapon_panel:remove(kill_icon)
+				kill_icon = weapon_panel:text({
+					name = "kill_icon",
+					color = Color.white,
+					font = self._fonts.large,
+					text = kill_icon_text,
+					align = "right",
+					vertical = "top",
+					x = -margin_small + - (weapon_panel:w() -icon_box:x()),
+					y = ammo_text_top,
+					layer = 4,
+					font_size = font_size_large
+				})
+				
+				local kill_counter_text = kill_counter:text()
+				self:animate_stop(kill_counter)
+				kill_counter:stop()
+				weapon_panel:remove(kill_counter)
+				kill_counter = weapon_panel:text({
+					name = "kill_counter",
+					color = Color.white,
+					font = self._fonts.digital,
+					text = kill_counter_text,
+					align = "right",
+					vertical = "bottom",
+					x = -margin_small + - (weapon_panel:w() -icon_box:x()),
+					y = ammo_text_bottom,
+					layer = 4,
+					font_size = font_size_large
+				})
+			else
+				magazine:set_font_size(font_size_large)
+				magazine:set_position(firemode:right() + margin_small,ammo_text_bottom)
+				
+				reserve:set_font_size(font_size_small)
+				reserve:set_position(firemode:right() + reserve_x,ammo_text_bottom)
+				
+				kill_icon:set_font_size(font_size_large)
+				kill_icon:set_position(-margin_small + - (weapon_panel:w() -icon_box:x()),ammo_text_top)
+				
+				kill_counter:set_font_size(font_size_large)
+				kill_counter:set_position(-margin_small + - (weapon_panel:w() -icon_box:x()),ammo_text_bottom)
+			end
+			
+			local debug_rect = weapon_panel:child("debug_rect")
+			debug_rect:set_size(weapon_panel:size())
+			debug_rect:set_position(0,0)
+			
+			if index == highlighted_index then 
+				weapon_panel:set_position(weapon_primary_x,weapon_primary_y)
+			else
+				weapon_panel:set_position(weapon_secondary_x,weapon_secondary_y)
+			end
+		end
+		
+		layout_weapon_subpanel(1)
+		layout_weapon_subpanel(2)
+		
+	end
 end
 
 function KineticHUD:LayoutTeammatePanel(i,RECREATE_TEXT_OBJECTS)
