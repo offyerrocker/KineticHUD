@@ -1,0 +1,48 @@
+KineticHUD Rising: Revengeance
+
+KineticHUD 2, also known as *"KineticHUD II: Die Harder: River of Fear: Nutty By Nature: Deja Vu: Son Of KineticHUD: Beyond Cyberspace: KineticHUD vs The Cyber Insects: KineticHUD's New Groove: Hawaiian Style: The Third"*, alternately called simply *"KineticHUD*", and abbreviated to KHUD, is a new-old HUD mod for PAYDAY 2. It is based on KineticHUD, but sufficiently different such that I opted to define it as a new mod, with a new mod page. 
+You can think of this as the full version of KineticHUD (that was one long beta, amirite?), with more polish, customization, and overall more feature-completeness.
+
+----
+
+### About KHUD:
+
+[spoiler]
+	hud customizability:
+		each element should have a changeable scale
+		each element should have a changeable position
+		hud movable by mouse dragging?
+	compatibility/modularity:
+		do not break other mods if at all possible
+		do not be broken by other mods if at all possible
+		option to disable the hooks or functions in commonly used functions, if hooked, to allow for increased compatibility and also customization
+		state flags for whether a given hud component is loaded should be checked when using hud setter functions, to allow for modularity/customization in enabling/disabling hud elements
+	information:
+		add information. you can move it, but don't remove it.
+	accessibility:
+		colorblind options:
+			changeable colors for any given hud color
+[/spoiler]
+
+## Features:
+[spoiler]
+
+* Scalability
+* Customizable Colors
+* 
+
+[/spoiler]
+
+### Previews:
+[spoiler]
+h-hey, b-baka! quit looking at my previews, pervert!
+[/spoiler]
+
+## Installation:
+Unzip the mod called "KineticHUD" into the "mods" folder.
+
+## F.A.Q.:
+
+## Troubleshooting:
+If you encounter issues, please contact me here or via Discord. 
+You can report bugs on this mod page, or on the GitHub issues page.

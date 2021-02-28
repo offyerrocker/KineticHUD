@@ -2,7 +2,9 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
+	
 		write player equipment
+		revives bg
 		write alignment code for:
 			player vitals
 			player equipment
@@ -40,44 +42,54 @@ DEVELOPMENT:
 			* allow intuitive menu enabling/disabling of buffs
 				* see khud organization
 
-	MENU STRUCTURING:
+	MENU STRUCTURING: hoo boy this is indeed rough
 		* HUD Layout
 			* Player
 				* Enabled/vanilla/hidden
 				* Vitals
 					* Health Bar
 						* Parent/Scale/Position/Align
+						* Fill/Outline/Text Color
 					* Armor Bar
 						* Parent/Scale/Position/Align
+						* Fill/Outline/Text Color
 					* Revives
 						* Enabled/Disabled
 						* Parent/Scale/Position/Align
+						* Color
 				* Player Weapons
 					* Parent/Scale/Position/Align
+					* Magazine/Reserves/Kills/Kills Icon/Weapon Icon/Firemode/Box Color
 			* Teammates
 				* Parent/Scale/Position/Align
+				* Toggle: Color by peer id
 			* Compass
 				* Parent/Scale/Position/Align
+				* Color
 			* Assault
+				* ???
+				* BAI Compatibility
 			* Objectives
 				* Enabled/vanilla/hidden
 				* Parent/Scale/Position/Align
+				* Color
 			* Hints
 				* Enabled/disabled
 				* Parent/Scale/Position
+				* Color
 			* Presenter
 				* Enabled/disabled
 				* Parent/Scale/Position
+				* Color
 			* Buffs
 				* Enabled/disabled
 				* Parent/Align
 				* Max per Row/Max per Column
+				* Color
 			* Heist name popup
 				* Enabled/disabled
 				* Parent/Scale/Position/Align
-			* Objective
-				* Enabled/disabled
-				* Parent/Scale/Position/Align
+				* Color
 		* Buffs Tracker
 			* Applicable Buffs
 		* Objectives
@@ -229,9 +241,6 @@ HUD SEGMENTS
 		* waypoints on compass??????
 		* teammate health
 		* sentries
-	
-	MENU:
-		* Hoo boy this is gonna be rough
 	
 	MISC:
 		* Trade Timer
@@ -595,8 +604,15 @@ function KineticHUD:CreateHUD(parent_panel)
 	})
 	self._panel = base
 	
-	self:CreatePlayerVitalsPanel()
-	self:CreatePlayerWeaponsPanel()
+	local font_ids = Idstring("font")
+	local dyn_pkg = DynamicResourceManager.DYN_RESOURCES_PACKAGE
+	local font_resources_ready = managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.digital),dyn_pkg)
+		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.syke),dyn_pkg)
+		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.tommy_bold),dyn_pkg)
+
+
+	self:CreatePlayerVitalsPanel(font_resources_ready)
+	self:CreatePlayerWeaponsPanel(font_resources_ready)
 	
 	self:CreateTeammatesPanel()
 	
@@ -2091,6 +2107,10 @@ function KineticHUD:SetTeammatePeerId(i,id)
 	end
 end
 
+function KineticHUD:SetTeammateArmor(i,current,total)
+
+end
+
 function KineticHUD:SetTeammateHealth(i,current,total)
 	self._cache.teammate_health[i] = current/total
 	local teammate = self._teammate_panels[i]
@@ -2299,17 +2319,188 @@ function KineticHUD:OnMissionEnd(data)
 end
 
 
-
+--blt.vm.loadfile
 Hooks:Add("MenuManagerSetupCustomMenus", "MenuManagerSetupCustomMenus_khud", function(menu_manager, nodes)
+	KineticHUD._populated_menus[KineticHUD._menu_id_main] = {menu = MenuHelper:NewMenu(KineticHUD._menu_id_main)}
+--	for name,data in pairs(KineticHUD._menu_ids) do 
+--		KineticHUD._game_menus[name] = MenuHelper:NewMenu(name)
+--	end
 
+--	KineticHUD.menutest = MenuHelper:NewMenu("khud_menu_layouts_criminals")
 end)
 
-Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
+--iterator? i 'ardly even know 'er!
+function KineticHUD.traverse(tbl,indexed_targets,func,...)
+	indexed_targets = indexed_targets or {}
+	for k,v in ipairs(tbl) do 
+		if type(v) == "table" then 
+			if indexed_targets[tostring(v)] then 
+				--no infinite recursion or stack overflows, thanks
+				return
+			end
+			indexed_targets[tostring(v)] = true
+			local next_traversal_target,args = func(k,v,...)
+			if next_traversal_target then 
+				KineticHUD.traverse(next_traversal_target,indexed_targets,func,unpack(args))
+			end
+		end
+	end
+end
 
+
+--boy i love inventing things! i wonder what i should call this... round... circle... thing, 
+-- that i just made up, myself. good thing nobody has already created this before
+function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
+	if not parent_menu_id then 
+		KineticHUD:c_log("ERROR: add_menu_option_from_data(): bad parent menu id!")
+		return
+	end
+	local priority = i --#parent_tbl + 1 - i
+	local menu_type = menu_data.type
+	if menu_type == "menu" then 
+--		Log("Creating menu " .. tostring(menu_data.id) .. " from parent " .. tostring(parent_menu_id))	
+		KineticHUD._populated_menus[menu_data.id] = {
+			menu = MenuHelper:NewMenu(menu_data.id),
+			
+			area_bg = menu_data.area_bg,
+			back_callback = menu_data.back_callback,
+			focus_changed_callback = menu_data.back_callback
+		}
+		table.insert(KineticHUD._queued_add_menus,{
+			parent_menu_id = parent_menu_id,
+			submenu_id = menu_data.id,
+			title = menu_data.title,
+			desc = menu_data.desc,
+			priority = priority
+		})
+	--[[	
+		KineticHUD._queued_build_menus[menu_data.id] = {
+			area_bg = menu_data.area_bg,
+			back_callback = menu_data.back_callback,
+			focus_changed_callback = menu_data.back_callback
+		}
+		if not KineticHUD._game_menus[menu_data.id] then 
+			local menu = MenuHelper:NewMenu(menu_data.id)
+			KineticHUD._game_menus[menu_data.id] = menu
+		end
+		KineticHUD._queued_add_menus[menu_data.id] = {
+			
+		}
+		--]]
+		if type(menu_data.children) == "table" then
+			return menu_data.children,{menu_data.id}
+		end
+	elseif menu_type == "toggle" then 
+		MenuHelper:AddToggle({
+			id = menu_data.id,
+			title = menu_data.title,
+			desc = menu_data.desc,
+			callback = menu_data.callback,
+			value = KineticHUD.settings[menu_data.value],
+			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			menu_id = parent_menu_id,
+			priority = priority
+		})
+	elseif menu_type == "slider" then 
+--		Log(" Added slider " .. tostring(menu_data.id) .. " to " .. tostring(parent_menu_id))
+		MenuHelper:AddSlider({
+			id = menu_data.id,
+			title = menu_data.title,
+			desc = menu_data.desc,
+			callback = menu_data.callback,
+			value = KineticHUD.settings[menu_data.value],
+			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			min = menu_data.min,
+			max = menu_data.max,
+			step = menu_data.step,
+			show_value = menu_data.show_value,
+			menu_id = parent_menu_id,
+			priority = priority
+		})
+	elseif menu_type == "button" then 
+		MenuHelper:AddButton({
+			id = menu_data.id,
+			title = menu_data.title,
+			desc = menu_data.desc,
+			callback = menu_data.callback,
+			menu_id = parent_menu_id,
+			priority = priority
+		})
+	elseif menu_type == "divider" then 
+		return MenuHelper:AddDivider({
+			id = menu_data.id,
+			size = menu_data.size,
+			menu_id = parent_menu_id,
+			priority = priority
+		})
+	elseif menu_type == "multiple_choice" then 
+		MenuHelper:AddMultipleChoice({
+			id = menu_data.id,
+			title = menu_data.title,
+			desc = menu_data.desc,
+			callback = menu_data.callback,
+			items = menu_data.items,
+			value = KineticHUD.settings[menu_data.value],
+			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			menu_id = parent_menu_id,
+			priority = priority
+		})
+	elseif menu_type == "keybind" then 
+	--[[
+		MenuHelper:AddKeybinding({
+			id = "example_keybind",
+			title = "example_mod_test_keybind",
+			callback = "test_multi_callback",
+			connection_name = "example_keybind_connection",
+			binding = default_key,
+			button = default_key,
+			menu_id = "my_custom_menu",
+			priority = 5,
+		})
+		--]]
+	end
+end
+
+Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
+	--do custom addon loading here
+	--do validate settings here
+	--do populate dynamic menus here
+	
+--	for name,data in pairs(KineticHUD._menu_ids) do 
+--		KineticHUD.trawl(data,{},KineticHUD.add_menu_option_from_data)
+--	end
+	KineticHUD.traverse(KineticHUD._menu_ids,{},KineticHUD.add_menu_option_from_data,KineticHUD._menu_id_main)
 end)
 
 Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", function(menu_manager, nodes)
-
+--	nodes[KineticHUD._menu_id_main] = MenuHelper:BuildMenu(KineticHUD._menu_id_main,{})
+--	MenuHelper:AddMenuItem(MenuHelper:GetMenu(KineticHUD._menu_id_main),"khud_menu_layouts_player_weapons","kinetichud","kinetichud",1)
+	
+	for menu_id,menu_data in pairs(KineticHUD._populated_menus) do 
+--		Log("Populating " .. menu_id)
+		nodes[menu_id] = MenuHelper:BuildMenu(
+			menu_id,
+			{
+				area_bg = menu_data.area_bg,
+				back_callback = menu_data.back_callback,
+				focus_changed_callback = menu_data.back_callback
+			}
+		)
+	end
+	
+	for _,menu_data in ipairs(KineticHUD._queued_add_menus) do 
+		local parent_menu_id = menu_data.parent_menu_id
+--		local _data = KineticHUD._populated_menus[parent_menu_id] 
+		local menu = MenuHelper:GetMenu(parent_menu_id) --_data and _data.menu
+		local submenu_id = menu_data.submenu_id
+		local title = menu_data.title
+		local desc = menu_data.desc
+		local priority = menu_data.priority
+		if menu then 
+--			Log("Building menu: " .. tostring(menu) .. "," .. tostring(submenu_id) .. "," .. tostring(title) .. "," .. tostring(desc) .. "," .. tostring(priority))
+			MenuHelper:AddMenuItem(menu,submenu_id,title,desc,priority)
+		end
+	end
 end)
 
 Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)

@@ -33,15 +33,285 @@ KineticHUD.color_data = {
 }
 
 KineticHUD._fonts = {
-	cromwell = "fonts/cromwell_nf", --custom
-	grotesk = "fonts/grotesk_normal", --custom
-	grotesk_bold = "fonts/grotesk_bold", --custom
 	tommy_bold = "fonts/made_tommy_xb", --custom; 48
 	syke = "fonts/syke", --custom; 24(?)
 	digital = "fonts/font_digital", --vanilla
 	large = "fonts/font_large_mf", --vanilla
 }
 
+--one menu to rule them all
+--all menus are, to some degree, sub-menus of this one
+KineticHUD._menu_id_main = "khud_menu_main"
+
+KineticHUD._populated_menus = {}
+
+---once menus are populated, add them to this queue
+--they are then built, and should be usable in-game
+KineticHUD._queued_build_menus = {} --deprecated
+
+--registers submenus for menu objects
+KineticHUD._queued_add_menus = {} --deprecated
+
+--holds ordered data to generate menus;
+--mainly done to allow dynamic menu option insertion and also to avoid using json menus 
+KineticHUD._menu_ids = {
+--[[
+	"khud_menu_layouts",
+		"khud_menu_layouts_player",
+			"khud_menu_layouts_player_vitals",
+				"khud_menu_layouts_player_vitals_armor",
+				"khud_menu_layouts_player_vitals_health",
+				"khud_menu_layouts_player_vitals_revives",
+			"khud_menu_layouts_player_weapons",
+		"khud_menu_layouts_teammates",
+		"khud_menu_layouts_compass",
+		"khud_menu_layouts_assault",
+		"khud_menu_layouts_objectives",
+		"khud_menu_layouts_hints",
+		"khud_menu_layouts_presenter",
+		"khud_menu_layouts_buffs"
+}
+
+local menu_ids_indev = {
+		--]]
+		
+--todo: preview image for any given menu
+	{
+		type = "menu",
+		id = "khud_menu_layouts",
+		title = "khud_menu_layouts_title",
+		desc = "khud_menu_layouts_desc",
+		children = {
+			{ --player/team	
+				type = "menu",
+				id = "khud_menu_layouts_criminals",
+				title = "khud_menu_layouts_criminals_title",
+				desc = "khud_menu_layouts_criminals_desc",
+				children = {
+					{ --player layouts
+						type = "menu",
+						id = "khud_menu_layouts_player",
+						title = "khud_menu_layouts_player_title",
+						desc = "khud_menu_layouts_player_desc",
+						children = {
+							{
+								type = "menu",
+								id = "khud_menu_layouts_player_vitals",
+								title = "khud_menu_layouts_player_vitals_title",
+								desc = "khud_menu_layouts_player_vitals_desc",
+								children = {
+									{
+										type = "menu",
+										id = "khud_menu_layouts_player_vitals_health",
+										title = "khud_menu_layouts_player_vitals_health_title",
+										desc = "khud_menu_layouts_player_vitals_health_desc",
+										children = {
+											--health customization here
+										}
+									},
+									{
+										type = "menu",
+										id = "khud_menu_layouts_player_vitals_armor",
+										title = "khud_menu_layouts_player_vitals_armor_title",
+										desc = "khud_menu_layouts_player_vitals_armor_desc",
+										children = {
+											--armor customization here
+										}
+									}
+									--vitals layout customization here
+								}
+							},
+							{
+								type = "menu",
+								id = "khud_menu_layouts_player_weapons",
+								title = "khud_menu_layouts_player_weapons_title",
+								desc = "khud_menu_layouts_player_weapons_desc",
+								children = {
+									--weapons customization here
+									{
+										type = "slider",
+										id = "khud_player_weapons_panel_set_scale",
+										title = "khud_player_weapons_panel_set_scale_title",
+										desc = "khud_player_weapons_panel_set_scale_title",
+										callback = "callback_khud_player_weapons_panel_set_scale",
+										value = "player_weapons_panel_scale",
+										default_value = 1,
+										min = 0,
+										max = 3,
+										step = 0.1
+									},
+									{		
+										type = "slider",
+										id = "khud_player_weapons_panel_set_x",
+										title = "khud_player_weapons_panel_set_x_title",
+										description = "khud_player_weapons_panel_set_x_desc",
+										callback = "callback_khud_player_weapons_panel_set_x",
+										value = "player_weapons_panel_x",
+										default_value = 750,
+										min = 0,
+										max = 1024,
+										step = 1
+									},
+									{
+										type = "slider",
+										id = "khud_player_weapons_panel_set_y",
+										title = "khud_player_weapons_panel_set_y_title",
+										description = "khud_player_weapons_panel_set_y_desc",
+										callback = "callback_khud_player_weapons_panel_set_y",
+										value = "player_weapons_panel_y",
+										default_value = 1,
+										min = 0,
+										max = 1024,
+										step = 1
+									}
+								}
+							}
+						}
+					},
+					{ --teammate layouts
+						type = "menu",
+						id = "khud_menu_layouts_teammates",
+						title = "khud_menu_layouts_teammates_title",
+						desc = "khud_menu_layouts_teammates_desc",
+						children = {
+						
+						}
+					}
+				}
+			},
+			{ --objectives
+				type = "menu",
+				id = "khud_menu_layouts_objectives",
+				title = "khud_menu_layouts_objectives_title",
+				desc = "khud_menu_layouts_objectives_desc",
+				children = {
+				
+				}
+			},
+			{ --assault
+				type = "menu",
+				id = "khud_menu_layouts_assault",
+				title = "khud_menu_layouts_assault_title",
+				desc = "khud_menu_layouts_assault_desc",
+				children = {
+				
+				}
+			},
+			{ --interaction
+				type = "menu",
+				id = "khud_menu_layouts_interaction",
+				title = "khud_menu_layouts_interaction_title",
+				desc = "khud_menu_layouts_interaction_desc",
+				children = {
+				
+				}
+			},
+			{ --hints
+				type = "menu",
+				id = "khud_menu_layouts_hints",
+				title = "khud_menu_layouts_hints_title",
+				desc = "khud_menu_layouts_hints_desc",
+				children = {
+				
+				}
+			},
+			{ --presenter
+				type = "menu",
+				id = "khud_menu_layouts_presenter",
+				title = "khud_menu_layouts_presenter_title",
+				desc = "khud_menu_layouts_presenter_desc",
+				children = {
+				
+				}
+			},
+			{ --chat
+				type = "menu",
+				id = "khud_menu_layouts_chat",
+				title = "khud_menu_layouts_chat_title",
+				desc = "khud_menu_layouts_chat_desc",
+				children = {
+				
+				}
+			},
+			{ --hit direction
+				type = "menu",
+				id = "khud_menu_layouts_hitdirection",
+				title = "khud_menu_layouts_hitdirection_title",
+				desc = "khud_menu_layouts_hitdirection_desc",
+				children = {
+				
+				}
+			},
+			{ --waypoints
+				type = "menu",
+				id = "khud_menu_layouts_waypoints",
+				title = "khud_menu_layouts_waypoints_title",
+				desc = "khud_menu_layouts_waypoints_desc",
+				children = {
+				
+				}
+			},
+			{ --custody/trade timer
+				type = "menu",
+				id = "khud_menu_layouts_custody",
+				title = "khud_menu_layouts_custody_title",
+				desc = "khud_menu_layouts_custody_desc",
+				children = {
+				
+				}
+			},
+			{ --drop in/waiting hud
+				type = "menu",
+				id = "khud_menu_layouts_waiting",
+				title = "khud_menu_layouts_waiting_title",
+				desc = "khud_menu_layouts_waiting_desc",
+				children = {
+				
+				}
+			},
+			{ --detection/suspicion
+				type = "menu",
+				id = "khud_menu_layouts_suspicion",
+				title = "khud_menu_layouts_suspicion_title",
+				desc = "khud_menu_layouts_suspicion_desc",
+				children = {
+				
+				}
+			},
+			{ --buffs
+				type = "menu",
+				id = "khud_menu_layouts_buffs",
+				title = "khud_menu_layouts_buffs_title",
+				desc = "khud_menu_layouts_buffs_desc",
+				children = {
+				
+				}
+			},
+			{ --cartographer, compass, (includes heist name popup)
+				type = "menu",
+				id = "khud_menu_layouts_cartographer",
+				title = "khud_menu_layouts_cartographer_title",
+				desc = "khud_menu_layouts_cartographer_desc",
+				children = {
+					{ --compass
+						type = "menu",
+						id = "khud_menu_layouts_cartographer_compass",
+						title = "khud_menu_layouts_cartographer_compass_title",
+						desc = "khud_menu_layouts_cartographer_compass_desc",
+						children = {
+						
+						}
+					}
+				}
+			}			
+		}
+	}
+}
+
+--holds generated menus by menu id
+KineticHUD._game_menus = {}
+
+		
 KineticHUD._USE_UNIQUE_WORKSPACE = false
 KineticHUD._world_panels = {}
 KineticHUD._workspaces = {}
@@ -556,6 +826,20 @@ end
 
 
 
+
+function KineticHUD.callback_show_colorpicker_missing_prompt()
+	local loc = callback(managers.localization,managers.localization,"text")
+	QuickMenu:new(loc("title"),loc("desc"),{
+		{
+			text = loc("Yes"),
+			callback = callback(self,self,"ClearCartographerData",true)
+		},
+		{
+			text = loc("Cancel"),
+			callback = callback(self,self,"Create_Cartographer_Menu")
+		}
+	},true)
+end
 
 
 
