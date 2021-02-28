@@ -60,7 +60,7 @@ KineticHUD.hud_values = {
 		{
 			name = "left_panel",
 			localized_name = "khud_panel_left_title",
-			TEXT = "hello and welcome to zombocom",
+			TEXT = "LEFT PANEL",
 			WORLD_W = 5,
 			WORLD_H = 10,
 			GUI_W = 500,
@@ -76,7 +76,7 @@ KineticHUD.hud_values = {
 		{
 			name = "right_panel",
 			localized_name = "khud_panel_right_title",
-			TEXT = "", --this is zombocom
+			TEXT = "RIGHT PANEL",
 			WORLD_W = 5,
 			WORLD_H = 10,
 			GUI_W = 500,
@@ -92,7 +92,7 @@ KineticHUD.hud_values = {
 		{
 			name = "top_panel",
 			localized_name = "khud_panel_top_title",
-			TEXT = "at zombocom, the unattainable is unknown",
+			TEXT = "TOP PANEL",
 			WORLD_W = 11,
 			WORLD_H = 6,
 			GUI_W = 1100,
@@ -108,7 +108,7 @@ KineticHUD.hud_values = {
 		{
 			name = "bottom_panel",
 			localized_name = "khud_panel_bottom_title",
-			TEXT = "you can do anything at zombocom",
+			TEXT = "BOTTOM PANEL",
 			WORLD_W = 11,
 			WORLD_H = 6,
 			GUI_W = 1100,
@@ -188,7 +188,7 @@ KineticHUD.hud_values = {
 	
 	PLAYER_WEAPON_FONT_SIZE_SMALL = 20, --reserve
 	PLAYER_WEAPON_FONT_SIZE_LARGE = 32, --magazine
-	PLAYER_WEAPON_ICON_X = 50,
+	PLAYER_WEAPON_ICON_X = 84,
 	PLAYER_WEAPON_ICON_Y = 0,
 	PLAYER_WEAPON_ICON_W = 200,
 	PLAYER_WEAPON_ICON_H = 100,
@@ -355,7 +355,9 @@ KineticHUD.debug_value_1 = 0.5
 KineticHUD.default_settings = {
 	player_panel_scale = 1, --deprecated
 	player_vitals_panel_scale = 1,
-	player_weapon_panel_scale = 1,
+	player_weapons_panel_scale = 1,
+	player_weapons_panel_x = 0,
+	player_weapons_panel_y = 750,
 	teammate_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,
 	PLAYER_HEALTH_BAR_VALIGN = 1,

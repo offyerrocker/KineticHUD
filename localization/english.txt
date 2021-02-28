@@ -1,10 +1,11 @@
 {
 	"kinetichud" : "KineticHUD",
 	"khud_title" : "KineticHUD",
-	"khud_player_weapon_panel_set_scale_title" : "Set Player Weapons Panel Scale",
-	"khud_player_weapon_panel_set_scale_desc" : "Change the size of the weapons panel",
+	"khud_player_weapons_panel_set_scale_title" : "Set Player Weapons Panel Scale",
+	"khud_player_weapons_panel_set_scale_desc" : "Change the size of the weapons panel",
 	"khud_panel_left_title" : "Left Panel",
 	"khud_panel_right_title" : "Right Panel",
 	"khud_panel_top_title" : "Top Panel",
-	"khud_panel_bottom_title" : "Bottom Panel"
+	"khud_panel_bottom_title" : "Bottom Panel",
+	"khud_hud_player_name_loading" : "LOADING..."
 }
