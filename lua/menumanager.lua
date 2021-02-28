@@ -3,6 +3,7 @@
 DEVELOPMENT:
 	CURRENT TODO:
 	
+		preview image for any given menu
 		write player equipment
 		revives bg
 		write alignment code for:
@@ -2318,15 +2319,8 @@ function KineticHUD:OnMissionEnd(data)
 
 end
 
-
---blt.vm.loadfile
 Hooks:Add("MenuManagerSetupCustomMenus", "MenuManagerSetupCustomMenus_khud", function(menu_manager, nodes)
 	KineticHUD._populated_menus[KineticHUD._menu_id_main] = {menu = MenuHelper:NewMenu(KineticHUD._menu_id_main)}
---	for name,data in pairs(KineticHUD._menu_ids) do 
---		KineticHUD._game_menus[name] = MenuHelper:NewMenu(name)
---	end
-
---	KineticHUD.menutest = MenuHelper:NewMenu("khud_menu_layouts_criminals")
 end)
 
 --iterator? i 'ardly even know 'er!
@@ -2355,10 +2349,9 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 		KineticHUD:c_log("ERROR: add_menu_option_from_data(): bad parent menu id!")
 		return
 	end
-	local priority = i --#parent_tbl + 1 - i
+	local priority = i
 	local menu_type = menu_data.type
 	if menu_type == "menu" then 
---		Log("Creating menu " .. tostring(menu_data.id) .. " from parent " .. tostring(parent_menu_id))	
 		KineticHUD._populated_menus[menu_data.id] = {
 			menu = MenuHelper:NewMenu(menu_data.id),
 			
@@ -2373,20 +2366,7 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			desc = menu_data.desc,
 			priority = priority
 		})
-	--[[	
-		KineticHUD._queued_build_menus[menu_data.id] = {
-			area_bg = menu_data.area_bg,
-			back_callback = menu_data.back_callback,
-			focus_changed_callback = menu_data.back_callback
-		}
-		if not KineticHUD._game_menus[menu_data.id] then 
-			local menu = MenuHelper:NewMenu(menu_data.id)
-			KineticHUD._game_menus[menu_data.id] = menu
-		end
-		KineticHUD._queued_add_menus[menu_data.id] = {
-			
-		}
-		--]]
+		
 		if type(menu_data.children) == "table" then
 			return menu_data.children,{menu_data.id}
 		end
@@ -2402,7 +2382,6 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			priority = priority
 		})
 	elseif menu_type == "slider" then 
---		Log(" Added slider " .. tostring(menu_data.id) .. " to " .. tostring(parent_menu_id))
 		MenuHelper:AddSlider({
 			id = menu_data.id,
 			title = menu_data.title,
@@ -2446,38 +2425,30 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			priority = priority
 		})
 	elseif menu_type == "keybind" then 
-	--[[
 		MenuHelper:AddKeybinding({
-			id = "example_keybind",
-			title = "example_mod_test_keybind",
-			callback = "test_multi_callback",
-			connection_name = "example_keybind_connection",
-			binding = default_key,
-			button = default_key,
-			menu_id = "my_custom_menu",
-			priority = 5,
+			id = menu_data.id,
+			title = menu_data.title,
+			callback = menu_data.callback,
+			connection_name = menu_data.connection_name,
+			binding = menu_data.binding,
+			button = menu_data.button,
+			menu_id = parent_menu_id,
+			priority = priority,
 		})
-		--]]
 	end
 end
 
 Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
 	--do custom addon loading here
 	--do validate settings here
-	--do populate dynamic menus here
+	--do populate dynamic menus (like buffs) here
 	
---	for name,data in pairs(KineticHUD._menu_ids) do 
---		KineticHUD.trawl(data,{},KineticHUD.add_menu_option_from_data)
---	end
 	KineticHUD.traverse(KineticHUD._menu_ids,{},KineticHUD.add_menu_option_from_data,KineticHUD._menu_id_main)
 end)
 
 Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", function(menu_manager, nodes)
---	nodes[KineticHUD._menu_id_main] = MenuHelper:BuildMenu(KineticHUD._menu_id_main,{})
---	MenuHelper:AddMenuItem(MenuHelper:GetMenu(KineticHUD._menu_id_main),"khud_menu_layouts_player_weapons","kinetichud","kinetichud",1)
 	
 	for menu_id,menu_data in pairs(KineticHUD._populated_menus) do 
---		Log("Populating " .. menu_id)
 		nodes[menu_id] = MenuHelper:BuildMenu(
 			menu_id,
 			{
@@ -2490,14 +2461,12 @@ Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", fun
 	
 	for _,menu_data in ipairs(KineticHUD._queued_add_menus) do 
 		local parent_menu_id = menu_data.parent_menu_id
---		local _data = KineticHUD._populated_menus[parent_menu_id] 
-		local menu = MenuHelper:GetMenu(parent_menu_id) --_data and _data.menu
+		local menu = MenuHelper:GetMenu(parent_menu_id)
 		local submenu_id = menu_data.submenu_id
 		local title = menu_data.title
 		local desc = menu_data.desc
 		local priority = menu_data.priority
 		if menu then 
---			Log("Building menu: " .. tostring(menu) .. "," .. tostring(submenu_id) .. "," .. tostring(title) .. "," .. tostring(desc) .. "," .. tostring(priority))
 			MenuHelper:AddMenuItem(menu,submenu_id,title,desc,priority)
 		end
 	end

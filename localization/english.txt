@@ -51,6 +51,10 @@
 	"khud_player_weapons_panel_set_scale_title" : "Set Player Weapons Panel Scale",
 	"khud_player_weapons_panel_set_scale_desc" : "Change the size of the weapons panel",
 	
+	"khud_missing_colorpicker_title" : "Missing Color Picker!",
+	"khud_missing_colorpicker_desc" : "You need to have the mod \"Color Picker\" installed in order to use this feature!\n$URL",
+	
+	
 	"khud_menu_layouts_cartographer_compass_title" : "Compass",
 	"khud_menu_layouts_cartographer_compass_desc" : "North/South/East/West",
 	

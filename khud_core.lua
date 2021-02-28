@@ -5,6 +5,9 @@ KineticHUD._save_path = SavePath .. "KineticHUD_2.txt"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
+KineticHUD.url = {
+	colorpicker = "https://modwork.shop/29641"
+}
 KineticHUD.special_characters = {
 	skull = ""
 }
@@ -43,39 +46,16 @@ KineticHUD._fonts = {
 --all menus are, to some degree, sub-menus of this one
 KineticHUD._menu_id_main = "khud_menu_main"
 
-KineticHUD._populated_menus = {}
-
 ---once menus are populated, add them to this queue
 --they are then built, and should be usable in-game
-KineticHUD._queued_build_menus = {} --deprecated
+KineticHUD._populated_menus = {}
 
 --registers submenus for menu objects
-KineticHUD._queued_add_menus = {} --deprecated
+KineticHUD._queued_add_menus = {} 
 
 --holds ordered data to generate menus;
 --mainly done to allow dynamic menu option insertion and also to avoid using json menus 
 KineticHUD._menu_ids = {
---[[
-	"khud_menu_layouts",
-		"khud_menu_layouts_player",
-			"khud_menu_layouts_player_vitals",
-				"khud_menu_layouts_player_vitals_armor",
-				"khud_menu_layouts_player_vitals_health",
-				"khud_menu_layouts_player_vitals_revives",
-			"khud_menu_layouts_player_weapons",
-		"khud_menu_layouts_teammates",
-		"khud_menu_layouts_compass",
-		"khud_menu_layouts_assault",
-		"khud_menu_layouts_objectives",
-		"khud_menu_layouts_hints",
-		"khud_menu_layouts_presenter",
-		"khud_menu_layouts_buffs"
-}
-
-local menu_ids_indev = {
-		--]]
-		
---todo: preview image for any given menu
 	{
 		type = "menu",
 		id = "khud_menu_layouts",
@@ -94,31 +74,29 @@ local menu_ids_indev = {
 						title = "khud_menu_layouts_player_title",
 						desc = "khud_menu_layouts_player_desc",
 						children = {
-							{
+							{--vitals layout customization here
 								type = "menu",
 								id = "khud_menu_layouts_player_vitals",
 								title = "khud_menu_layouts_player_vitals_title",
 								desc = "khud_menu_layouts_player_vitals_desc",
 								children = {
-									{
+									{--health customization here
 										type = "menu",
 										id = "khud_menu_layouts_player_vitals_health",
 										title = "khud_menu_layouts_player_vitals_health_title",
 										desc = "khud_menu_layouts_player_vitals_health_desc",
 										children = {
-											--health customization here
 										}
 									},
 									{
-										type = "menu",
+										type = "menu",--armor customization here
 										id = "khud_menu_layouts_player_vitals_armor",
 										title = "khud_menu_layouts_player_vitals_armor_title",
 										desc = "khud_menu_layouts_player_vitals_armor_desc",
 										children = {
-											--armor customization here
 										}
 									}
-									--vitals layout customization here
+									
 								}
 							},
 							{
@@ -127,8 +105,8 @@ local menu_ids_indev = {
 								title = "khud_menu_layouts_player_weapons_title",
 								desc = "khud_menu_layouts_player_weapons_desc",
 								children = {
-									--weapons customization here
-									{
+									
+									{--weapons customization here
 										type = "slider",
 										id = "khud_player_weapons_panel_set_scale",
 										title = "khud_player_weapons_panel_set_scale_title",
@@ -829,14 +807,10 @@ end
 
 function KineticHUD.callback_show_colorpicker_missing_prompt()
 	local loc = callback(managers.localization,managers.localization,"text")
-	QuickMenu:new(loc("title"),loc("desc"),{
+	QuickMenu:new(loc("khud_missing_colorpicker_title"),string.gsub(loc("khud_missing_colorpicker_desc"),"$URL",KineticHUD.url.colorpicker),{
 		{
-			text = loc("Yes"),
-			callback = callback(self,self,"ClearCartographerData",true)
-		},
-		{
-			text = loc("Cancel"),
-			callback = callback(self,self,"Create_Cartographer_Menu")
+			text = loc("menu_ok"),
+			is_cancel_button = true
 		}
 	},true)
 end
