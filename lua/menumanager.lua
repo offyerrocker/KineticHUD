@@ -43,7 +43,7 @@ DEVELOPMENT:
 	MENU STRUCTURING:
 		* HUD Layout
 			* Player
-				* Enabled/Disabled
+				* Enabled/vanilla/hidden
 				* Vitals
 					* Health Bar
 						* Parent/Scale/Position/Align
@@ -60,6 +60,7 @@ DEVELOPMENT:
 				* Parent/Scale/Position/Align
 			* Assault
 			* Objectives
+				* Enabled/vanilla/hidden
 				* Parent/Scale/Position/Align
 			* Hints
 				* Enabled/disabled
@@ -79,7 +80,9 @@ DEVELOPMENT:
 				* Parent/Scale/Position/Align
 		* Buffs Tracker
 			* Applicable Buffs
-
+		* Objectives
+			* Popup enabled/disabled
+			
 ----
 
 
@@ -436,10 +439,13 @@ function KineticHUD:ShowHUD()
 	end
 end
 
---Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage.
+--Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage. Also loads assets required for the HUD to function
 --Arguments: parent_panel [Panel]. The panel object to create the HUD on.
 --Returns: nil
 function KineticHUD:Setup(parent_panel)
+	managers.dyn_resource:load(Idstring("font"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
+	managers.dyn_resource:load(Idstring("texture"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
+
 	self._gui = World:newgui()
 	self:CreateWorldPanels()
 	self:CreateHUD(parent_panel)
@@ -710,13 +716,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		layer = 2,
 		font_size = counter_large_font_size
 	})
-	local ac_x,ac_y,ac_w,ac_h
-	if alive(armor_current) then 
-		ac_x,ac_y,ac_w,ac_h = armor_current:text_rect()
-	else
-		self:log("Armor is not alive!")
-		ac_x,ac_y,ac_w,ac_h = 1,1,1,1
-	end
+	local ac_x,ac_y,ac_w,ac_h = armor_current:text_rect()
 	
 	local armor_total = armor_panel:text({
 		name = "armor_total",
@@ -1360,7 +1360,8 @@ end
 --Arguments: none
 --Returns: nil
 function KineticHUD:LayoutPlayerVitals(params)
-	if alive(self._player_vitals_panel) then 
+	local vitals_panel = self._player_vitals_panel
+	if alive(vitals_panel) then 
 		if not (params and type(params) == "table") then 
 			params = {layout_all = true}
 		end
@@ -1380,47 +1381,83 @@ function KineticHUD:LayoutPlayerVitals(params)
 		end
 
 
-	local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
-	
-	local margin_xsmall = hv.MARGIN_XSMALL * scale
-	
-	local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
-	local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
-	local counter_medium_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM * scale
-	
-	local PLAYER_HEALTH_PANEL_W = hv.PLAYER_HEALTH_PANEL_W * scale
-	local PLAYER_HEALTH_PANEL_H = hv.PLAYER_HEALTH_PANEL_H * scale
-	local PLAYER_HEALTH_PANEL_X = hv.PLAYER_HEALTH_PANEL_X * scale
-	local PLAYER_HEALTH_PANEL_Y = hv.PLAYER_HEALTH_PANEL_Y * scale
-	
-	local PLAYER_ARMOR_PANEL_W = hv.PLAYER_ARMOR_PANEL_W * scale
-	local PLAYER_ARMOR_PANEL_H = hv.PLAYER_ARMOR_PANEL_H * scale
-	local PLAYER_ARMOR_PANEL_X = hv.PLAYER_ARMOR_PANEL_X * scale
-	local PLAYER_ARMOR_PANEL_Y = hv.PLAYER_ARMOR_PANEL_Y * scale
-	
-	local PLAYER_VITALS_BAR_OUTLINE_W = hv.PLAYER_VITALS_BAR_OUTLINE_W * scale
-	local PLAYER_VITALS_BAR_OUTLINE_H = hv.PLAYER_VITALS_BAR_OUTLINE_H * scale
-	local PLAYER_VITALS_BAR_OUTLINE_X = (hv.PLAYER_VITALS_BAR_OUTLINE_X * scale) + margin_xsmall
-	local PLAYER_VITALS_BAR_OUTLINE_Y = hv.PLAYER_VITALS_BAR_OUTLINE_Y * scale
-	local PLAYER_VITALS_BAR_FILL_W = hv.PLAYER_VITALS_BAR_FILL_W * scale
-	local PLAYER_VITALS_BAR_FILL_H = hv.PLAYER_VITALS_BAR_FILL_H * scale
-	local PLAYER_VITALS_BAR_FILL_X = (hv.PLAYER_VITALS_BAR_FILL_X * scale) + PLAYER_VITALS_BAR_OUTLINE_X
-	local PLAYER_VITALS_BAR_FILL_Y = (hv.PLAYER_VITALS_BAR_FILL_Y * scale) - ((PLAYER_VITALS_BAR_OUTLINE_H - PLAYER_VITALS_BAR_FILL_H) / 2)
-	
-	local PLAYER_VITALS_LABELS_X = hv.PLAYER_VITALS_LABELS_X * scale
-	local PLAYER_VITALS_LABELS_Y = (hv.PLAYER_VITALS_LABELS_Y * scale) + (PLAYER_VITALS_BAR_FILL_Y - (margin_xsmall + PLAYER_VITALS_BAR_FILL_H))
+		local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
+		
+		local margin_xsmall = hv.MARGIN_XSMALL * scale
+		
+		local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
+		local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
+		local counter_medium_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM * scale
+		
+		local PLAYER_HEALTH_PANEL_W = hv.PLAYER_HEALTH_PANEL_W * scale
+		local PLAYER_HEALTH_PANEL_H = hv.PLAYER_HEALTH_PANEL_H * scale
+		local PLAYER_HEALTH_PANEL_X = hv.PLAYER_HEALTH_PANEL_X * scale
+		local PLAYER_HEALTH_PANEL_Y = hv.PLAYER_HEALTH_PANEL_Y * scale
+		
+		local PLAYER_ARMOR_PANEL_W = hv.PLAYER_ARMOR_PANEL_W * scale
+		local PLAYER_ARMOR_PANEL_H = hv.PLAYER_ARMOR_PANEL_H * scale
+		local PLAYER_ARMOR_PANEL_X = hv.PLAYER_ARMOR_PANEL_X * scale
+		local PLAYER_ARMOR_PANEL_Y = hv.PLAYER_ARMOR_PANEL_Y * scale
+		
+		local PLAYER_VITALS_BAR_OUTLINE_W = hv.PLAYER_VITALS_BAR_OUTLINE_W * scale
+		local PLAYER_VITALS_BAR_OUTLINE_H = hv.PLAYER_VITALS_BAR_OUTLINE_H * scale
+		local PLAYER_VITALS_BAR_OUTLINE_X = (hv.PLAYER_VITALS_BAR_OUTLINE_X * scale) + margin_xsmall
+		local PLAYER_VITALS_BAR_OUTLINE_Y = hv.PLAYER_VITALS_BAR_OUTLINE_Y * scale
+		local PLAYER_VITALS_BAR_FILL_W = hv.PLAYER_VITALS_BAR_FILL_W * scale
+		local PLAYER_VITALS_BAR_FILL_H = hv.PLAYER_VITALS_BAR_FILL_H * scale
+		local PLAYER_VITALS_BAR_FILL_X = (hv.PLAYER_VITALS_BAR_FILL_X * scale) + PLAYER_VITALS_BAR_OUTLINE_X
+		local PLAYER_VITALS_BAR_FILL_Y = (hv.PLAYER_VITALS_BAR_FILL_Y * scale) - ((PLAYER_VITALS_BAR_OUTLINE_H - PLAYER_VITALS_BAR_FILL_H) / 2)
+		
+		local PLAYER_VITALS_LABELS_X = hv.PLAYER_VITALS_LABELS_X * scale
+		local PLAYER_VITALS_LABELS_Y = (hv.PLAYER_VITALS_LABELS_Y * scale) + (PLAYER_VITALS_BAR_FILL_Y - (margin_xsmall + PLAYER_VITALS_BAR_FILL_H))
 
 
+	--raw texture sizes; do not scale by settings
+		local PLAYER_ARMOR_FILL_TEXTURE_W = hv.PLAYER_ARMOR_FILL_TEXTURE_W
+		local PLAYER_ARMOR_FILL_TEXTURE_H = hv.PLAYER_ARMOR_FILL_TEXTURE_H
+		local PLAYER_HEALTH_FILL_TEXTURE_W = hv.PLAYER_HEALTH_FILL_TEXTURE_W
+		local PLAYER_HEALTH_FILL_TEXTURE_H = hv.PLAYER_HEALTH_FILL_TEXTURE_H
 
 
-		if not layout_health then 
-			local 
+		if layout_health then 
+			local health_panel = vitals_panel:child("health_panel")
+			local health_fill = health_panel:child("health_fill")
 			
+			local health_ratio = params.health_ratio
 			
-			
+			if health_ratio then 
+				local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_small * scale)
+				local DEPLETE_LEFT_TO_RIGHT = true
+				if DEPLETE_LEFT_TO_RIGHT then 
+					health_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * health_ratio)
+					health_fill:set_x(PLAYER_VITALS_BAR_FILL_W + outline_offset)
+				else
+					health_fill:set_texture_rect(0,0,PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_fill:set_w(PLAYER_VITALS_BAR_FILL_W * health_ratio * scale)
+					health_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
+				end
+			end
 		end
 		
-		
+		if layout_armor then 
+			local armor_panel = vitals_panel:child("armor_panel")
+			local armor_fill = armor_panel:child("armor_fill")
+			local armor_ratio = params.armor_ratio
+			if armor_ratio then 
+				local outline_offset = PLAYER_ARMOR_PANEL_W - PLAYER_VITALS_BAR_FILL_W
+				local DEPLETE_LEFT_TO_RIGHT = false
+				if DEPLETE_LEFT_TO_RIGHT then 
+					armor_fill:set_texture_rect(PLAYER_ARMOR_FILL_TEXTURE_W,0,-PLAYER_ARMOR_FILL_TEXTURE_W * armor_ratio,PLAYER_ARMOR_FILL_TEXTURE_H)
+					armor_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * armor_ratio)
+					armor_fill:set_x(PLAYER_VITALS_BAR_FILL_W + outline_offset)
+				else
+					armor_fill:set_texture_rect(0,0,PLAYER_ARMOR_FILL_TEXTURE_W * armor_ratio,PLAYER_ARMOR_FILL_TEXTURE_H)
+					armor_fill:set_w(PLAYER_VITALS_BAR_FILL_W * armor_ratio * scale)
+					armor_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
+				end
+			end
+		end
 	end
 end
 
@@ -2009,6 +2046,8 @@ end
 function KineticHUD:SetPlayerHealth(current,total)
 	if alive(self._player_vitals_panel) then 
 		local health_panel = self._player_vitals_panel:child("health_panel")
+		
+		self:LayoutPlayerVitals({layout_health = true,health_ratio=current/total})
 		self.SetDigitalText(health_panel:child("health_current"),current,3)
 		self.SetDigitalText(health_panel:child("health_total"),total,3)
 	end
@@ -2017,6 +2056,12 @@ end
 function KineticHUD:SetPlayerArmor(current,total)
 	if alive(self._player_vitals_panel) then 
 		local armor_panel = self._player_vitals_panel:child("armor_panel")
+		if total ~= 0 then 
+			self:LayoutPlayerVitals({layout_armor = true,armor_ratio= current / total})
+		else
+			self:LayoutPlayerVitals({layout_armor = true,armor_ratio = 0})
+		end
+		
 		self.SetDigitalText(armor_panel:child("armor_current"),current,3)
 		self.SetDigitalText(armor_panel:child("armor_total"),total,3)
 --		if total <= 0 then 
