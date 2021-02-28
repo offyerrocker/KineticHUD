@@ -1426,7 +1426,7 @@ function KineticHUD:LayoutPlayerVitals(params)
 			local health_ratio = params.health_ratio
 			
 			if health_ratio then 
-				local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_small * scale)
+				local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_xsmall * scale)
 				local DEPLETE_LEFT_TO_RIGHT = true
 				if DEPLETE_LEFT_TO_RIGHT then 
 					health_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
