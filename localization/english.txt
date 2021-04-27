@@ -54,6 +54,7 @@
 	"khud_missing_colorpicker_title" : "Missing Color Picker!",
 	"khud_missing_colorpicker_desc" : "You need to have the mod \"Color Picker\" installed in order to use this feature!\n$URL",
 	
+	"khud_hud_objective_title" : "OBJECTIVE:",
 	
 	"khud_menu_layouts_cartographer_compass_title" : "Compass",
 	"khud_menu_layouts_cartographer_compass_desc" : "North/South/East/West",

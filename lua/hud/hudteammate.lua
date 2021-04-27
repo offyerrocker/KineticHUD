@@ -29,6 +29,13 @@ Hooks:PostHook(HUDTeammate,"set_name","khud_hudteammate_set_name",function(self,
 	end
 end)
 
+Hooks:PostHook(HUDTeammate,"set_condition","khud_hudteammate_set_condition",function(self,icon_data,text)
+	if icon_data == "mugshot_downed" then 
+	elseif icon_data == "mugshot_normal" then
+	end
+	KineticHUD:c_log("Player " .. tostring(self._id) .. ": set condition " .. tostring(text) .. "[" .. tostring(icon_data) .. "]")
+end)
+
 
 --vitals
 Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
@@ -81,6 +88,16 @@ Hooks:PostHook(HUDTeammate,"set_grenades","khud_set_grenades",function(self,data
 	else
 		KineticHUD:SetTeammateGrendadesIcon(self._id,data.icon)
 		KineticHUD:SetTeammateGrenadesAmount(self._id,data.amount)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"set_grenades_amount","khud_set_grenades_amount",function(self,data)
+	if PlayerBase.USE_GRENADES then
+		if self._main_player then 
+			KineticHUD:SetPlayerGrenadesAmount(data.amount)
+		else
+			KineticHUD:SetTeammateGrenadesAmount(self._id,data.amount)
+		end
 	end
 end)
 
@@ -161,7 +178,15 @@ Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_s
 	end
 end)
 
-
+Hooks:PostHook(HUDTeammate,"set_ai","khud_set_ai",function(self,ai)
+	if not ai then 
+		if self._main_player then 
+--			KineticHUD:SetPlayerCableTies()
+		else
+			KineticHUD:SetTeammateCableTies(self._id)
+		end
+	end
+end)
 
 
 do return end

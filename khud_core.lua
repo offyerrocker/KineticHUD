@@ -67,24 +67,28 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_criminals",
 				title = "khud_menu_layouts_criminals_title",
 				desc = "khud_menu_layouts_criminals_desc",
+				area_bg = "none",
 				children = {
 					{ --player layouts
 						type = "menu",
 						id = "khud_menu_layouts_player",
 						title = "khud_menu_layouts_player_title",
 						desc = "khud_menu_layouts_player_desc",
+						area_bg = "none",
 						children = {
 							{--vitals layout customization here
 								type = "menu",
 								id = "khud_menu_layouts_player_vitals",
 								title = "khud_menu_layouts_player_vitals_title",
 								desc = "khud_menu_layouts_player_vitals_desc",
+								area_bg = "none",
 								children = {
 									{--health customization here
 										type = "menu",
 										id = "khud_menu_layouts_player_vitals_health",
 										title = "khud_menu_layouts_player_vitals_health_title",
 										desc = "khud_menu_layouts_player_vitals_health_desc",
+										area_bg = "none",
 										children = {
 										}
 									},
@@ -93,6 +97,7 @@ KineticHUD._menu_ids = {
 										id = "khud_menu_layouts_player_vitals_armor",
 										title = "khud_menu_layouts_player_vitals_armor_title",
 										desc = "khud_menu_layouts_player_vitals_armor_desc",
+										area_bg = "none",
 										children = {
 										}
 									}
@@ -104,6 +109,7 @@ KineticHUD._menu_ids = {
 								id = "khud_menu_layouts_player_weapons",
 								title = "khud_menu_layouts_player_weapons_title",
 								desc = "khud_menu_layouts_player_weapons_desc",
+								area_bg = "none",
 								children = {
 									
 									{--weapons customization here
@@ -151,6 +157,7 @@ KineticHUD._menu_ids = {
 						id = "khud_menu_layouts_teammates",
 						title = "khud_menu_layouts_teammates_title",
 						desc = "khud_menu_layouts_teammates_desc",
+						area_bg = "none",
 						children = {
 						
 						}
@@ -162,6 +169,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_objectives",
 				title = "khud_menu_layouts_objectives_title",
 				desc = "khud_menu_layouts_objectives_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -171,6 +179,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_assault",
 				title = "khud_menu_layouts_assault_title",
 				desc = "khud_menu_layouts_assault_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -180,6 +189,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_interaction",
 				title = "khud_menu_layouts_interaction_title",
 				desc = "khud_menu_layouts_interaction_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -189,6 +199,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_hints",
 				title = "khud_menu_layouts_hints_title",
 				desc = "khud_menu_layouts_hints_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -198,6 +209,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_presenter",
 				title = "khud_menu_layouts_presenter_title",
 				desc = "khud_menu_layouts_presenter_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -207,6 +219,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_chat",
 				title = "khud_menu_layouts_chat_title",
 				desc = "khud_menu_layouts_chat_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -216,6 +229,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_hitdirection",
 				title = "khud_menu_layouts_hitdirection_title",
 				desc = "khud_menu_layouts_hitdirection_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -225,6 +239,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_waypoints",
 				title = "khud_menu_layouts_waypoints_title",
 				desc = "khud_menu_layouts_waypoints_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -234,6 +249,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_custody",
 				title = "khud_menu_layouts_custody_title",
 				desc = "khud_menu_layouts_custody_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -243,6 +259,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_waiting",
 				title = "khud_menu_layouts_waiting_title",
 				desc = "khud_menu_layouts_waiting_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -252,6 +269,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_suspicion",
 				title = "khud_menu_layouts_suspicion_title",
 				desc = "khud_menu_layouts_suspicion_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -261,6 +279,7 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_buffs",
 				title = "khud_menu_layouts_buffs_title",
 				desc = "khud_menu_layouts_buffs_desc",
+				area_bg = "none",
 				children = {
 				
 				}
@@ -270,12 +289,14 @@ KineticHUD._menu_ids = {
 				id = "khud_menu_layouts_cartographer",
 				title = "khud_menu_layouts_cartographer_title",
 				desc = "khud_menu_layouts_cartographer_desc",
+				area_bg = "none",
 				children = {
 					{ --compass
 						type = "menu",
 						id = "khud_menu_layouts_cartographer_compass",
 						title = "khud_menu_layouts_cartographer_compass_title",
 						desc = "khud_menu_layouts_cartographer_compass_desc",
+						area_bg = "none",
 						children = {
 						
 						}
@@ -451,6 +472,8 @@ KineticHUD.hud_values = {
 	PLAYER_WEAPON_FIREMODE_H = 80 * 0.5,
 	PLAYER_WEAPON_RESERVE_X = 20,
 	
+--	ASSAULT_PANEL_
+	
 	MARGIN_XXXSMALL = 1,
 	MARGIN_XXSMALL = 2,
 	MARGIN_XSMALL = 4,
@@ -462,7 +485,7 @@ KineticHUD.hud_values = {
 	MARGIN_XXLARGE = 64,
 	
 	TEAMMATE_PANEL_X = 0,
-	TEAMMATE_PANEL_Y = 0,
+	TEAMMATE_PANEL_Y = 128,
 	TEAMMATE_PANEL_W = 400,
 	TEAMMATE_PANEL_H = 56,
 	
@@ -502,6 +525,52 @@ KineticHUD.hud_values = {
 	TEAMMATE_DEPLOYABLE_X = 0,
 	TEAMMATE_DEPLOYABLE_Y = 0,
 	TEAMMATE_REVIVES_FONT_SIZE = 20,
+				    
+	ASSAULT_W = 300,
+	ASSAULT_H = 100,
+	ASSAULT_X = 0,
+	ASSAULT_Y = 0,
+	ASSAULT_ICON_W = 32,
+	ASSAULT_ICON_H = 32,
+	ASSAULT_ICON_X = 0,
+	ASSAULT_ICON_Y = 0,
+	ASSAULT_HALIGN = "right",
+	ASSAULT_VALIGN = "top",
+	ASSAULT_PHASE_LABEL_X = 32 + 8,
+	ASSAULT_PHASE_LABEL_Y = 0,
+	ASSAULT_PHASE_LABEL_HALIGN = "left",
+	ASSAULT_PHASE_LABEL_VALIGN = "top",
+	ASSAULT_PHASE_LABEL_COLOR = Color.white,
+	ASSAULT_PHASE_LABEL_FONT_SIZE = 32,
+	
+	OBJECTIVE_W = 300,
+	OBJECTIVE_H = 100,
+	OBJECTIVE_X = 0,
+	OBJECTIVE_Y = 0,
+	OBJECTIVE_HALIGN = "left", --these ones are manually applied
+	OBJECTIVE_VALIGN = "top",
+	
+	OBJECTIVE_TITLE_TEXT_X = 0,
+	OBJECTIVE_TITLE_TEXT_Y = 0,
+	OBJECTIVE_TITLE_TEXT_HALIGN = "left",
+	OBJECTIVE_TITLE_TEXT_VALIGN = "top",
+	OBJECTIVE_TITLE_TEXT_FONT_SIZE = 48,
+	OBJECTIVE_TITLE_TEXT_COLOR = Color.white,
+	
+	OBJECTIVE_TEXT_X = 16,
+	OBJECTIVE_TEXT_Y = 32,
+	OBJECTIVE_TEXT_HALIGN = "left",
+	OBJECTIVE_TEXT_VALIGN = "top",
+	OBJECTIVE_TEXT_FONT_SIZE = 32,
+	OBJECTIVE_TEXT_COLOR = Color.white,
+	
+	OBJECTIVE_COUNT_TEXT_X = 0,
+	OBJECTIVE_COUNT_TEXT_Y = 56,
+	OBJECTIVE_COUNT_TEXT_HALIGN = "left",
+	OBJECTIVE_COUNT_TEXT_VALIGN = "top",
+	OBJECTIVE_COUNT_TEXT_FONT_SIZE = 32,
+	OBJECTIVE_COUNT_TEXT_COLOR = Color.white,
+	
 	
 	HEALTH_THRESHOLD_NORMAL = 1,
 	HEALTH_THRESHOLD_STRESSED = 0.5,
@@ -608,9 +677,12 @@ KineticHUD.default_settings = {
 	player_panel_scale = 1, --deprecated
 	player_vitals_panel_scale = 1,
 	player_weapons_panel_scale = 1,
+	player_equipment_panel_scale = 1,
 	player_weapons_panel_x = 0,
 	player_weapons_panel_y = 750,
+	objective_panel_scale = 1,
 	teammate_panel_scale = 1,
+	assault_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,
 	PLAYER_HEALTH_BAR_VALIGN = 1,
 	HEIST_TIMER_FONT_SIZE = 24
