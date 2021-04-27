@@ -1,9 +1,12 @@
 
+
 KineticHUD = KineticHUD or {}
 KineticHUD._mod_path = KineticHUD:GetPath()
 KineticHUD._save_path = SavePath .. "KineticHUD_2.txt"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
+
+dofile(KineticHUD._mod_path .. "lua/utils/QuickAnimate.lua")
 
 KineticHUD.url = {
 	colorpicker = "https://modwork.shop/29641"
@@ -742,48 +745,22 @@ end
 
 
 --HUD Animation
-KineticHUD._animate_targets = {}
-KineticHUD._num_animate_waits = 0
+
+KineticHUD.animator = QuickAnimate:new("khud",{parent = KineticHUD,updater_type = 3})
+
 function KineticHUD:animate(target,func,done_cb,...)
-	if target then 
-		if type(func) == "function" then 
-		elseif type(self[tostring(func)]) == "function" then
-			func = self[tostring(func)]
-		else
-			self:log("ERROR: Unknown/unsupported animate function type: " .. tostring(func) .. " (" .. type(func) .. ")",{color=Color.red})
-			return
-		end
-		if (type(target) == "number") or alive(target) then
-			self._animate_targets[tostring(target)] = {
-				func = func,
-				target = target,
-				start_t = Application:time(),
-				done_cb = done_cb,
-				params = {
-					...
-				}
-			}
-		end
-	end
+	return self.animator:animate(target,func,done_cb,...)
 end
 
-function KineticHUD:animate_wait(timer,callback,...)
-	self._num_animate_waits = self._num_animate_waits + 1
-	self:animate(self._num_animate_waits,self._animate_wait,callback,timer,...)
+function KineticHUD:animate_wait(...)
+	return self.animator:animate_wait(...)
 end
 
-function KineticHUD._animate_wait(o,t,dt,start_t,duration)
-	if (t - start_t) >= duration then 
-		return true
-	end
+function KineticHUD:animate_stop(...)
+	return self.animator:animate_stop(...)
 end
 
-function KineticHUD:animate_stop(name,do_cb)
-	local item = self._animate_targets[tostring(name)]
-	if item and do_cb and (type(item.done_cb) == "function") then 
-		return item.done_cb(item.target,unpack(item.params))
-	end
-end
+--animation library
 
 --lerp movement between two sets of 2d coordinates
 function KineticHUD.animate_move(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y)
@@ -848,25 +825,9 @@ function KineticHUD.animate_move_rotate_clockwise(o,t,dt,start_t,duration,start_
 	end
 end
 
-function KineticHUD:UpdateAnimate(t,dt)
-	for id,data in pairs(self._animate_targets) do 
-		if data and data.target and ((type(data.target) == "number") or alive(data.target)) then 
-			local result = data.func(data.target,t,dt,data.start_t,unpack(data.params or {}))
-			if result then 
-				if type(data.done_cb) == "function" then 
-					local done_cb = data.done_cb
-					local target = data.target
-					local params = data.params
-					self._animate_targets[id] = nil
-					done_cb(target,unpack(params))
---					data.done_cb(data.target,unpack(data.params))
-				else
-					self._animate_targets[id] = nil
-				end
-			end
-		else
-			self._animate_targets[id] = nil
-		end
+function KineticHUD:UpdateAnimate(t,dt,...)
+	if self.animator then 
+		self.animator:UpdateAnimate(t,dt,...)
 	end
 end
 
