@@ -2,6 +2,10 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
+		hudvalues for player mission equipment
+	
+	
+	
 	
 		preview image for any given menu
 		write player equipment
@@ -22,7 +26,6 @@ DEVELOPMENT:
 		re-link player hud on (re)spawn
 		underbarrel weapon support for main player
 		test world_to_screen on world panels (update/persist script with static location paired with console settracker)
-		test set grenade icons
 		non-focused weapon icon is not properly resized on setting the icon image
 			
 		
@@ -642,7 +645,7 @@ end
 --Arguments: skip_layout [bool]. Optional. If true, skips the HUD positioning step after creation.
 --Returns: nil
 function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[4]
+	local selected_parent_panel = self._world_panels[self.settings.player_vitals_panel_location]
 	local scale = self.settings.player_vitals_panel_scale
 	local hv = self.hud_values
 	local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
@@ -872,11 +875,11 @@ end
 --Arguments: skip_layout [bool]. If true, skips the positioning step after creation.
 --Returns: nil
 function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[2]
+	local selected_parent_panel = self._world_panels[self.settings.player_weapons_panel_location]
 	if not alive(selected_parent_panel) then 
 		return
 	end
-	local player_scale = self.settings.player_panel_scale
+	local player_scale = self.settings.player_weapons_panel_scale
 	
 	local hv = self.hud_values
 	local weapons_panel_w = hv.PLAYER_WEAPONS_W
@@ -1077,7 +1080,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 end
 
 function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[1]
+	local selected_parent_panel = self._world_panels[self.settings.player_equipment_panel_location]
 	if not alive(selected_parent_panel) then 
 		return
 	end
@@ -1087,10 +1090,12 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 		y = 500
 	})
 
-	local mission_equipment = selected_parent_panel:panel({
-		name = "mission_equipment",
+	local player_mission_equipment_panel = selected_parent_panel:panel({
+		name = "player_mission_equipment_panel",
 		x = 0,
-		y = 0
+		y = 700,
+		w = 500,
+		h = 100
 	})
 	
 	local deployable_1_x = 100
@@ -1120,8 +1125,7 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 	local throwable = self:CreatePlayerEquipmentBox(player_equipment_panel,{name = "throwable",icon="",double=false})
 	throwable:set_position(throwable_x,throwable_y)
 --	throwable:hide()
-	
-	
+	self._player_mission_equipment_panel = player_mission_equipment_panel
 	self._player_equipment_panel = player_equipment_panel
 	if not skip_layout then 
 		self:LayoutPlayerEquipmentPanel()
@@ -1181,6 +1185,7 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 	local icon_aspect_ratio = _w/_h
 	
 	icon_bitmap:set_size(icon_aspect_ratio * icon_h,icon_h)
+	icon_bitmap:set_center(icon_box:center())
 	
 	local borders = self:PanelBorder(icon_box,{
 		thickness = border_thickness,
@@ -1226,7 +1231,7 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 end
 
 function KineticHUD:CreateTeammatesPanel()
-	local selected_parent_panel = self._world_panels[1]
+	local selected_parent_panel = self._world_panels[self.settings.teammate_panel_location]
 	local teammates_panel_parent = selected_parent_panel:panel({
 		name = "teammates_panel"
 	})
@@ -1278,6 +1283,7 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 	local icon_aspect_ratio = _w/_h
 	
 	icon_bitmap:set_size(icon_aspect_ratio * icon_h,icon_h)
+	icon_bitmap:set_center(icon_box:center())
 	
 	local borders = self:PanelBorder(icon_box,{
 		thickness = hv.TEAMMATE_EQUIPMENT_BOX_OUTLINE_THICKNESS,
@@ -1526,7 +1532,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 end
 
 function KineticHUD:CreateAssaultPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[2]
+	local selected_parent_panel = self._world_panels[self.settings.assault_panel_location]
 	local assault_panel = selected_parent_panel:panel({
 		name = "assault_panel"
 	})
@@ -1570,19 +1576,19 @@ function KineticHUD:CreateAssaultPanel(skip_layout)
 end
 
 function KineticHUD:CreateHints()
-	--target panel is 2
+	--self.settings.hints_panel_location
 	--you can't stand up here, etc.
 end
 
 function KineticHUD:CreatePresenter()
-	--target panel is 3
+	--self.settings.presenter_panel_location
 	--mission objectives and pickups, etc
 end
 
 function KineticHUD:CreateObjectivePanel(skip_layout)
 	local hv = self.hud_values
 	
-	local selected_parent_panel = self._world_panels[1]
+	local selected_parent_panel = self._world_panels[self.settings.objective_panel_location]
 	local objective_panel = selected_parent_panel:panel({
 		name = "objective_panel",
 		w = hv.OBJECTIVE_W,
@@ -2271,12 +2277,9 @@ function KineticHUD:LayoutAssaultPanel(params)
 		panel_y = assault_y
 	end
 	
-	
 	assault_panel:set_position(panel_x,panel_y)
 	assault_panel:set_size(panel_w,panel_h)
-	
-	
-	
+
 	local assault_icon = assault_panel:child("assault_icon")
 	local assault_phase_label = assault_panel:child("assault_phase_label")
 	local assault_timer_label
@@ -2627,7 +2630,10 @@ function KineticHUD:SetPlayerDeployableEquipment(data)
 		end
 		if icon then 
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
-			deployable:child("icon_box"):child("icon_bitmap"):set_image(texture,unpack(texture_rect))
+			local icon_box = deployable:child("icon_box")
+			local icon_bitmap = icon_box:child("icon_bitmap")
+			icon_bitmap:set_image(texture,unpack(texture_rect))
+			icon_bitmap:set_center(icon_box:center())
 		end
 		self:LayoutPlayerEquipmentPanel()
 	end
@@ -2649,7 +2655,10 @@ function KineticHUD:SetPlayerGrenadesIcon(icon)
 		local throwable = player_equipment_panel:child("throwable")
 		if icon then 
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
-			throwable:child("icon_box"):child("icon_bitmap"):set_image(texture,unpack(texture_rect))
+			local icon_box = throwable:child("icon_box")
+			local bitmap = icon_box:child("icon_bitmap")
+			bitmap:set_image(texture,unpack(texture_rect))
+			bitmap:set_center(icon_box:center())
 		end
 	end
 end
@@ -2695,6 +2704,151 @@ function KineticHUD:SetPlayerRevives(amount)
 	if alive(self._player_vitals_panel) then 
 		self.SetDigitalText(self._player_vitals_panel:child("revives_text"),amount,1)
 	end
+end
+
+function KineticHUD:AddPlayerMissionEquipment(data)
+	local id = data.id
+	local amount = data.amount or 1
+	local icon = data.icon
+	local mission_equipment_panel = self._player_mission_equipment_panel
+	local eq_size = 48
+	local margin = 8
+	
+	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
+	local eq = mission_equipment_panel:panel({
+		name = id,
+		layer = 1,
+		w = eq_size,
+		h = eq_size,
+		x = #self._player_mission_equipment_panel:children() * (eq_size + margin)
+	})
+	local bitmap = eq:bitmap({
+		name = "bitmap",
+		layer = 1,
+		texture = texture,
+		texture_rect = texture_rect,
+		color = Color.yellow,
+		w = eq:w(),
+		h = eq:h()
+	})
+	self:PanelBorder(eq,{
+		thickness = 2,
+		color = Color.white,
+		alpha = 0.5,
+		layer = 4
+	})
+	local text = eq:text({
+		name = "amount",
+		vertical = "bottom",
+		align = "right",
+		font = self._fonts.digital or self._fonts.syke or "fonts/font_small_noshadow_mf",
+		font_size = 24,
+		x = -4,
+		y = -2,
+		layer = 3,
+		text = tostring(amount),
+		visible = amount > 1,
+		color = Color.yellow
+	})
+	local bg = eq:rect({
+		name = "bg",
+		color = Color.black,
+		alpha = 0.1,
+		layer = 0
+	})
+	
+	local function cb()
+		self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),Color.white)
+	end
+	self:animate_wait(2,cb)
+	--[[
+	local function cb(o)
+		self:animate(o,"animate_color_shift_duo",nil,0.5,o:color(),Color.white)
+	end
+	self:animate(bitmap,"animate_color_shift_duo",cb,1,bitmap:color(),Color.yellow)
+--]]
+	self:AnimateLayoutPlayerMissionEquipment()
+end
+
+function KineticHUD:SetPlayerMissionEquipmentAmount(id,amount)
+	amount = amount or 1
+	local mission_equipment_panel = self._player_mission_equipment_panel
+	local eq = mission_equipment_panel:child(id)
+	if alive(eq) then 
+		local text = eq:child("amount")
+		text:set_text(amount)
+		text:set_visible(amount > 1)
+		self:AnimateLayoutPlayerMissionEquipment()
+	else
+		self:c_log("ERROR: Bad id to SetPlayerMissionEquipmentAmount(" .. tostring(id) .. "," .. tostring(amount) .. ")")
+	end
+end
+
+function KineticHUD:RemovePlayerMissionEquipment(id)
+	local mission_equipment_panel = self._player_mission_equipment_panel
+	local do_animate
+	for i,eq in ipairs(self._player_mission_equipment_panel:children()) do 
+		if eq:name() == id then 
+			eq:parent():remove(eq)
+			do_animate = true
+		end
+	end
+	if do_animate then 
+		self:AnimateLayoutPlayerMissionEquipment()
+	end
+end
+
+function KineticHUD:ClearPlayerMissionEquipment()
+	local do_animate
+	for i,eq in ipairs(self._player_mission_equipment_panel:children()) do 
+		eq:parent():remove(eq)
+		do_animate = true
+	end
+	if do_animate then 
+		self:AnimateLayoutPlayerMissionEquipment()
+	end
+end
+
+function KineticHUD:AnimateLayoutPlayerMissionEquipment()
+	local player_mission_equipment_panel = self._player_mission_equipment_panel
+	local eqs = player_mission_equipment_panel:children()
+	local margin = 8
+--	local is_even = false
+	local c_x,_ = player_mission_equipment_panel:center()
+	local c_y = 0
+	local half = #eqs / 2
+	for i,eq in ipairs(eqs) do 
+		self:animate_stop(eq)
+		--align center (limit of 8 at 48x, 8 margin)
+		local x1,y1 = eq:position()
+		local y2 = 0
+		local x2 = (i - half) * (eq:w() + margin)
+		
+		--[[ multirow (buggy/incomplete)
+		local nx = x2 + c_x + eq:w()
+		if nx > player_mission_equipment_panel:w() or nx < eq:w() then 
+			x2 = -half * (eq:w() + margin)
+			y2 = y2 + eq:h() + margin
+			j = 0
+		end
+		--]]
+		--[[ --zigzag centered
+		local x2 = (math.floor(i/2)) * (margin + eq:w())
+		if is_even then 
+			x2 = -x2
+		end
+		is_even = not is_even
+		--]]
+		--[[ align from left
+		local x2 = (32 + 8) * (i - 1)
+		local y2 = 0
+		--]]
+		self:animate(eq,"animate_move_sin",nil,0.25,x1,y1,c_x + x2,c_y + y2)
+	end
+end
+
+function KineticHUD:AddTeammateMissionEquipment(id,amount)
+	
 end
 
 -- teammate
@@ -2754,8 +2908,11 @@ function KineticHUD:SetTeammateGrenadesIcon(i,icon_id)
 		local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon_id)
 		if texture then 
 			if true or not grenades_panel:visible() then 
-				grenades_panel:child("icon_box"):child("icon_bitmap"):set_image(texture,texture_rect)
+				local icon_box = grenades_panel:child("icon_box")
+				local icon_bitmap = icon_box:child("icon_bitmap")
+				icon_bitmap:set_image(texture,texture_rect)
 				grenades_panel:show()
+				icon_bitmap:set_center(icon_box:center())
 				self:LayoutTeammatePanel()
 			end
 		end
@@ -2786,9 +2943,11 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 		end
 		
 		if data.icon then 
-			local deployable_icon = deployable:child("icon_box"):child("icon")
+			local icon_box = deployable:child("icon_box")
+			local deployable_icon = icon_box:child("icon")
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 			deployable_icon:set_image(texture,unpack(texture_rect))
+			deployable_icon:set_center(icon_box:center())
 			queue_layout = true
 		end
 		if data.amount then
@@ -2817,6 +2976,23 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 end
 
 --objective/assault
+function KineticHUD:AnimateShowAssaultBanner(new_text,duration,post_duration)
+	local label = self._assault_panel:child("assault_phase_label")
+	self:animate_stop(label)
+	local typing_char = "|"
+	function cb(o)
+		self:animate(o,"animate_text_typing",nil,duration or 3,new_text,typing_char,post_duration,1)	
+	end
+	self:animate(label,"animate_text_backspaced",cb,0.5,label:text(),typing_char,1,1)
+end
+
+function KineticHUD:AnimateHideAssaultBanner()
+	local label = self._assault_panel:child("assault_phase_label")
+	self:animate_stop(label)
+	local typing_char = "|"
+	self:animate(label,"animate_text_backspaced",nil,1,label:text(),typing_char,1,1)
+end
+
 function KineticHUD:SetHostagesCount(num)
 	--todo
 end
@@ -2830,7 +3006,7 @@ function KineticHUD:SetAssaultPONRTimer(time)
 end
 
 function KineticHUD:ShowAssaultPONR()
-	self:SetAssaultMode(true,"ponr")
+--	self:SetAssaultMode(true,"ponr")
 end
 
 function KineticHUD:HideAssaultPONR()
@@ -2973,7 +3149,7 @@ end
 
 --buff
 function KineticHUD:CreateBuffsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[4]
+	local selected_parent_panel = self._world_panels[self.settings.buffs_panel_location]
 	
 	if not alive(selected_parent_panel) then 
 		return
@@ -3205,7 +3381,59 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 			KineticHUD:LayoutPlayerWeaponsPanel({recreate_text_objects = false})
 		end
 	end
+	MenuCallbackHandler.callback_khud_player_vitals_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.player_vitals_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_player_weapons_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.player_weapons_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_teammates_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.teammates_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_objective_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.objective_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_assault_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.assault_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_interaction_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.interaction_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_hints_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.hints_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_presenter_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.presenter_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_chat_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.chat_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_hitdirection_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.hitdirection_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_suspicion_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.suspicion_panel_location = value
+	end
+	MenuCallbackHandler.callback_khud_buffs_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.buffs_panel_location = value
+	end
 	
+	MenuCallbackHandler.callback_khud_compass_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.settings.compass_panel_location = value
+	end
 	
 	MenuCallbackHandler.callback_khud_close = function(this)
 		KineticHUD:Save()

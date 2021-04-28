@@ -17,16 +17,18 @@ end
 
 HUDAssaultCorner.orig_start_assault = HUDAssaultCorner._start_assault
 function HUDAssaultCorner:_start_assault(text_list)
-
+	
+	KineticHUD:AnimateShowAssaultBanner("ASSAULT IN PROGRESS",2,5)
+	
 	local started_now = not self._assault
 	self._assault = true
 	
-	KineticHUD:SetAssaultMode(true,"normal")
+--	KineticHUD:SetAssaultMode(true,"normal")
 	
 	if managers.skirmish:is_skirmish() and started_now then
 		self:_popup_wave_started()
 	end
-	KineticHUD:SetAssaultPhaseText("ASSAULT IN PROGRESS")
+--	KineticHUD:SetAssaultPhaseText("ASSAULT IN PROGRESS")
 	--assault panel: show wave info
 end
 
@@ -36,7 +38,9 @@ function HUDAssaultCorner:_end_assault()
 		return
 	end
 	
-	KineticHUD:SetAssaultMode(false)
+	KineticHUD:AnimateHideAssaultBanner()
+	
+--	KineticHUD:SetAssaultMode(false)
 
 	self:_set_feedback_color(nil) --i wish my keyboard supported assault colors lol
 
@@ -74,12 +78,12 @@ end
 HUDAssaultCorner.orig_show_casing = HUDAssaultCorner.show_casing
 function HUDAssaultCorner:show_casing(mode)
 	KineticHUD:c_log("show casing " .. tostring(mode))
-	KineticHUD:SetAssaultMode(true,mode or "stealth")
+--	KineticHUD:SetAssaultMode(true,mode or "stealth")
 end
 
 HUDAssaultCorner.orig_hide_casing = HUDAssaultCorner.hide_casing
 function HUDAssaultCorner:hide_casing()
-	KineticHUD:SetAssaultMode(false,"stealth")
+--	KineticHUD:SetAssaultMode(false,"stealth")
 end
 
 HUDAssaultCorner.orig_feed_point_of_no_return_timer = HUDAssaultCorner.feed_point_of_no_return_timer
@@ -140,8 +144,9 @@ function HUDAssaultCorner:sync_set_assault_mode(mode) --from host
 	self._assault_mode = mode
 	if mode == "phalanx" then 
 		color = self._vip_assault_color
+		KineticHUD:AnimateShowAssaultBanner("WINTERS ASSAULT",2,5)
 	end
-	KineticHUD:SetAssaultMode(mode)
+--	KineticHUD:SetAssaultMode(mode)
 	self:_update_assault_hud_color(color)
 	
 end

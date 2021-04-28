@@ -2,7 +2,8 @@
 
 KineticHUD = KineticHUD or {}
 KineticHUD._mod_path = KineticHUD:GetPath()
-KineticHUD._save_path = SavePath .. "KineticHUD_2.txt"
+KineticHUD._settings_save_path = SavePath .. "KineticHUD_2_settings.txt"
+KineticHUD._layout_save_path = SavePath .. "KineticHUD_2_layout.txt"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
@@ -45,10 +46,25 @@ KineticHUD._fonts = {
 	large = "fonts/font_large_mf", --vanilla
 }
 
+KineticHUD.hud_panel_locations = {
+	"khud_panel_left_title",
+	"khud_panel_right_title",
+	"khud_panel_top_title",
+	"khud_panel_bottom_title"
+}
+
+KineticHUD.menu_divider_sizes = {
+	xsmall = 4,
+	small = 8,
+	medium = 16,
+	large = 32,
+	xlarge = 48,
+	yourmom = 64
+}
+
 --one menu to rule them all
 --all menus are, to some degree, sub-menus of this one
 KineticHUD._menu_id_main = "khud_menu_main"
-
 ---once menus are populated, add them to this queue
 --they are then built, and should be usable in-game
 KineticHUD._populated_menus = {}
@@ -86,6 +102,20 @@ KineticHUD._menu_ids = {
 								desc = "khud_menu_layouts_player_vitals_desc",
 								area_bg = "none",
 								children = {
+									{
+										type = "multiple_choice",
+										id = "khud_player_vitals_panel_set_location",
+										title = "khud_menu_layouts_location_generic_title",
+										desc = "khud_menu_layouts_location_generic_desc",
+										items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+										callback = "callback_khud_player_vitals_panel_set_location",
+										value = "player_vitals_panel_location"
+									},
+									{
+										type = "divider",
+										id = "khud_menu_layouts_player_vitals_div_1",
+										size = KineticHUD.menu_divider_sizes.medium
+									},
 									{--health customization here
 										type = "menu",
 										id = "khud_menu_layouts_player_vitals_health",
@@ -114,6 +144,20 @@ KineticHUD._menu_ids = {
 								desc = "khud_menu_layouts_player_weapons_desc",
 								area_bg = "none",
 								children = {
+									{
+										type = "multiple_choice",
+										id = "khud_player_weapons_panel_set_location",
+										title = "khud_menu_layouts_location_generic_title",
+										desc = "khud_menu_layouts_location_generic_desc",
+										items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+										callback = "callback_khud_player_weapons_panel_set_location",
+										value = "player_weapons_panel_location"
+									},
+									{
+										type = "divider",
+										id = "khud_menu_layouts_player_weapons_div_1",
+										size = KineticHUD.menu_divider_sizes.medium
+									},
 									
 									{--weapons customization here
 										type = "slider",
@@ -162,7 +206,20 @@ KineticHUD._menu_ids = {
 						desc = "khud_menu_layouts_teammates_desc",
 						area_bg = "none",
 						children = {
-						
+							{
+								type = "multiple_choice",
+								id = "khud_teammates_panel_set_location",
+								title = "khud_menu_layouts_location_generic_title",
+								desc = "khud_menu_layouts_location_generic_desc",
+								items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+								callback = "callback_khud_teammates_panel_set_location",
+								value = "teammates_panel_location"
+							},
+							{
+								type = "divider",
+								id = "khud_menu_layouts_teammates_panel_div_1",
+								size = KineticHUD.menu_divider_sizes.medium
+							}
 						}
 					}
 				}
@@ -174,7 +231,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_objectives_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_objective_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_objective_panel_set_location",
+						value = "objective_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_objective_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --assault
@@ -184,7 +254,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_assault_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_assault_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_assault_panel_set_location",
+						value = "assault_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_assault_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --interaction
@@ -194,7 +277,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_interaction_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_interaction_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_interaction_panel_set_location",
+						value = "interaction_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_interaction_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --hints
@@ -204,7 +300,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_hints_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_hints_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_hints_panel_set_location",
+						value = "hints_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_hints_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --presenter
@@ -214,7 +323,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_presenter_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_presenter_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_presenter_panel_set_location",
+						value = "presenter_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_presenter_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --chat
@@ -224,7 +346,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_chat_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_chat_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_chat_panel_set_location",
+						value = "chat_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_chat_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --hit direction
@@ -234,7 +369,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_hitdirection_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_hitdirection_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_hitdirection_panel_set_location",
+						value = "hitdirection_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_hitdirection_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --waypoints
@@ -274,7 +422,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_suspicion_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_suspicion_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_suspicion_panel_set_location",
+						value = "suspicion_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_suspicion_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --buffs
@@ -284,7 +445,20 @@ KineticHUD._menu_ids = {
 				desc = "khud_menu_layouts_buffs_desc",
 				area_bg = "none",
 				children = {
-				
+					{
+						type = "multiple_choice",
+						id = "khud_buffs_panel_set_location",
+						title = "khud_menu_layouts_location_generic_title",
+						desc = "khud_menu_layouts_location_generic_desc",
+						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+						callback = "callback_khud_buffs_panel_set_location",
+						value = "buffs_panel_location"
+					},
+					{
+						type = "divider",
+						id = "khud_menu_layouts_buffs_panel_div_1",
+						size = KineticHUD.menu_divider_sizes.medium
+					}
 				}
 			},
 			{ --cartographer, compass, (includes heist name popup)
@@ -301,7 +475,20 @@ KineticHUD._menu_ids = {
 						desc = "khud_menu_layouts_cartographer_compass_desc",
 						area_bg = "none",
 						children = {
-						
+							{
+								type = "multiple_choice",
+								id = "khud_compass_panel_set_location",
+								title = "khud_menu_layouts_location_generic_title",
+								desc = "khud_menu_layouts_location_generic_desc",
+								items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+								callback = "callback_khud_compass_panel_set_location",
+								value = "compass_panel_location"
+							},
+							{
+								type = "divider",
+								id = "khud_menu_layouts_compass_panel_div_1",
+								size = KineticHUD.menu_divider_sizes.medium
+							}
 						}
 					}
 				}
@@ -546,7 +733,7 @@ KineticHUD.hud_values = {
 	ASSAULT_PHASE_LABEL_COLOR = Color.white,
 	ASSAULT_PHASE_LABEL_FONT_SIZE = 32,
 	
-	OBJECTIVE_W = 300,
+	OBJECTIVE_W = 500,
 	OBJECTIVE_H = 100,
 	OBJECTIVE_X = 0,
 	OBJECTIVE_Y = 0,
@@ -567,7 +754,7 @@ KineticHUD.hud_values = {
 	OBJECTIVE_TEXT_FONT_SIZE = 32,
 	OBJECTIVE_TEXT_COLOR = Color.white,
 	
-	OBJECTIVE_COUNT_TEXT_X = 0,
+	OBJECTIVE_COUNT_TEXT_X = 48,
 	OBJECTIVE_COUNT_TEXT_Y = 56,
 	OBJECTIVE_COUNT_TEXT_HALIGN = "left",
 	OBJECTIVE_COUNT_TEXT_VALIGN = "top",
@@ -673,11 +860,27 @@ KineticHUD.hud_values = {
 	}
 }
 
+KineticHUD.layout_settings = table.deep_map_copy(KineticHUD.hud_values)
+
 KineticHUD.debug_value_1 = 0.5
 
 --default settings
 KineticHUD.default_settings = {
-	player_panel_scale = 1, --deprecated
+	player_vitals_panel_location = 4,
+	player_weapons_panel_location = 2, --locations are [1-4]
+	player_equipment_panel_location = 1,
+	teammate_panel_location = 1,
+	assault_panel_location = 2,
+	hints_panel_location = 2,
+	presenter_panel_location = 3,
+	objective_panel_location = 1,
+	interaction_panel_location = 4, --5, after i make that
+	chat_panel_location = 1,
+	hitdirection_panel_location = 4,
+	suspicion_panel_location = 3,
+	buffs_panel_location = 4,
+	compass_panel_location = 3,
+	
 	player_vitals_panel_scale = 1,
 	player_weapons_panel_scale = 1,
 	player_equipment_panel_scale = 1,
@@ -762,7 +965,7 @@ end
 
 --animation library
 
---lerp movement between two sets of 2d coordinates
+	--lerp movement between two sets of 2d coordinates
 function KineticHUD.animate_move(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y)
 	local progress = (t - start_t) / duration
 	local lerp = math.clamp(progress,0,1)
@@ -785,6 +988,7 @@ function KineticHUD.animate_move_sin(o,t,dt,start_t,duration,start_x,start_y,end
 	end
 end
 
+	--this calls the a specific khud function and should not be used as a general animation function
 function KineticHUD.animate_weapon_panels_switch(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power,params)
 	power = power or 2
 	
@@ -825,6 +1029,60 @@ function KineticHUD.animate_move_rotate_clockwise(o,t,dt,start_t,duration,start_
 	end
 end
 
+function KineticHUD.animate_text_typing(o,t,dt,start_t,duration,text,type_char,post_duration,blink_speed)
+	post_duration = post_duration or 0
+
+	type_char = type_char or "_"
+	if t - start_t > (duration + post_duration) then 
+		o:set_text(text)
+		return true
+	elseif t - start_t < duration then
+		local length = string.len(text)
+		local ratio = (t - start_t) / duration
+		o:set_text(string.sub(text,1,math.clamp(ratio * length,1,length)) .. type_char)
+	elseif math.sin((t - start_t) * 360  * (blink_speed or 2)) > 0 then 
+		o:set_text(text .. type_char)
+	else
+		o:set_text(text)
+	end
+end
+
+	--animates deleting all characters in a text sequentially in reverse, leaving only an empty string ""
+function KineticHUD.animate_text_backspaced(o,t,dt,start_t,duration,start_text,type_char,post_duration,blink_speed)
+	post_duration = post_duration or 0
+	type_char = type_char or "_"
+	blink_speed = blink_speed or 0
+	
+	if t - start_t > (duration + post_duration) then 
+		o:set_text("")
+		return true
+	elseif t - start_t < duration then 
+		local length = string.len(start_text)
+		local ratio = (t - start_t) / duration
+		o:set_text(string.sub(start_text,1,-math.floor((ratio * length) + 2)) .. type_char)
+	else
+		if math.sin((t - start_t) * 360  * (blink_speed or 2)) > 0 then 
+			o:set_text(type_char)
+		else
+			o:set_text("")
+		end
+	end
+end
+
+function KineticHUD.animate_color_shift_duo(o,t,dt,start_t,duration,color_1,color_2)
+	local progress = (t - start_t) / duration
+	local done
+	if progress >= 1 then
+		done = true
+		progress = 1
+	end
+	local d_c = color_2 - color_1
+	o:set_color(color_1 + (d_c * progress))
+	if done then 
+		return true
+	end
+end
+
 function KineticHUD:UpdateAnimate(t,dt,...)
 	if self.animator then 
 		self.animator:UpdateAnimate(t,dt,...)
@@ -859,8 +1117,28 @@ end
 
 --io
 
+function KineticHUD:LoadLayout() --not used
+	local file = io.open(KineticHUD._layout_save_path, "r")
+	if (file) then
+		for k, v in pairs(json.decode(file:read("*all"))) do
+			KineticHUD.layout_settings[k] = v
+		end
+	else
+		KineticHUD:SaveLayout()
+	end
+end
+
+function KineticHUD:SaveLayout() --not used
+	local file = io.open(KineticHUD._layout_save_path, "w+")
+	if file then
+		file:write(json.encode(KineticHUD.layout_settings))
+		file:close()
+	end
+
+end
+
 function KineticHUD:Load()
-	local file = io.open(KineticHUD._save_path, "r")
+	local file = io.open(KineticHUD._settings_save_path, "r")
 	if (file) then
 		for k, v in pairs(json.decode(file:read("*all"))) do
 			KineticHUD.settings[k] = v
@@ -871,7 +1149,7 @@ function KineticHUD:Load()
 end
 
 function KineticHUD:Save()
-	local file = io.open(KineticHUD._save_path,"w+")
+	local file = io.open(KineticHUD._settings_save_path, "w+")
 	if file then
 		file:write(json.encode(KineticHUD.settings))
 		file:close()

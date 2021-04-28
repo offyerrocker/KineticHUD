@@ -44,6 +44,9 @@
 	"khud_menu_layouts_cartographer_title" : "Location",
 	"khud_menu_layouts_cartographer_desc" : "Compass and Location Names",
 	
+	"khud_menu_layouts_location_generic_title" : "Panel Location",
+	"khud_menu_layouts_location_generic_desc" : "Change where this HUD item is displayed. (Requires Restart)",
+	
 	"khud_player_weapons_panel_set_x_title" : "Set Panel X",
 	"khud_player_weapons_panel_set_x_desc" : "Set the horizontal position of the Weapons Panel",
 	"khud_player_weapons_panel_set_y_title" : "Set Panel Y",

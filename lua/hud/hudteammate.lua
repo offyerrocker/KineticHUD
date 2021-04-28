@@ -145,7 +145,7 @@ Hooks:PostHook(HUDTeammate,"set_weapon_selected","khud_set_weapon_selected",func
 	end
 end)
 
-
+--deployable eq
 Hooks:PostHook(HUDTeammate,"set_deployable_equipment","khud_set_deployable_equipment",function(self,data) 
 	if self._main_player then 
 		KineticHUD:CheckPlayerDeployableEquipment(data)
@@ -177,6 +177,27 @@ Hooks:PostHook(HUDTeammate,"set_deployable_equipment_amount_from_string","khud_s
 		KineticHUD:SetTeammateDeployableEquipment(self._id,index,data)
 	end
 end)
+
+--mission equipment
+Hooks:PostHook(HUDTeammate,"add_special_equipment","khud_add_mission_equipment",function(self,data)
+	if self._main_player then 
+		KineticHUD:AddPlayerMissionEquipment(data)
+	end
+end)
+
+Hooks:PostHook(HUDTeammate,"remove_special_equipment","khud_remove_mission_equipment",function(self,id)
+	if self._main_player then 
+		KineticHUD:RemovePlayerMissionEquipment(id)
+	end
+end)
+Hooks:PostHook(HUDTeammate,"set_special_equipment_amount","khud_set_mission_equipment_amount",function(self,id,amount)
+	if self._main_player then 
+		KineticHUD:SetPlayerMissionEquipmentAmount(id,amount)
+	end
+end)
+
+
+
 
 Hooks:PostHook(HUDTeammate,"set_ai","khud_set_ai",function(self,ai)
 	if not ai then 

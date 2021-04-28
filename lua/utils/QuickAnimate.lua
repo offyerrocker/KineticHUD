@@ -1,3 +1,5 @@
+--Practically speaking, QuickAnimate is just a series of organized updaters.
+--It can work on any data types, but it will be most useful on gui objects like Panel, Bitmap, Text, Rect, Gradient, etc.
 --written by Offyerrocker
 local THIS_VERSION = 2
 
