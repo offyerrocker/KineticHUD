@@ -630,6 +630,18 @@ KineticHUD.hud_values = {
 	PLAYER_HEALTH_BAR_X = 700,
 	PLAYER_HEALTH_BAR_Y = 500,
 	
+	PLAYER_EQUIPMENT_X = 150,
+	PLAYER_EQUIPMENT_Y = 800,
+	PLAYER_EQUIPMENT_DEPLOYABLE_1_X = 0,
+	PLAYER_EQUIPMENT_DEPLOYABLE_1_Y = 0,
+	
+	PLAYER_MISSION_EQUIPMENT_W = 500,
+	PLAYER_MISSION_EQUIPMENT_H = 100,
+	PLAYER_MISSION_EQUIPMENT_X = 0,
+	PLAYER_MISSION_EQUIPMENT_Y = 700,
+	PLAYER_MISSION_EQUIPMENT_ICON_SIZE = 32,
+	PLAYER_MISSION_EQUIPMENT_FONT_SIZE = 24,
+	
 	PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION = 1/3,
 	
 	PLAYER_WEAPONS_W = 500,
@@ -761,6 +773,26 @@ KineticHUD.hud_values = {
 	OBJECTIVE_COUNT_TEXT_FONT_SIZE = 32,
 	OBJECTIVE_COUNT_TEXT_COLOR = Color.white,
 	
+	CARRY_W = 500,
+	CARRY_H = 100,
+	CARRY_X = 0,
+	CARRY_Y = 400,
+	CARRY_ICON_X = 0,
+	CARRY_ICON_Y = 0,
+	CARRY_ICON_W = 24,
+	CARRY_ICON_H = 24,
+	CARRY_LABEL_X = 32,
+	CARRY_LABEL_Y = 0,
+	CARRY_LABEL_FONT_SIZE = 24,
+	CARRY_LABEL_HALIGN = "left",
+	CARRY_LABEL_VALIGN = "top",
+	CARRY_VALUE_X = 32,
+	CARRY_VALUE_Y = 24,
+	CARRY_VALUE_FONT_SIZE = 24,
+	CARRY_VALUE_HALIGN = "left",
+	CARRY_VALUE_VALIGN = "top",
+	
+	
 	
 	HEALTH_THRESHOLD_NORMAL = 1,
 	HEALTH_THRESHOLD_STRESSED = 0.5,
@@ -869,6 +901,7 @@ KineticHUD.default_settings = {
 	player_vitals_panel_location = 4,
 	player_weapons_panel_location = 2, --locations are [1-4]
 	player_equipment_panel_location = 1,
+	player_mission_equipment_panel_location = 1,
 	teammate_panel_location = 1,
 	assault_panel_location = 2,
 	hints_panel_location = 2,
@@ -880,7 +913,9 @@ KineticHUD.default_settings = {
 	suspicion_panel_location = 3,
 	buffs_panel_location = 4,
 	compass_panel_location = 3,
+	carry_panel_location = 1,
 	
+	player_mission_equipment_panel_scale = 1,
 	player_vitals_panel_scale = 1,
 	player_weapons_panel_scale = 1,
 	player_equipment_panel_scale = 1,
@@ -889,6 +924,7 @@ KineticHUD.default_settings = {
 	objective_panel_scale = 1,
 	teammate_panel_scale = 1,
 	assault_panel_scale = 1,
+	carry_panel_scale = 1,
 	PLAYER_HEALTH_BAR_HALIGN = 1,
 	PLAYER_HEALTH_BAR_VALIGN = 1,
 	HEIST_TIMER_FONT_SIZE = 24
@@ -1067,6 +1103,33 @@ function KineticHUD.animate_text_backspaced(o,t,dt,start_t,duration,start_text,t
 			o:set_text("")
 		end
 	end
+end
+
+function KineticHUD.animate_text_unscramble(o,t,dt,start_t,duration,end_text,scramble_interval,valid_r_chars)
+	local progress = (t - start_t) / duration
+	if t - start_t > duration then 
+		o:set_text(end_text)
+		return true
+	end
+	local current_text = o:text()
+	local length = string.len(end_text)
+	local new_text = ""
+	local n_correct = 0
+	for i=1,length do
+		if string.sub(current_text,i,i) == string.sub(end_text,i,i) and (n_correct + 1 < length) then
+			--nothing
+		elseif math.random() > progress then 
+			new_text = new_text .. string.sub(end_text,i,i)
+		else
+			if valid_r_chars then 
+				local r = math.random(string.len(valid_r_chars))
+				new_text = new_text .. string.sub(valid_r_chars,r,r)
+			else
+				new_text = new_text .. string.char(math.random(65,90))
+			end
+		end
+	end
+	o:set_text(new_text)
 end
 
 function KineticHUD.animate_color_shift_duo(o,t,dt,start_t,duration,color_1,color_2)

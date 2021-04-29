@@ -2,8 +2,9 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		hudvalues for player mission equipment
-	
+		resize equipments after menu change
+		reposition with fov (solves ADS and vehicle issues)
+		
 	
 	
 	
@@ -38,6 +39,8 @@ DEVELOPMENT:
 		option to show data on their waypoint, or data on the hud, or both (or neither)
 
 		"titles" (dredgen etc)
+			-write tweakdata
+			-sync data
 		grenade charge meter animation
 
 	SYSTEMS:
@@ -626,12 +629,13 @@ function KineticHUD:CreateHUD(parent_panel)
 	self:CreatePlayerVitalsPanel(font_resources_ready)
 	self:CreatePlayerWeaponsPanel(font_resources_ready)
 	self:CreatePlayerEquipmentPanel()
+	self:CreatePlayerMissionEquipmentPanel()
 	
 	self:CreateTeammatesPanel()
 	
 	self:CreateHints()
 	self:CreatePresenter()
-	
+	self:CreateCarryPanel()
 	self:CreateBuffsPanel()
 	
 	self:CreateAssaultPanel()
@@ -1090,14 +1094,6 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 		y = 500
 	})
 
-	local player_mission_equipment_panel = selected_parent_panel:panel({
-		name = "player_mission_equipment_panel",
-		x = 0,
-		y = 700,
-		w = 500,
-		h = 100
-	})
-	
 	local deployable_1_x = 100
 	local deployable_1_y = 0
 	
@@ -1125,7 +1121,6 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 	local throwable = self:CreatePlayerEquipmentBox(player_equipment_panel,{name = "throwable",icon="",double=false})
 	throwable:set_position(throwable_x,throwable_y)
 --	throwable:hide()
-	self._player_mission_equipment_panel = player_mission_equipment_panel
 	self._player_equipment_panel = player_equipment_panel
 	if not skip_layout then 
 		self:LayoutPlayerEquipmentPanel()
@@ -1228,6 +1223,24 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 	
 	return equipment_box
 	
+end
+
+function KineticHUD:CreatePlayerMissionEquipmentPanel(skip_layout)
+	local selected_parent_panel = self._world_panels[self.settings.player_mission_equipment_panel_location]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	local player_mission_equipment_panel = selected_parent_panel:panel({
+		name = "player_mission_equipment_panel",
+		x = 0,
+		y = 700,
+		w = 500,
+		h = 100
+	})
+	self._player_mission_equipment_panel = player_mission_equipment_panel
+	if not skip_layout then 
+		self:LayoutPlayerMissionEquipmentPanel()
+	end
 end
 
 function KineticHUD:CreateTeammatesPanel()
@@ -1614,7 +1627,7 @@ function KineticHUD:CreateObjectivePanel(skip_layout)
 	
 	local current_objective_text = objective_panel:text({
 		name = "current_objective_text",
-		text = utf8.to_upper("Talk to Lilith"),
+		text = "",
 		font = self._fonts.syke,
 		font_size = hv.OBJECTIVE_TEXT_FONT_SIZE,
 		color = hv.OBJECTIVE_TEXT_COLOR,
@@ -1627,7 +1640,7 @@ function KineticHUD:CreateObjectivePanel(skip_layout)
 	
 	local current_count_text = objective_panel:text({
 		name = "current_count_text",
-		text = utf8.to_upper("0/1"),
+		text = "",
 		font = self._fonts.syke,
 		font_size = hv.OBJECTIVE_COUNT_TEXT_FONT_SIZE,
 		color = hv.OBJECTIVE_COUNT_TEXT_COLOR,
@@ -1654,6 +1667,39 @@ function KineticHUD:CreateObjectivePanel(skip_layout)
 	end
 end
 
+function KineticHUD:CreateCarryPanel(skip_layout)
+	
+	local hv = self.hud_values
+	
+	local selected_parent_panel = self._world_panels[self.settings.carry_panel_location]
+	local carry_panel = selected_parent_panel:panel({
+		name = "carry_panel",
+		w = hv.CARRY_W,
+		h = hv.CARRY_H,
+		x = hv.CARRY_X,
+		y = hv.CARRY_Y,
+		alpha = 1
+	})
+	self._carry_panel = carry_panel
+	
+	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
+	
+	local bag_icon = carry_panel:bitmap({
+		name = "bag_icon",
+		texture = bag_texture,
+		texture_rect = bag_rect,
+		layer = 2,
+		color = self.color_data.white,
+		alpha = 0.8
+	})	
+	
+	
+	if not skip_layout then 
+		self:LayoutCarryPanel()
+	end
+	
+	
+end
 
 --Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
 --Arguments: none
@@ -2027,14 +2073,19 @@ function KineticHUD:LayoutPlayerEquipmentPanel(params)
 		return
 	end
 	
-	player_equipment_panel:set_position(150,800)
+	local hv = self.hud_values
+	local scale = self.settings.player_equipment_panel_scale
+	local equipments_x = hv.PLAYER_EQUIPMENT_X * scale
+	local equipments_y = hv.PLAYER_EQUIPMENT_Y * scale
 	
-
-	local mission_equipment = player_equipment_panel:child("mission_equipment")
-	--mission_equipment:set_position(0,0)
+	local mission_equipment_x = hv.PLAYER_MISSION_EQUIPMENT_X * scale
+	local mission_equipment_y = hv.PLAYER_MISSION_EQUIPMENT_Y * scale
 	
-	local deployable_1_x = 0
-	local deployable_1_y = 0
+	player_equipment_panel:set_position(equipments_x,equipments_y)
+	
+	
+	local deployable_1_x = hv.PLAYER_EQUIPMENT_DEPLOYABLE_1_X * scale
+	local deployable_1_y = hv.PLAYER_EQUIPMENT_DEPLOYABLE_1_Y * scale
 	
 	local deployable_2_x = 128 + 56
 	local deployable_2_y = 0
@@ -2061,6 +2112,23 @@ function KineticHUD:LayoutPlayerEquipmentPanel(params)
 	throwable:set_position(throwable_x,throwable_y)
 --	throwable:hide()
 	
+end
+
+function KineticHUD:LayoutPlayerMissionEquipmentPanel()
+	local player_mission_equipment_panel = self._player_mission_equipment_panel
+	if alive(player_mission_equipment_panel) then 
+		local hv = self.hud_values
+		local scale = self.settings.player_mission_equipment_panel_scale
+		
+		local mission_equipment_w = hv.PLAYER_MISSION_EQUIPMENT_W * scale
+		local mission_equipment_h = hv.PLAYER_MISSION_EQUIPMENT_H * scale
+		
+		local mission_equipment_x = hv.PLAYER_MISSION_EQUIPMENT_X * scale
+		local mission_equipment_y = hv.PLAYER_MISSION_EQUIPMENT_Y * scale
+		
+		player_mission_equipment_panel:set_position(mission_equipment_x,mission_equipment_y)
+		player_mission_equipment_panel:set_size(mission_equipment_w,mission_equipment_h)
+	end
 end
 
 function KineticHUD:LayoutTeammatePanel(i,recreate_text_objects)
@@ -2391,17 +2459,82 @@ function KineticHUD:LayoutObjectivePanel()
 	current_count_text:set_position(current_count_x,current_count_y)
 end
 
+
+function KineticHUD:LayoutCarryPanel() 
+	local carry_panel = self._carry_panel
+	local scale = self.settings.carry_panel_scale
+	
+	local hv = self.hud_values
+	
+	local carry_x = hv.CARRY_X
+	local carry_y = hv.CARRY_Y
+	local carry_w = hv.CARRY_W * scale
+	local carry_h = hv.CARRY_H * scale
+	
+	local carry_icon_x = hv.CARRY_ICON_X * scale
+	local carry_icon_y = hv.CARRY_ICON_Y * scale
+	local carry_icon_w = hv.CARRY_ICON_W * scale
+	local carry_icon_h = hv.CARRY_ICON_H * scale
+	
+	local carry_label_font_size = hv.CARRY_LABEL_FONT_SIZE * scale
+	local carry_label_x = hv.CARRY_LABEL_X * scale
+	local carry_label_y = hv.CARRY_LABEL_Y * scale
+	local carry_value_x = hv.CARRY_VALUE_X * scale
+	local carry_value_y = hv.CARRY_VALUE_Y * scale
+	
+	local carry_value_font_size = hv.CARRY_VALUE_FONT_SIZE * scale
+	
+	carry_panel:set_position(carry_x,carry_y)
+	carry_panel:set_size(carry_w,carry_h)
+	
+	local bag_icon = carry_panel:child("bag_icon")
+	bag_icon:set_position(carry_icon_x,carry_icon_y)
+	bag_icon:set_size(carry_icon_w,carry_icon_h)
+	
+	local bag_label = carry_panel:child("bag_label")
+	if alive(bag_label) then 
+		bag_label:set_position(carry_label_x,carry_label_y)
+		bag_label:set_font_size(carry_label_font_size)
+		bag_label:set_align(hv.CARRY_LABEL_HALIGN)
+		bag_label:set_vertical(hv.CARRY_LABEL_VALIGN)
+	end
+	local bag_value = carry_panel:child("bag_value")
+	if alive(bag_value) then 
+		bag_value:set_position(carry_value_x,carry_value_y)
+		bag_value:set_font_size(carry_value_font_size)
+		bag_value:set_align(hv.CARRY_VALUE_HALIGN)
+		bag_value:set_vertical(hv.CARRY_VALUE_VALIGN)
+	end
+	
+end
+
 ------  HUD setters  ------
 
 	--objective
-function KineticHUD:SetObjectiveText(text,from)
+function KineticHUD:SetObjectiveText(text,from,skip_animate)
 	if alive(self._objective_panel) then 
+		local current_objective_text = self._objective_panel:child("current_objective_text")
 		--todo format instead of appending ">"
-		self._objective_panel:child("current_objective_text"):set_text("> " .. text)
+--		current_objective_text:set_text("> " .. text)
 		if from == "complete" then 
 			--animate complete here
+			
 		elseif from == "activate" then 
-			--animate activate here
+			--animate in here
+		end
+		
+		self:animate_stop(current_objective_text)
+		local typing_char = "|"
+		local duration = string.len(text) * 0.1
+		
+		local function type_cb(o)
+			self:animate(o,"animate_text_typing",nil,duration,text,typing_char,3,nil)	
+		end
+		local current_text = current_objective_text:text()
+		if string.len(current_text) > 0 then 
+			self:animate(current_objective_text,"animate_text_backspaced",type_cb,0.5,current_text,typing_char,1,nil)
+		else
+			type_cb(current_objective_text)
 		end
 	end
 end
@@ -2710,55 +2843,75 @@ function KineticHUD:AddPlayerMissionEquipment(data)
 	local id = data.id
 	local amount = data.amount or 1
 	local icon = data.icon
+	
+	local scale = self.settings.player_equipment_panel_scale
+	local hv = self.hud_values
 	local mission_equipment_panel = self._player_mission_equipment_panel
-	local eq_size = 48
-	local margin = 8
+	local eq_size = hv.PLAYER_MISSION_EQUIPMENT_ICON_SIZE * scale
+	local margin = hv.MARGIN_SMALL * scale
+	local margin_xsmall = hv.MARGIN_XSMALL * scale
+	local margin_xxsmall = hv.MARGIN_XXSMALL * scale
+	
+	local font_size = hv.PLAYER_MISSION_EQUIPMENT_FONT_SIZE * scale
 	
 	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
 	local eq = mission_equipment_panel:panel({
 		name = id,
 		layer = 1,
 		w = eq_size,
-		h = eq_size,
-		x = #self._player_mission_equipment_panel:children() * (eq_size + margin)
+		h = 2 * eq_size,
+		x = (1 + #self._player_mission_equipment_panel:children()) * (eq_size + margin)
 	})
 	local bitmap = eq:bitmap({
 		name = "bitmap",
 		layer = 1,
 		texture = texture,
 		texture_rect = texture_rect,
-		color = Color.yellow,
-		w = eq:w(),
-		h = eq:h()
+		color = self.color_data.teal,
+		w = eq_size,
+		h = eq_size
 	})
 	self:PanelBorder(eq,{
 		thickness = 2,
-		color = Color.white,
+		color = self.color_data.white,
 		alpha = 0.5,
-		layer = 4
+		layer = 4,
+		h = eq_size
 	})
 	local text = eq:text({
 		name = "amount",
 		vertical = "bottom",
 		align = "right",
 		font = self._fonts.digital or self._fonts.syke or "fonts/font_small_noshadow_mf",
-		font_size = 24,
-		x = -4,
-		y = -2,
+		font_size = font_size,
+		x = 0 or -margin_xsmall, --if centering, use margin_xsmall
+		y = -margin_xxsmall,
 		layer = 3,
 		text = tostring(amount),
 		visible = amount > 1,
-		color = Color.yellow
+		color = self.color_data.white
 	})
-	local bg = eq:rect({
+	local bg = eq:bitmap({
 		name = "bg",
-		color = Color.black,
-		alpha = 0.1,
+		texture = "textures/ui/gradient",
+		color = self.color_data.black,
+		alpha = 0.25,
+		w = eq:w(),
+		h = amount > 1 and eq:h() or eq_size,
 		layer = 0
 	})
-	
+	--[[
+	local bg = eq:rect({
+		name = "bg",
+		color = self.color_data.black,
+		alpha = 0.1,
+		w = eq_size,
+		h = eq_size,
+		layer = 0
+	})
+	--]]
 	local function cb()
-		self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),Color.white)
+		self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),self.color_data.white)
 	end
 	self:animate_wait(2,cb)
 	--[[
@@ -2779,6 +2932,8 @@ function KineticHUD:SetPlayerMissionEquipmentAmount(id,amount)
 		text:set_text(amount)
 		text:set_visible(amount > 1)
 		self:AnimateLayoutPlayerMissionEquipment()
+		local bg = eq:child("bg")
+		bg:set_h(eq:h() * (amount > 1 and 2 or 1))
 	else
 		self:c_log("ERROR: Bad id to SetPlayerMissionEquipmentAmount(" .. tostring(id) .. "," .. tostring(amount) .. ")")
 	end
@@ -2910,7 +3065,7 @@ function KineticHUD:SetTeammateGrenadesIcon(i,icon_id)
 			if true or not grenades_panel:visible() then 
 				local icon_box = grenades_panel:child("icon_box")
 				local icon_bitmap = icon_box:child("icon_bitmap")
-				icon_bitmap:set_image(texture,texture_rect)
+				icon_bitmap:set_image(texture,unpack(texture_rect))
 				grenades_panel:show()
 				icon_bitmap:set_center(icon_box:center())
 				self:LayoutTeammatePanel()
@@ -2946,9 +3101,11 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 			local icon_box = deployable:child("icon_box")
 			local deployable_icon = icon_box:child("icon")
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
-			deployable_icon:set_image(texture,unpack(texture_rect))
-			deployable_icon:set_center(icon_box:center())
-			queue_layout = true
+			if alive(deployable_icon) then 
+				deployable_icon:set_image(texture,unpack(texture_rect))
+				deployable_icon:set_center(icon_box:center())
+				queue_layout = true
+			end
 		end
 		if data.amount then
 			local amount
@@ -2991,6 +3148,154 @@ function KineticHUD:AnimateHideAssaultBanner()
 	self:animate_stop(label)
 	local typing_char = "|"
 	self:animate(label,"animate_text_backspaced",nil,1,label:text(),typing_char,1,1)
+end
+
+function KineticHUD:ShowCarry(carry_id,value)
+	local carry_panel = self._carry_panel
+	if alive(carry_panel) then 
+		carry_panel:show()
+		local bag_label = carry_panel:child("bag_label")
+		local bag_value = carry_panel:child("bag_value")
+		if alive(bag_label) then 
+			self:animate_stop(bag_label)
+			carry_panel:remove(bag_label)
+		end
+		if alive(bag_value) then
+			self:animate_stop(bag_value)
+			carry_panel:remove(bag_value)
+		end
+		
+		local hv = self.hud_values
+		local scale = self.settings.carry_panel_scale
+			
+		local carry_label_font_size = hv.CARRY_LABEL_FONT_SIZE * scale
+		local carry_label_x = hv.CARRY_LABEL_X * scale
+		local carry_label_y = hv.CARRY_LABEL_Y * scale
+		
+		local carry_value_font_size = hv.CARRY_VALUE_FONT_SIZE * scale
+		local carry_value_x = hv.CARRY_VALUE_X * scale
+		local carry_value_y = hv.CARRY_VALUE_Y * scale
+		
+		local td = tweak_data.carry[tostring(carry_id)]
+		local name = td and td.name_id and managers.localization:text(td.name_id) or ("ERROR: " .. tostring(carry_id))
+		bag_label = carry_panel:text({
+			name = "bag_label",
+			font = self._fonts.syke,
+			text = name,
+			font_size = carry_label_font_size,
+			x = carry_label_x,
+			y = carry_label_y,
+			align = hv.CARRY_LABEL_HALIGN,
+			vertical = hv.CARRY_LABEL_VALIGN,
+			color = self.color_data.white
+		})
+--		self:animate(bag_label,"animate_text_unscramble",nil,3,name,nil,nil)
+		
+		local value_string = value and managers.experience:cash_string(value) or ""
+		bag_value = carry_panel:text({
+			name = "bag_label",
+			font = self._fonts.syke,
+			text = value_string,
+			font_size = carry_value_font_size,
+			x = carry_value_x,
+			y = carry_value_y,
+			align = hv.CARRY_VALUE_HALIGN,
+			vertical = hv.CARRY_VALUE_VALIGN,
+			color = self.color_data.white
+		})
+		
+	end
+--[[
+	local bag_label = carry_panel:child("bag_label")
+	local bag_icon = carry_panel:child("bag_icon")
+	
+	self:animate_stop(carry_panel)
+	self:animate_stop(bag_label)
+	self:animate_stop(bag_icon)
+	
+	local td = tweak_data.carry[tostring(id)]
+	local visible = carry_panel:visible()
+	carry_panel:set_alpha(1)
+	carry_panel:show()
+	if td then 
+		local name = td.name_id and managers.localization:text(td.name_id) or "Kat's Prosthetic Arm"
+		self:animate(bag_icon,"animate_blink",function(o) o:show() end,1.75,2)
+		self:animate(bag_label,"animate_type_text",nil,0.5,name or bag_label:text(),"_",3)
+--			bag_label:set_text(name)
+		if value then 
+			carry_panel:child("bag_value"):set_text(managers.experience:cash_string(value))
+		else
+			carry_panel:child("bag_value"):set_text("")
+		end
+	else
+		self:log("ERROR: ShowCarry(" .. tostring(id) .. "," .. tostring(value) .. "): No carry tweak data found",{color = Color.red})
+	end	
+	
+	--]]
+end
+
+function KineticHUD:HideCarry()
+	local carry_panel = self._carry_panel
+	if alive(carry_panel) then 
+		local bag_label = carry_panel:child("bag_label")
+		local bag_value = carry_panel:child("bag_value")
+		if alive(bag_label) then 
+			self:animate_stop(bag_label)
+			carry_panel:remove(bag_label)
+		end
+		if alive(bag_value) then
+			self:animate_stop(bag_value)
+			carry_panel:remove(bag_value)
+		end
+		carry_panel:hide()
+	end
+--[[
+	local carry_panel = self._carry_panel
+	local bag_label = carry_panel:child("bag_label")
+	local bag_icon = carry_panel:child("bag_icon")
+	bag_icon:show()
+	self:animate_stop(bag_label)
+	self:animate_stop(bag_icon)
+	carry_panel:set_alpha(0.5)
+	self:animate(carry_panel,"animate_blink",function (o)
+			o:hide()
+			o:set_alpha(1)
+			bag_label:set_text("")
+		end,
+		1.75,
+		6
+	)
+	carry_panel:child("bag_value"):set_text("")
+	--]]
+end
+
+function KineticHUD:SetStamina(current,maximum)
+--[[
+	local player = managers.player:local_player()
+	local stamina_panel = self._stamina_panel
+	if not self:IsStaminaEnabled() then 
+		return
+	end
+	if current and alive(player) then 
+		local movement = player:movement()
+		local total = total or movement:_max_stamina()
+		local progress = current/total
+		stamina_panel:child("stamina_outline"):set_color(Color(progress,1,1))
+		if total - current <= 0.001 then 
+			self:animate(stamina_panel,"animate_fadeout_linear",nil,0.75)
+		elseif stamina_panel:alpha() < 1 then 
+			stamina_panel:set_alpha(math.clamp(stamina_panel:alpha() * 1.3,0.001,self:GetHUDAlpha()))
+		end
+		
+		if movement:is_above_stamina_threshold() then 
+			stamina_panel:child("stamina_icon"):set_color(self.color_data.hud_bluefill)
+			stamina_panel:child("stamina_fill"):set_color(self.color_data.hud_blueoutline)
+		else
+			stamina_panel:child("stamina_fill"):set_color(Color(0.3,0.3,0.3))
+			stamina_panel:child("stamina_icon"):set_color(Color(0.6,0.6,0.6))
+		end
+	end
+--]]
 end
 
 function KineticHUD:SetHostagesCount(num)

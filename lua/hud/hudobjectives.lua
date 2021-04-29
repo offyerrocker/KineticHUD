@@ -5,20 +5,28 @@ end)
 
 HUDObjectives.orig_activate_objective = HUDObjectives.activate_objective
 function HUDObjectives:activate_objective(data)
+	self._active_objective_id = data.id
+	
 	KineticHUD:SetObjectiveText(data.text or "ERROR")
-	KineticHUD:SetObjectiveAmount(data.current_amount,data.amount,"activate")
+--	KineticHUD:SetObjectiveAmount(data.current_amount,data.amount,"activate")
+	
+	
+	if data.amount then
+		self:update_amount_objective(data)
+	end
 end
 
 HUDObjectives.orig_complete_objective = HUDObjectives.activate_objective
 function HUDObjectives:complete_objective(data)
 	if data.id == self._active_objective_id then
-		KineticHUD:SetObjectiveText("STANDBY" or data.text,"complete")
+		KineticHUD:SetObjectiveText("","complete")
+		KineticHUD:SetObjectiveAmount(nil)
 	end
 end
 
 HUDObjectives.orig_update_amount_objective = HUDObjectives.update_amount_objective
 function HUDObjectives:update_amount_objective(data)
-	if data.id == self._active_objective_id then 
+	if data.id == self._active_objective_id then
 		KineticHUD:SetObjectiveAmount(data.current_amount,data.amount,"update_amount")
 	end
 end

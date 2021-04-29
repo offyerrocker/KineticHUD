@@ -34,9 +34,33 @@ end)
 
 do return end
 
-Hooks:PostHook(HUDManager,"_add_name_label","khud_hudmanager_addnamelabel",function(self,data)
-	local is_husk_player = data.unit:base().is_husk_player
-	if is_husk_player then 
-		--todo create bpm here
+HUDManager.orig_add_name_label = HUDManager._add_name_label
+function HUDManager:_add_name_label(data,...)
+	local id = self:orig_add_name_label(data,...)
+	local hud = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_FULLSCREEN_PD2)
+	
+	local panel = hud.panel:child("name_label" .. id)
+	if alive(panel) then 
+		panel:rect({
+			name = "rect_test_" .. id,
+			color = Color(tonumber(id or 1),1,1),
+			alpha = 0.1,
+			visible = false
+		})
+		local is_husk_player = data.unit:base().is_husk_player
+		if is_husk_player or true then 
+			panel:text({
+				name = "khud_seal_text",
+				text = "Dredgen",
+				font = KineticHUD._fonts.syke,
+				font_size = 24,
+				align = "center",
+				vertical = "bottom",
+				layer = 4,
+				visible = data.name and true or false,
+				color = KineticHUD.color_data.purple
+			})
+		end
 	end
-end)
+	return id
+end

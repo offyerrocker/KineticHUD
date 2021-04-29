@@ -33,6 +33,10 @@
 			"script_path" : "lua/hud/hudassaultcorner.lua"
 		},
 		{
+			"hook_id" : "lib/managers/hud/hudtemp",
+			"script_path" : "lua/hud/hudtemp.lua"
+		},
+		{
 			"hook_id" : "lib/units/beings/player/playerdamage",
 			"script_path" : "lua/playerdamage.lua"
 		},

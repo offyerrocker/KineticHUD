@@ -86,7 +86,7 @@ Hooks:PostHook(HUDTeammate,"set_grenades","khud_set_grenades",function(self,data
 		KineticHUD:SetPlayerGrenadesIcon(data.icon)
 		KineticHUD:SetPlayerGrenadesAmount(data.amount)
 	else
-		KineticHUD:SetTeammateGrendadesIcon(self._id,data.icon)
+		KineticHUD:SetTeammateGrenadesIcon(self._id,data.icon)
 		KineticHUD:SetTeammateGrenadesAmount(self._id,data.amount)
 	end
 end)
