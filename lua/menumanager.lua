@@ -2,7 +2,6 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		sort settings into functional settings and layout settings
 		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		reposition with fov (solves ADS and vehicle issues)
 		main color scheme
@@ -3420,7 +3419,7 @@ function KineticHUD:AnimatePanelSelectedFlash(id)
 		end
 		flash_rect = world_panel:rect({
 			name = "selected_flash_rect",
-			color = hv.RECT_COLOR,
+			color = world_panel_data.RECT_COLOR,
 			alpha = 0
 		})
 		
