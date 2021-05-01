@@ -26,7 +26,7 @@ Hooks:PostHook(HUDManager,"_create_heist_timer","khudf_hudmanager_create_heist_t
 		local timer = self._hud_heist_timer._timer_text
 		if alive(timer) then 
 			timer:set_font(Idstring(KineticHUD._fonts.digital))
-			timer:set_font_size(KineticHUD.settings.HEIST_TIMER_FONT_SIZE)
+			timer:set_font_size(KineticHUD.layout_settings.HEIST_TIMER_FONT_SIZE)
 			timer:set_color(KineticHUD.color_data.white)
 		end
 	end

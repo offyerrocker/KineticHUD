@@ -2,9 +2,13 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		resize equipments after menu change
+		sort settings into functional settings and layout settings
+		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		reposition with fov (solves ADS and vehicle issues)
-		
+		main color scheme
+		misc category- eg. heist timer scale
+		animation for carry panel
+		updater should work when paused?
 	
 	
 	
@@ -24,7 +28,6 @@ DEVELOPMENT:
 		--flashing assault light during assaults; different colors based on assault phase (bai compat)
 		
 		
-		re-link player hud on (re)spawn
 		underbarrel weapon support for main player
 		test world_to_screen on world panels (update/persist script with static location paired with console settracker)
 		non-focused weapon icon is not properly resized on setting the icon image
@@ -427,7 +430,7 @@ function KineticHUD:GetSelectionIndexByUnit(unit)
 	end
 end
 
---Sets a text panel's text to a formatted number.
+--Sets a text panel's text to a formatted number, using that object's set_text method.
 --The number is formatted by clamping it between 0 and the maximum base-10 number of the given number of digits:
 --eg. given a digits value of 3, the amount is clamped between 0 and 999; given digits = 5, amount is clamped between 0 and 99999.
 --The text object's text is then set to the amount formatted as an integer, padding the result with zeroes.
@@ -574,7 +577,7 @@ end
 
 --Each frame, attempts to find the player unit, in order to link the world panels to the player camera.
 --Upon success, it calls its own unregistration in order to save performance.
---Do not call manually- instead, call the update registration function RegisterUpdateCheckPlayer().
+--Not recommended to call manually- instead, call the update registration function RegisterUpdateCheckPlayer().
 function KineticHUD:UpdateCheckPlayer(t,dt)
 	local player = managers.player:local_player()
 	if alive(player) then 
@@ -649,8 +652,9 @@ end
 --Arguments: skip_layout [bool]. Optional. If true, skips the HUD positioning step after creation.
 --Returns: nil
 function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.player_vitals_panel_location]
-	local scale = self.settings.player_vitals_panel_scale
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.player_vitals_panel_location]
+	local scale = layout_settings.player_vitals_panel_scale
 	local hv = self.hud_values
 	local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
 	
@@ -879,43 +883,44 @@ end
 --Arguments: skip_layout [bool]. If true, skips the positioning step after creation.
 --Returns: nil
 function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.player_weapons_panel_location]
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.player_weapons_panel_location]
 	if not alive(selected_parent_panel) then 
 		return
 	end
-	local player_scale = self.settings.player_weapons_panel_scale
+	local scale = layout_settings.player_weapons_panel_scale
 	
 	local hv = self.hud_values
 	local weapons_panel_w = hv.PLAYER_WEAPONS_W
 	local weapons_panel_h = hv.PLAYER_WEAPONS_H
-	local weapons_panel_x = self.settings.player_weapons_panel_x
-	local weapons_panel_y = self.settings.player_weapons_panel_y
+	local weapons_panel_x = layout_settings.player_weapons_panel_x
+	local weapons_panel_y = layout_settings.player_weapons_panel_y
 	
-	local margin_xsmall = hv.MARGIN_XSMALL * player_scale
-	local margin_small = hv.MARGIN_SMALL * player_scale
+	local margin_xsmall = hv.MARGIN_XSMALL * scale
+	local margin_small = hv.MARGIN_SMALL * scale
 	
-	local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
-	local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
+	local weapon_panel_w = hv.PLAYER_WEAPON_W * scale
+	local weapon_panel_h = hv.PLAYER_WEAPON_H * scale
 	local weapon_panel_x = hv.PLAYER_WEAPON_X
 	local weapon_panel_y = hv.PLAYER_WEAPON_Y
-	local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
-	local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
-	local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
-	local weapon_icon_y = hv.PLAYER_WEAPON_ICON_Y * player_scale
-	local weapon_icon_w = hv.PLAYER_WEAPON_ICON_W * player_scale
-	local weapon_icon_h = hv.PLAYER_WEAPON_ICON_H * player_scale
-	local weapon_icon_bg_alpha = hv.PLAYER_WEAPON_ICON_BG_ALPHA * player_scale
-	local weapon_border_alpha = hv.PLAYER_WEAPON_BORDER_ALPHA * player_scale
-	local weapon_border_thickness = hv.PLAYER_WEAPON_BORDER_THICKNESS * player_scale
-	local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * player_scale
-	local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
-	local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
-	local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+	local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * scale
+	local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * scale
+	local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * scale
+	local weapon_icon_y = hv.PLAYER_WEAPON_ICON_Y * scale
+	local weapon_icon_w = hv.PLAYER_WEAPON_ICON_W * scale
+	local weapon_icon_h = hv.PLAYER_WEAPON_ICON_H * scale
+	local weapon_icon_bg_alpha = hv.PLAYER_WEAPON_ICON_BG_ALPHA
+	local weapon_border_alpha = hv.PLAYER_WEAPON_BORDER_ALPHA
+	local weapon_border_thickness = hv.PLAYER_WEAPON_BORDER_THICKNESS * scale
+	local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * scale
+	local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * scale
+	local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * scale
+	local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * scale
 	local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
 	local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
-	local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
-	local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
-	local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
+	local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * scale
+	local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * scale
+	local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * scale
 	
 	
 	local parent_weapons_panel = selected_parent_panel:panel({
@@ -947,9 +952,9 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 		local box_y = weapon_panel_y * scale
 		local font_size_large = weapon_font_size_large * scale
 		local font_size_small = weapon_font_size_small * scale
-		local border_alpha = weapon_border_alpha * scale
+		local border_alpha = weapon_border_alpha
 		local border_thickness = weapon_border_thickness * scale
-		local icon_bg_alpha = weapon_icon_bg_alpha * scale
+		local icon_bg_alpha = weapon_icon_bg_alpha
 		local firemode_w = weapon_firemode_w * scale
 		local firemode_h = weapon_firemode_h * scale
 		local reserve_x = weapon_reserve_x * scale
@@ -1089,9 +1094,7 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 		return
 	end
 	local player_equipment_panel = selected_parent_panel:panel({
-		name = "player_equipment_panel",
-		x = 0,
-		y = 500
+		name = "player_equipment_panel"
 	})
 
 	local deployable_1_x = 100
@@ -1136,7 +1139,8 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 	local icon_id = params.icon
 	
 	local hv = self.hud_values
-	local scale = self.settings.player_equipment_panel_scale
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.player_equipment_panel_scale
 	
 	local font_size = 36 * scale
 	local icon_w = 48 * scale
@@ -1226,16 +1230,13 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 end
 
 function KineticHUD:CreatePlayerMissionEquipmentPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.player_mission_equipment_panel_location]
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.player_mission_equipment_panel_location]
 	if not alive(selected_parent_panel) then 
 		return
 	end
 	local player_mission_equipment_panel = selected_parent_panel:panel({
-		name = "player_mission_equipment_panel",
-		x = 0,
-		y = 700,
-		w = 500,
-		h = 100
+		name = "player_mission_equipment_panel"
 	})
 	self._player_mission_equipment_panel = player_mission_equipment_panel
 	if not skip_layout then 
@@ -1243,16 +1244,28 @@ function KineticHUD:CreatePlayerMissionEquipmentPanel(skip_layout)
 	end
 end
 
-function KineticHUD:CreateTeammatesPanel()
-	local selected_parent_panel = self._world_panels[self.settings.teammate_panel_location]
+function KineticHUD:CreateTeammatesPanel(skip_layout)
+	local layout_settings = self.layout_settings
+	local hud_values = self.hud_values
+	
+	local teammates_x = layout_settings.teammates_x
+	local teammates_y = layout_settings.teammates_y
+	local selected_parent_panel = self._world_panels[layout_settings.teammates_panel_location]
 	local teammates_panel_parent = selected_parent_panel:panel({
-		name = "teammates_panel"
+		name = "teammates_panel",
+		x = teammates_x,
+		y = teammates_y
 	})
 	self._teammates_panel = teammates_panel_parent
+	
+	if not skip_layout then 
+		self:LayoutTeammatesPanel()
+	end
 end
 
 function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,double)
-	local scale = self.settings.teammate_panel_scale
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.teammates_panel_scale
 	local hv = self.hud_values
 	local box_w = hv.TEAMMATE_EQUIPMENT_BOX_W * scale
 	local box_h = hv.TEAMMATE_EQUIPMENT_BOX_H * scale
@@ -1341,7 +1354,8 @@ function KineticHUD:CreateTeammateEquipmentBox(teammate_panel,name,icon_id,doubl
 end
 
 function KineticHUD:CreateTeammatePanel(i,skip_layout)
-	local scale = self.settings.teammate_panel_scale
+	local layout_settings = self.layout_settings
+	local scale = self.layout_settings.teammates_panel_scale
 	local hv = self.hud_values
 	local margin = hv.MARGIN_XSMALL * scale
 
@@ -1498,9 +1512,12 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		visible = false
 	})
 	
+	local speaking_icon_texture,speaking_icon_texture_rect = tweak_data.hud_icons:get_icon_data(hv.TEAMMATE_SPEAKING_ICON_ID)
+
 	local speaking_icon = teammate:bitmap({
 		name = "speaking_icon",
-		texture = nil,
+		texture = speaking_icon_texture,
+		texture_rect = speaking_icon_texture_rect,
 		w = speaking_icon_w,
 		h = speaking_icon_h,
 		x = speaking_icon_x,
@@ -1545,7 +1562,10 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 end
 
 function KineticHUD:CreateAssaultPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.assault_panel_location]
+	local hud_values = self.hud_values
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.assault_panel_location]
+	
 	local assault_panel = selected_parent_panel:panel({
 		name = "assault_panel"
 	})
@@ -1562,7 +1582,7 @@ function KineticHUD:CreateAssaultPanel(skip_layout)
 	local assault_phase_label = assault_panel:text({
 		name = "assault_phase_label",
 		font = self._fonts.syke,
-		font_size = 16,
+		font_size = hud_values.ASSAULT_PHASE_LABEL_FONT_SIZE,
 		layer = 2,
 		text = ""
 	})
@@ -1570,7 +1590,7 @@ function KineticHUD:CreateAssaultPanel(skip_layout)
 	local assault_debug = assault_panel:rect({
 		name = "assault_debug",
 		layer = 1,
-		visible = true,
+		visible = false,
 		color = Color.blue,
 		alpha = 0.2
 	})
@@ -1600,14 +1620,15 @@ end
 
 function KineticHUD:CreateObjectivePanel(skip_layout)
 	local hv = self.hud_values
+	local layout_settings = self.layout_settings
 	
-	local selected_parent_panel = self._world_panels[self.settings.objective_panel_location]
+	local selected_parent_panel = self._world_panels[layout_settings.objective_panel_location]
 	local objective_panel = selected_parent_panel:panel({
 		name = "objective_panel",
 		w = hv.OBJECTIVE_W,
 		h = hv.OBJECTIVE_H,
-		x = hv.OBJECTIVE_X,
-		y = hv.OBJECTIVE_Y
+		x = layout_settings.OBJECTIVE_X,
+		y = layout_settings.OBJECTIVE_Y
 	})
 	
 	self._objective_panel = objective_panel
@@ -1670,19 +1691,20 @@ end
 function KineticHUD:CreateCarryPanel(skip_layout)
 	
 	local hv = self.hud_values
+	local layout_settings = self.layout_settings
 	
-	local selected_parent_panel = self._world_panels[self.settings.carry_panel_location]
+	local selected_parent_panel = self._world_panels[layout_settings.carry_panel_location]
 	local carry_panel = selected_parent_panel:panel({
 		name = "carry_panel",
 		w = hv.CARRY_W,
 		h = hv.CARRY_H,
-		x = hv.CARRY_X,
-		y = hv.CARRY_Y,
-		alpha = 1
+		x = layout_settings.CARRY_X,
+		y = layout_settings.CARRY_Y,
+		visible = false
 	})
 	self._carry_panel = carry_panel
 	
-	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
+	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data(hv.CARRY_ICON_ID)
 	
 	local bag_icon = carry_panel:bitmap({
 		name = "bag_icon",
@@ -1690,7 +1712,7 @@ function KineticHUD:CreateCarryPanel(skip_layout)
 		texture_rect = bag_rect,
 		layer = 2,
 		color = self.color_data.white,
-		alpha = 0.8
+		alpha = hv.CARRY_ICON_ALPHA
 	})	
 	
 	
@@ -1711,6 +1733,7 @@ function KineticHUD:LayoutPlayerVitals(params)
 			params = {layout_all = true}
 		end
 		local hv = self.hud_values
+		local layout_settings = self.layout_settings
 		
 		local recreate_text_objects = params.recreate_text_objects
 		local layout_all = params.layout_all
@@ -1719,7 +1742,7 @@ function KineticHUD:LayoutPlayerVitals(params)
 		local layout_revives = layout_all or params.layout_revives
 		local skip_reposition = layout_all or params.skip_reposition
 
-		local scale = self.settings.player_vitals_panel_scale
+		local scale = self.layout_settings.player_vitals_panel_scale
 		
 		if params.lerp_override then 
 			scale = params.lerp_override
@@ -1818,13 +1841,6 @@ function KineticHUD:LayoutPlayerVitals(params)
 			armor_panel:child("armor_debug"):set_size(armor_panel:size())
 		end
 		
-		
-		
-		
-		
-		
-		
-		
 	end
 end
 
@@ -1834,8 +1850,9 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 		if not (params and type(params) == "table") then 
 			params = {}
 		end
-		local hv = self.hud_values
-		local player_scale = self.settings.player_weapons_panel_scale
+		local hud_values = self.hud_values
+		local layout_settings = self.layout_settings
+		local scale = self.layout_settings.player_weapons_panel_scale
 		
 		local recreate_text_objects = params.recreate_text_objects
 		local skip_reposition = params.skip_reposition
@@ -1844,8 +1861,8 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 		local single_layout = params.single_layout
 		local lerp_override = params.lerp_override
 		
-		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
-		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
+		local weapon_primary_scale = hud_values.PLAYER_WEAPON_PRIMARY_SCALE * scale
+		local weapon_secondary_scale = hud_values.PLAYER_WEAPON_SECONDARY_SCALE * scale
 		
 		if lerp_override then 
 			local s1 = weapon_secondary_scale + ((weapon_primary_scale - weapon_secondary_scale) * lerp_override)
@@ -1855,37 +1872,37 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 		end
 		
 		
-		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
-		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
-		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
-		local weapon_secondary_y = hv.PLAYER_WEAPON_SECONDARY_Y * player_scale
+		local weapon_primary_x = hud_values.PLAYER_WEAPON_PRIMARY_X
+		local weapon_primary_y = hud_values.PLAYER_WEAPON_PRIMARY_Y
+		local weapon_secondary_x = hud_values.PLAYER_WEAPON_SECONDARY_X * scale
+		local weapon_secondary_y = hud_values.PLAYER_WEAPON_SECONDARY_Y * scale
 		
 		
-		local weapons_panel_w = hv.PLAYER_WEAPONS_W
-		local weapons_panel_h = hv.PLAYER_WEAPONS_H
-		local weapons_panel_x = self.settings.player_weapons_panel_x
-		local weapons_panel_y = self.settings.player_weapons_panel_y
+		local weapons_panel_w = hud_values.PLAYER_WEAPONS_W
+		local weapons_panel_h = hud_values.PLAYER_WEAPONS_H
+		local weapons_panel_x = layout_settings.player_weapons_panel_x
+		local weapons_panel_y = layout_settings.player_weapons_panel_y
 		
-		local margin_xsmall = hv.MARGIN_XSMALL * player_scale
-		local margin_small = hv.MARGIN_SMALL * player_scale
+		local margin_xsmall = hud_values.MARGIN_XSMALL * scale
+		local margin_small = hud_values.MARGIN_SMALL * scale
 		
-		local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
-		local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
-		local weapon_panel_x = hv.PLAYER_WEAPON_X
-		local weapon_panel_y = hv.PLAYER_WEAPON_Y
-		local weapon_font_size_large = hv.PLAYER_WEAPON_FONT_SIZE_LARGE * player_scale
-		local weapon_font_size_small = hv.PLAYER_WEAPON_FONT_SIZE_SMALL * player_scale
-		local weapon_icon_x = hv.PLAYER_WEAPON_ICON_X * player_scale
-		local weapon_icon_y = hv.PLAYER_WEAPON_ICON_Y * player_scale
-		local weapon_icon_w = hv.PLAYER_WEAPON_ICON_W * player_scale
-		local weapon_icon_h = hv.PLAYER_WEAPON_ICON_H * player_scale
-		local weapon_icon_bg_alpha = hv.PLAYER_WEAPON_ICON_BG_ALPHA * player_scale
-		local weapon_border_alpha = hv.PLAYER_WEAPON_BORDER_ALPHA * player_scale
-		local weapon_border_thickness = hv.PLAYER_WEAPON_BORDER_THICKNESS * player_scale
-		local weapon_firemode_w = hv.PLAYER_WEAPON_FIREMODE_W * player_scale
-		local weapon_firemode_h = hv.PLAYER_WEAPON_FIREMODE_H * player_scale
+		local weapon_panel_w = hud_values.PLAYER_WEAPON_W * scale
+		local weapon_panel_h = hud_values.PLAYER_WEAPON_H * scale
+		local weapon_panel_x = hud_values.PLAYER_WEAPON_X
+		local weapon_panel_y = hud_values.PLAYER_WEAPON_Y
+		local weapon_font_size_large = hud_values.PLAYER_WEAPON_FONT_SIZE_LARGE * scale
+		local weapon_font_size_small = hud_values.PLAYER_WEAPON_FONT_SIZE_SMALL * scale
+		local weapon_icon_x = hud_values.PLAYER_WEAPON_ICON_X * scale
+		local weapon_icon_y = hud_values.PLAYER_WEAPON_ICON_Y * scale
+		local weapon_icon_w = hud_values.PLAYER_WEAPON_ICON_W * scale
+		local weapon_icon_h = hud_values.PLAYER_WEAPON_ICON_H * scale
+		local weapon_icon_bg_alpha = hud_values.PLAYER_WEAPON_ICON_BG_ALPHA
+		local weapon_border_alpha = hud_values.PLAYER_WEAPON_BORDER_ALPHA
+		local weapon_border_thickness = hud_values.PLAYER_WEAPON_BORDER_THICKNESS * scale
+		local weapon_firemode_w = hud_values.PLAYER_WEAPON_FIREMODE_W * scale
+		local weapon_firemode_h = hud_values.PLAYER_WEAPON_FIREMODE_H * scale
 			
-		local weapon_reserve_x = hv.PLAYER_WEAPON_RESERVE_X * player_scale
+		local weapon_reserve_x = hud_values.PLAYER_WEAPON_RESERVE_X * scale
 		
 		if not skip_parent then 
 			if not skip_reposition then 
@@ -1912,9 +1929,9 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 			local box_y = weapon_panel_y * scale
 			local font_size_large = weapon_font_size_large * scale
 			local font_size_small = weapon_font_size_small * scale
-			local border_alpha = weapon_border_alpha * scale
+			local border_alpha = weapon_border_alpha
 			local border_thickness = weapon_border_thickness * scale
-			local icon_bg_alpha = weapon_icon_bg_alpha * scale
+			local icon_bg_alpha = weapon_icon_bg_alpha
 			local firemode_w = weapon_firemode_w * scale
 			local firemode_h = weapon_firemode_h * scale
 			local reserve_x = weapon_reserve_x * scale
@@ -2060,7 +2077,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 					w2 = parent_weapons_panel:child("1")
 				end
 				w1:set_position(weapon_primary_x,weapon_primary_y)
-				w2:set_position(weapon_primary_x + weapon_secondary_x,weapon_panel_y + (player_scale * weapon_panel_h) + weapon_secondary_y)
+				w2:set_position(weapon_primary_x + weapon_secondary_x,weapon_panel_y + (scale * weapon_panel_h) + weapon_secondary_y)
 			end
 		end
 		
@@ -2074,27 +2091,25 @@ function KineticHUD:LayoutPlayerEquipmentPanel(params)
 	end
 	
 	local hv = self.hud_values
-	local scale = self.settings.player_equipment_panel_scale
-	local equipments_x = hv.PLAYER_EQUIPMENT_X * scale
-	local equipments_y = hv.PLAYER_EQUIPMENT_Y * scale
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.player_equipment_panel_scale
 	
-	local mission_equipment_x = hv.PLAYER_MISSION_EQUIPMENT_X * scale
-	local mission_equipment_y = hv.PLAYER_MISSION_EQUIPMENT_Y * scale
+	local equipments_x = layout_settings.PLAYER_EQUIPMENT_X * scale
+	local equipments_y = layout_settings.PLAYER_EQUIPMENT_Y * scale
 	
 	player_equipment_panel:set_position(equipments_x,equipments_y)
-	
 	
 	local deployable_1_x = hv.PLAYER_EQUIPMENT_DEPLOYABLE_1_X * scale
 	local deployable_1_y = hv.PLAYER_EQUIPMENT_DEPLOYABLE_1_Y * scale
 	
-	local deployable_2_x = 128 + 56
-	local deployable_2_y = 0
+	local deployable_2_x = hv.PLAYER_EQUIPMENT_DEPLOYABLE_2_X * scale
+	local deployable_2_y = hv.PLAYER_EQUIPMENT_DEPLOYABLE_2_Y * scale
 	
-	local cable_ties_x = 25 + 0
-	local cable_ties_y = 75
+	local cable_ties_x = hv.PLAYER_EQUIPMENT_CABLE_TIES_X * scale
+	local cable_ties_y = hv.PLAYER_EQUIPMENT_CABLE_TIES_Y * scale
 	
-	local throwable_x = 25 + 128
-	local throwable_y = 75
+	local throwable_x = hv.PLAYER_EQUIPMENT_THROWABLE_X * scale
+	local throwable_y = hv.PLAYER_EQUIPMENT_THROWABLE_Y * scale
 	
 	local deployable_1 = player_equipment_panel:child("deployable_1")
 	deployable_1:set_position(deployable_1_x,deployable_1_y)
@@ -2118,17 +2133,22 @@ function KineticHUD:LayoutPlayerMissionEquipmentPanel()
 	local player_mission_equipment_panel = self._player_mission_equipment_panel
 	if alive(player_mission_equipment_panel) then 
 		local hv = self.hud_values
-		local scale = self.settings.player_mission_equipment_panel_scale
+		local layout_settings = self.layout_settings
+		local scale = layout_settings.player_mission_equipment_panel_scale
 		
 		local mission_equipment_w = hv.PLAYER_MISSION_EQUIPMENT_W * scale
 		local mission_equipment_h = hv.PLAYER_MISSION_EQUIPMENT_H * scale
 		
-		local mission_equipment_x = hv.PLAYER_MISSION_EQUIPMENT_X * scale
-		local mission_equipment_y = hv.PLAYER_MISSION_EQUIPMENT_Y * scale
+		local mission_equipment_x = layout_settings.PLAYER_MISSION_EQUIPMENT_X * scale
+		local mission_equipment_y = layout_settings.PLAYER_MISSION_EQUIPMENT_Y * scale
 		
 		player_mission_equipment_panel:set_position(mission_equipment_x,mission_equipment_y)
 		player_mission_equipment_panel:set_size(mission_equipment_w,mission_equipment_h)
 	end
+end
+
+function KineticHUD:LayoutTeammatesPanel()
+	--todo
 end
 
 function KineticHUD:LayoutTeammatePanel(i,recreate_text_objects)
@@ -2136,7 +2156,8 @@ function KineticHUD:LayoutTeammatePanel(i,recreate_text_objects)
 	if alive(teammate) then 
 	
 		local hv = self.hud_values
-		local scale = self.settings.teammate_panel_scale
+		local layout_settings = self.layout_settings
+		local scale = layout_settings.teammates_panel_scale
 		local margin = hv.MARGIN_XSMALL * scale
 		local margin_medium = hv.MARGIN_MEDIUM * scale
 		local teammate_x = hv.TEAMMATE_PANEL_X * scale
@@ -2304,42 +2325,45 @@ function KineticHUD:LayoutAssaultPanel(params)
 	if not (params and type(params) == "table") then 
 		params = {}
 	end
-	local recreate_text_objects = params.recreate_text_objects
 	
-	local hv = self.hud_values
-	local scale = self.settings.assault_panel_scale
 	local assault_panel = self._assault_panel
 	local parent_panel = assault_panel:parent()
+	
+	local recreate_text_objects = params.recreate_text_objects
+	
+	local hud_values = self.hud_values
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.assault_panel_scale
 	
 	local panel_x = 0
 	local panel_y = 0
 	
-	local assault_x = hv.ASSAULT_X * scale
-	local assault_y = hv.ASSAULT_Y * scale
-	local panel_w = hv.ASSAULT_W * scale
-	local panel_h = hv.ASSAULT_H * scale
+	local assault_x = layout_settings.ASSAULT_X * scale
+	local assault_y = layout_settings.ASSAULT_Y * scale
+	local panel_w = hud_values.ASSAULT_W * scale
+	local panel_h = hud_values.ASSAULT_H * scale
 	
-	local icon_w = hv.ASSAULT_ICON_W * scale
-	local icon_h = hv.ASSAULT_ICON_H * scale
-	local icon_x = hv.ASSAULT_ICON_X * scale
-	local icon_y = hv.ASSAULT_ICON_Y * scale
+	local icon_w = hud_values.ASSAULT_ICON_W * scale
+	local icon_h = hud_values.ASSAULT_ICON_H * scale
+	local icon_x = hud_values.ASSAULT_ICON_X * scale
+	local icon_y = hud_values.ASSAULT_ICON_Y * scale
 	
-	local phase_label_x = hv.ASSAULT_PHASE_LABEL_X * scale
-	local phase_label_y = hv.ASSAULT_PHASE_LABEL_Y * scale
+	local phase_label_x = hud_values.ASSAULT_PHASE_LABEL_X * scale
+	local phase_label_y = hud_values.ASSAULT_PHASE_LABEL_Y * scale
 	
-	local assault_phase_font_size = hv.ASSAULT_PHASE_LABEL_FONT_SIZE * scale
+	local assault_phase_font_size = hud_values.ASSAULT_PHASE_LABEL_FONT_SIZE * scale
 	
-	if hv.ASSAULT_HALIGN == "right" then 
+	if hud_values.ASSAULT_HALIGN == "right" then 
 		panel_x = parent_panel:w() - (panel_w + assault_x)
-	elseif hv.ASSAULT_HALIGN == "center" then 
+	elseif hud_values.ASSAULT_HALIGN == "center" then 
 		panel_x = assault_x + (( parent_panel:w() - panel_w ) / 2)
 	else
 		panel_x = assault_x
 	end
 	
-	if hv.ASSAULT_VALIGN == "bottom" then 
+	if hud_values.ASSAULT_VALIGN == "bottom" then 
 		panel_y = parent_panel:h() - (panel_h + assault_y)
-	elseif hv.ASSAULT_VALIGN == "center" then 
+	elseif hud_values.ASSAULT_VALIGN == "center" then 
 		panel_y = assault_y + ((parent_panel:h() - panel_h) / 2)
 	else
 		panel_y = assault_y
@@ -2368,18 +2392,18 @@ function KineticHUD:LayoutAssaultPanel(params)
 			text = assault_phase_label_text,
 			font = self._fonts.syke,
 			font_size = assault_phase_font_size,
-			align = hv.ASSAULT_PHASE_LABEL_HALIGN,
-			vertical = hv.ASSAULT_PHASE_LABEL_VALIGN,
-			color = hv.ASSAULT_PHASE_LABEL_COLOR,
+			align = hud_values.ASSAULT_PHASE_LABEL_HALIGN,
+			vertical = hud_values.ASSAULT_PHASE_LABEL_VALIGN,
+			color = hud_values.ASSAULT_PHASE_LABEL_COLOR,
 			layer = 2,
 			x = phase_label_x,
 			y = phase_label_y
 		})
 	else
 		assault_phase_label:set_font_size(assault_phase_font_size)
-		assault_phase_label:set_align(hv.ASSAULT_PHASE_LABEL_HALIGN)
-		assault_phase_label:set_vertical(hv.ASSAULT_PHASE_LABEL_VALIGN)
-		assault_phase_label:set_color(hv.ASSAULT_PHASE_LABEL_COLOR)
+		assault_phase_label:set_align(hud_values.ASSAULT_PHASE_LABEL_HALIGN)
+		assault_phase_label:set_vertical(hud_values.ASSAULT_PHASE_LABEL_VALIGN)
+		assault_phase_label:set_color(hud_values.ASSAULT_PHASE_LABEL_COLOR)
 		assault_phase_label:set_position(phase_label_x,phase_label_y)
 	end
 	
@@ -2387,15 +2411,17 @@ end
 
 function KineticHUD:LayoutObjectivePanel()
 	local hv = self.hud_values
-	local scale = self.settings.objective_panel_scale
+	local layout_settings = self.layout_settings
+	
+	local scale = self.layout_settings.objective_panel_scale
 	local objective_panel = self._objective_panel
 	local parent_panel = objective_panel:parent()
 	
 	local panel_x = 0
 	local panel_y = 0
 	
-	local objective_x = hv.OBJECTIVE_X * scale
-	local objective_y = hv.OBJECTIVE_Y * scale
+	local objective_x = layout_settings.OBJECTIVE_X * scale
+	local objective_y = layout_settings.OBJECTIVE_Y * scale
 	local panel_w = hv.OBJECTIVE_W * scale
 	local panel_h = hv.OBJECTIVE_H * scale
 	if hv.OBJECTIVE_HALIGN == "right" then 
@@ -2462,9 +2488,11 @@ end
 
 function KineticHUD:LayoutCarryPanel() 
 	local carry_panel = self._carry_panel
-	local scale = self.settings.carry_panel_scale
 	
 	local hv = self.hud_values
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.carry_panel_scale
+	
 	
 	local carry_x = hv.CARRY_X
 	local carry_y = hv.CARRY_Y
@@ -2513,6 +2541,7 @@ end
 	--objective
 function KineticHUD:SetObjectiveText(text,from,skip_animate)
 	if alive(self._objective_panel) then 
+		local hud_values = self.hud_values
 		local current_objective_text = self._objective_panel:child("current_objective_text")
 		--todo format instead of appending ">"
 --		current_objective_text:set_text("> " .. text)
@@ -2525,14 +2554,14 @@ function KineticHUD:SetObjectiveText(text,from,skip_animate)
 		
 		self:animate_stop(current_objective_text)
 		local typing_char = "|"
-		local duration = string.len(text) * 0.1
+		local duration = string.len(text) * hud_values.OBJECTIVE_ANIMATE_TEXT_TYPING_SPEED
 		
 		local function type_cb(o)
-			self:animate(o,"animate_text_typing",nil,duration,text,typing_char,3,nil)	
+			self:animate(o,"animate_text_typing",nil,duration,text,typing_char,hud_values.OBJECTIVE_ANIMATE_TEXT_TYPING_HOLD_DURATION,nil)	
 		end
 		local current_text = current_objective_text:text()
 		if string.len(current_text) > 0 then 
-			self:animate(current_objective_text,"animate_text_backspaced",type_cb,0.5,current_text,typing_char,1,nil)
+			self:animate(current_objective_text,"animate_text_backspaced",type_cb,hud_values.OBJECTIVE_ANIMATE_TEXT_BACKSPACE_DURATION,current_text,typing_char,hud_values.OBJECTIVE_ANIMATE_TEXT_TYPING_CURSOR_BLINK_SPEED,nil)
 		else
 			type_cb(current_objective_text)
 		end
@@ -2668,30 +2697,30 @@ function KineticHUD:AnimateSwitchWeapons(highlighted_index)
 			w1 = weapons_panel:child("2")
 		end
 		
-		local player_scale = self.settings.player_weapons_panel_scale
+		local scale = self.settings.player_weapons_panel_scale
 		
-		local hv = self.hud_values
+		local hud_values = self.hud_values
+		local layout_settings = self.layout_settings
 		
+		local weapons_panel_w = hud_values.PLAYER_WEAPONS_W
+		local weapons_panel_h = hud_values.PLAYER_WEAPONS_H
+		local weapons_panel_x = layout_settings.player_weapons_panel_x
+		local weapons_panel_y = layout_settings.player_weapons_panel_y
 		
-		local weapons_panel_w = hv.PLAYER_WEAPONS_W
-		local weapons_panel_h = hv.PLAYER_WEAPONS_H
-		local weapons_panel_x = self.settings.player_weapons_panel_x
-		local weapons_panel_y = self.settings.player_weapons_panel_y
+		local weapon_panel_w = hud_values.PLAYER_WEAPON_W * scale
+		local weapon_panel_h = hud_values.PLAYER_WEAPON_H * scale
+		local weapon_panel_x = hud_values.PLAYER_WEAPON_X
+		local weapon_panel_y = hud_values.PLAYER_WEAPON_Y
 		
-		local weapon_panel_w = hv.PLAYER_WEAPON_W * player_scale
-		local weapon_panel_h = hv.PLAYER_WEAPON_H * player_scale
-		local weapon_panel_x = hv.PLAYER_WEAPON_X
-		local weapon_panel_y = hv.PLAYER_WEAPON_Y
+		local weapon_primary_x = hud_values.PLAYER_WEAPON_PRIMARY_X
+		local weapon_primary_y = hud_values.PLAYER_WEAPON_PRIMARY_Y
+		local weapon_secondary_x = hud_values.PLAYER_WEAPON_SECONDARY_X * scale
+		local weapon_secondary_y = (hud_values.PLAYER_WEAPON_SECONDARY_Y + weapon_panel_h) * scale
 		
-		local weapon_primary_x = hv.PLAYER_WEAPON_PRIMARY_X
-		local weapon_primary_y = hv.PLAYER_WEAPON_PRIMARY_Y
-		local weapon_secondary_x = hv.PLAYER_WEAPON_SECONDARY_X * player_scale
-		local weapon_secondary_y = (hv.PLAYER_WEAPON_SECONDARY_Y + weapon_panel_h) * player_scale
+		local weapon_primary_scale = hud_values.PLAYER_WEAPON_PRIMARY_SCALE * scale
+		local weapon_secondary_scale = hud_values.PLAYER_WEAPON_SECONDARY_SCALE * scale
 		
-		local weapon_primary_scale = hv.PLAYER_WEAPON_PRIMARY_SCALE * player_scale
-		local weapon_secondary_scale = hv.PLAYER_WEAPON_SECONDARY_SCALE * player_scale
-		
-		local swap_time = hv.PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION
+		local swap_time = hud_values.PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION
 		
 		local cb1,cb2
 		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,2,params2)
@@ -2840,19 +2869,21 @@ function KineticHUD:SetPlayerRevives(amount)
 end
 
 function KineticHUD:AddPlayerMissionEquipment(data)
+	local mission_equipment_panel = self._player_mission_equipment_panel
+	
 	local id = data.id
 	local amount = data.amount or 1
 	local icon = data.icon
 	
-	local scale = self.settings.player_equipment_panel_scale
-	local hv = self.hud_values
-	local mission_equipment_panel = self._player_mission_equipment_panel
-	local eq_size = hv.PLAYER_MISSION_EQUIPMENT_ICON_SIZE * scale
-	local margin = hv.MARGIN_SMALL * scale
-	local margin_xsmall = hv.MARGIN_XSMALL * scale
-	local margin_xxsmall = hv.MARGIN_XXSMALL * scale
+	local scale = self.layout_settings.player_equipment_panel_scale
+	local hud_values = self.hud_values
+	local layout_settings = self.layout_settings
+	local eq_size = hud_values.PLAYER_MISSION_EQUIPMENT_ICON_SIZE * scale
+	local margin = hud_values.MARGIN_SMALL * scale
+	local margin_xsmall = hud_values.MARGIN_XSMALL * scale
+	local margin_xxsmall = hud_values.MARGIN_XXSMALL * scale
 	
-	local font_size = hv.PLAYER_MISSION_EQUIPMENT_FONT_SIZE * scale
+	local font_size = hud_values.PLAYER_MISSION_EQUIPMENT_FONT_SIZE * scale
 	
 	local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
 	local eq = mission_equipment_panel:panel({
@@ -2872,9 +2903,9 @@ function KineticHUD:AddPlayerMissionEquipment(data)
 		h = eq_size
 	})
 	self:PanelBorder(eq,{
-		thickness = 2,
+		thickness = hud_values.PLAYER_EQUIPMENT_BOX_OUTLINE_THICKNESS,
 		color = self.color_data.white,
-		alpha = 0.5,
+		alpha = hud_values.PLAYER_EQUIPMENT_BOX_OUTLINE_ALPHA,
 		layer = 4,
 		h = eq_size
 	})
@@ -2884,7 +2915,7 @@ function KineticHUD:AddPlayerMissionEquipment(data)
 		align = "right",
 		font = self._fonts.digital or self._fonts.syke or "fonts/font_small_noshadow_mf",
 		font_size = font_size,
-		x = 0 or -margin_xsmall, --if centering, use margin_xsmall
+		x = 0, --if centering, use margin_xsmall
 		y = -margin_xxsmall,
 		layer = 3,
 		text = tostring(amount),
@@ -2895,21 +2926,11 @@ function KineticHUD:AddPlayerMissionEquipment(data)
 		name = "bg",
 		texture = "textures/ui/gradient",
 		color = self.color_data.black,
-		alpha = 0.25,
+		alpha = hud_values.PLAYER_EQUIPMENT_BOX_BG_ALPHA,
 		w = eq:w(),
 		h = amount > 1 and eq:h() or eq_size,
 		layer = 0
 	})
-	--[[
-	local bg = eq:rect({
-		name = "bg",
-		color = self.color_data.black,
-		alpha = 0.1,
-		w = eq_size,
-		h = eq_size,
-		layer = 0
-	})
-	--]]
 	local function cb()
 		self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),self.color_data.white)
 	end
@@ -2964,7 +2985,7 @@ function KineticHUD:ClearPlayerMissionEquipment()
 	end
 end
 
-function KineticHUD:AnimateLayoutPlayerMissionEquipment()
+function KineticHUD:AnimateLayoutPlayerMissionEquipment(resize)
 	local player_mission_equipment_panel = self._player_mission_equipment_panel
 	local eqs = player_mission_equipment_panel:children()
 	local margin = 8
@@ -2973,6 +2994,9 @@ function KineticHUD:AnimateLayoutPlayerMissionEquipment()
 	local c_y = 0
 	local half = #eqs / 2
 	for i,eq in ipairs(eqs) do 
+		if resize then 
+			--todo
+		end
 		self:animate_stop(eq)
 		--align center (limit of 8 at 48x, 8 margin)
 		local x1,y1 = eq:position()
@@ -3166,15 +3190,16 @@ function KineticHUD:ShowCarry(carry_id,value)
 		end
 		
 		local hv = self.hud_values
+		local layout_settings = self.layout_settings
 		local scale = self.settings.carry_panel_scale
 			
 		local carry_label_font_size = hv.CARRY_LABEL_FONT_SIZE * scale
-		local carry_label_x = hv.CARRY_LABEL_X * scale
-		local carry_label_y = hv.CARRY_LABEL_Y * scale
+		local carry_label_x = layout_settings.CARRY_LABEL_X * scale
+		local carry_label_y = layout_settings.CARRY_LABEL_Y * scale
 		
 		local carry_value_font_size = hv.CARRY_VALUE_FONT_SIZE * scale
-		local carry_value_x = hv.CARRY_VALUE_X * scale
-		local carry_value_y = hv.CARRY_VALUE_Y * scale
+		local carry_value_x = layout_settings.CARRY_VALUE_X * scale
+		local carry_value_y = layout_settings.CARRY_VALUE_Y * scale
 		
 		local td = tweak_data.carry[tostring(carry_id)]
 		local name = td and td.name_id and managers.localization:text(td.name_id) or ("ERROR: " .. tostring(carry_id))
@@ -3205,33 +3230,6 @@ function KineticHUD:ShowCarry(carry_id,value)
 		})
 		
 	end
---[[
-	local bag_label = carry_panel:child("bag_label")
-	local bag_icon = carry_panel:child("bag_icon")
-	
-	self:animate_stop(carry_panel)
-	self:animate_stop(bag_label)
-	self:animate_stop(bag_icon)
-	
-	local td = tweak_data.carry[tostring(id)]
-	local visible = carry_panel:visible()
-	carry_panel:set_alpha(1)
-	carry_panel:show()
-	if td then 
-		local name = td.name_id and managers.localization:text(td.name_id) or "Kat's Prosthetic Arm"
-		self:animate(bag_icon,"animate_blink",function(o) o:show() end,1.75,2)
-		self:animate(bag_label,"animate_type_text",nil,0.5,name or bag_label:text(),"_",3)
---			bag_label:set_text(name)
-		if value then 
-			carry_panel:child("bag_value"):set_text(managers.experience:cash_string(value))
-		else
-			carry_panel:child("bag_value"):set_text("")
-		end
-	else
-		self:log("ERROR: ShowCarry(" .. tostring(id) .. "," .. tostring(value) .. "): No carry tweak data found",{color = Color.red})
-	end	
-	
-	--]]
 end
 
 function KineticHUD:HideCarry()
@@ -3249,24 +3247,6 @@ function KineticHUD:HideCarry()
 		end
 		carry_panel:hide()
 	end
---[[
-	local carry_panel = self._carry_panel
-	local bag_label = carry_panel:child("bag_label")
-	local bag_icon = carry_panel:child("bag_icon")
-	bag_icon:show()
-	self:animate_stop(bag_label)
-	self:animate_stop(bag_icon)
-	carry_panel:set_alpha(0.5)
-	self:animate(carry_panel,"animate_blink",function (o)
-			o:hide()
-			o:set_alpha(1)
-			bag_label:set_text("")
-		end,
-		1.75,
-		6
-	)
-	carry_panel:child("bag_value"):set_text("")
-	--]]
 end
 
 function KineticHUD:SetStamina(current,maximum)
@@ -3428,6 +3408,33 @@ function KineticHUD:UpdateHUD(t,dt)
 	
 end
 
+function KineticHUD:AnimatePanelSelectedFlash(id)
+	local world_panel = id and self._world_panels[id]
+	if alive(world_panel) then 
+		local hv = self.hud_values
+		local world_panel_data = hv.world_panels[id]
+		local flash_rect = world_panel:child("selected_flash_rect")
+		if alive(flash_rect) then 
+			self:animate_stop(flash_rect)
+			world_panel:remove(flash_rect)
+		end
+		flash_rect = world_panel:rect({
+			name = "selected_flash_rect",
+			color = hv.RECT_COLOR,
+			alpha = 0
+		})
+		
+		local function cb_destroy(o)
+			o:parent():remove(o)
+		end
+		
+		local function cb_fadeout(o)
+			self:animate(o,"animate_fadeout",cb_destroy,0.75,o:alpha())
+		end
+		self:animate(flash_rect,"animate_fadein",cb_fadeout,0.25,hv.RECT_ALPHA)
+	end
+end
+
 function KineticHUD:AddKillCountByUnit(unit,count)
 	local current = self._cache.kills_by_weapon_unit[unit] or 0
 	local new = current + count
@@ -3540,6 +3547,15 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 	end
 	local priority = i
 	local menu_type = menu_data.type
+	
+	local settings,default_settings
+	if menu_data.settings_source == "layout" then 
+		settings = KineticHUD.layout_settings
+		default_settings = KineticHUD.default_layout_settings
+	else
+		settings = KineticHUD.settings
+		default_settings = KineticHUD.default_settings
+	end
 	if menu_type == "menu" then 
 		KineticHUD._populated_menus[menu_data.id] = {
 			menu = MenuHelper:NewMenu(menu_data.id),
@@ -3565,8 +3581,8 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			title = menu_data.title,
 			desc = menu_data.desc,
 			callback = menu_data.callback,
-			value = KineticHUD.settings[menu_data.value],
-			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			value = settings[menu_data.value],
+			default_value = menu_data.default_value or default_settings[menu_data.value],
 			menu_id = parent_menu_id,
 			priority = priority
 		})
@@ -3576,8 +3592,8 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			title = menu_data.title,
 			desc = menu_data.desc,
 			callback = menu_data.callback,
-			value = KineticHUD.settings[menu_data.value],
-			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			value = settings[menu_data.value],
+			default_value = menu_data.default_value or default_settings[menu_data.value],
 			min = menu_data.min,
 			max = menu_data.max,
 			step = menu_data.step,
@@ -3608,8 +3624,8 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 			desc = menu_data.desc,
 			callback = menu_data.callback,
 			items = menu_data.items,
-			value = KineticHUD.settings[menu_data.value],
-			default_value = menu_data.default_value or KineticHUD.default_settings[menu_data.value],
+			value = settings[menu_data.value],
+			default_value = menu_data.default_value or default_settings[menu_data.value],
 			menu_id = parent_menu_id,
 			priority = priority
 		})
@@ -3662,10 +3678,12 @@ Hooks:Add("MenuManagerBuildCustomMenus", "MenuManagerBuildCustomMenus_khud", fun
 end)
 
 Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_manager)
+
+--player weapons panel
 	MenuCallbackHandler.callback_khud_player_weapons_panel_set_scale = function(self,item)
 		if alive(KineticHUD._player_weapons_panel) then 
 			local value = tonumber(item:value())
-			KineticHUD.settings.player_weapons_panel_scale = value
+			KineticHUD.layout_settings.player_weapons_panel_scale = value
 			
 			KineticHUD:LayoutPlayerWeaponsPanel({recreate_text_objects = true})
 		end
@@ -3673,7 +3691,7 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_player_weapons_panel_set_x = function(self,item)
 		if alive(KineticHUD._player_weapons_panel) then 
 			local value = tonumber(item:value())
-			KineticHUD.settings.player_weapons_panel_x = value
+			KineticHUD.layout_settings.player_weapons_panel_x = value
 			
 			KineticHUD:LayoutPlayerWeaponsPanel({recreate_text_objects = false})
 		end
@@ -3681,65 +3699,207 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_player_weapons_panel_set_y = function(self,item)
 		if alive(KineticHUD._player_weapons_panel) then 
 			local value = tonumber(item:value())
-			KineticHUD.settings.player_weapons_panel_y = value
+			KineticHUD.layout_settings.player_weapons_panel_y = value
 			
 			KineticHUD:LayoutPlayerWeaponsPanel({recreate_text_objects = false})
 		end
 	end
+	
+--player vitals panel
 	MenuCallbackHandler.callback_khud_player_vitals_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.player_vitals_panel_location = value
+		KineticHUD.layout_settings.player_vitals_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
 	MenuCallbackHandler.callback_khud_player_weapons_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.player_weapons_panel_location = value
+		KineticHUD.layout_settings.player_weapons_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
+	end
+	
+--player equipment panel
+	MenuCallbackHandler.callback_khud_player_equipment_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.PLAYER_EQUIPMENT_X = value
+		KineticHUD:LayoutPlayerEquipmentPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_equipment_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.PLAYER_EQUIPMENT_Y = value
+		KineticHUD:LayoutPlayerEquipmentPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_equipment_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_equipment_panel_scale = value
+		KineticHUD:LayoutPlayerEquipmentPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_equipment_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_equipment_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
+	end
+	
+--player mission mission_equipment panel
+	MenuCallbackHandler.callback_khud_player_mission_equipment_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.PLAYER_MISSION_EQUIPMENT_X = value
+		KineticHUD:LayoutPlayerMissionEquipmentPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_mission_equipment_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.PLAYER_MISSION_EQUIPMENT_Y = value
+		KineticHUD:LayoutPlayerMissionEquipmentPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_mission_equipment_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_mission_equipment_panel_scale = value
+		KineticHUD:AnimateLayoutPlayerMissionEquipment(true)
+		--todo re-apply scale here
+	end
+	MenuCallbackHandler.callback_khud_player_mission_equipment_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_mission_equipment_panel_location = value
+	end
+	
+--teammates panel
+	MenuCallbackHandler.callback_khud_teammates_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.teammates_panel_x = value
+		KineticHUD:LayoutTeammatesPanel()
+	end
+	MenuCallbackHandler.callback_khud_teammates_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.teammates_panel_y = value
+		KineticHUD:LayoutTeammatesPanel()
+	end
+	MenuCallbackHandler.callback_khud_teammates_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.teammates_panel_scale = value
+		KineticHUD:LayoutTeammatesPanel()
 	end
 	MenuCallbackHandler.callback_khud_teammates_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.teammates_panel_location = value
+		KineticHUD.layout_settings.teammates_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
+	end
+
+--objectives panel
+	MenuCallbackHandler.callback_khud_objective_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.OBJECTIVE_X = value
+		KineticHUD:LayoutObjectivePanel()
+	end
+	MenuCallbackHandler.callback_khud_objective_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.OBJECTIVE_Y = value
+		KineticHUD:LayoutObjectivePanel()
+	end
+	MenuCallbackHandler.callback_khud_objective_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.objective_panel_scale = value
+		KineticHUD:LayoutObjectivePanel()
 	end
 	MenuCallbackHandler.callback_khud_objective_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.objective_panel_location = value
+		KineticHUD.layout_settings.objective_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
+	end
+	
+--assault panel
+	MenuCallbackHandler.callback_khud_assault_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.ASSAULT_X = value
+		KineticHUD:LayoutAssaultPanel()
+	end
+	MenuCallbackHandler.callback_khud_assault_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.ASSAULT_Y = value
+		KineticHUD:LayoutAssaultPanel()
+	end
+	MenuCallbackHandler.callback_khud_assault_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.assault_panel_scale = value
+		KineticHUD:LayoutAssaultPanel()
 	end
 	MenuCallbackHandler.callback_khud_assault_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.assault_panel_location = value
+		KineticHUD.layout_settings.assault_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--interaction panel
 	MenuCallbackHandler.callback_khud_interaction_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.interaction_panel_location = value
+		KineticHUD.layout_settings.interaction_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+	MenuCallbackHandler.callback_khud_interaction_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.interaction_panel_x = value
+--		KineticHUD:LayoutInteractionPanel()
+	end
+	MenuCallbackHandler.callback_khud_interaction_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.interaction_panel_y = value
+--		KineticHUD:LayoutInteractionPanel()
+	end
+	MenuCallbackHandler.callback_khud_interaction_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.interaction_panel_scale = value
+--		KineticHUD:LayoutInteractionPanel()
+	end
+
+--hints panel
 	MenuCallbackHandler.callback_khud_hints_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.hints_panel_location = value
+		KineticHUD.layout_settings.hints_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--location panel
 	MenuCallbackHandler.callback_khud_presenter_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.presenter_panel_location = value
+		KineticHUD.layout_settings.presenter_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--chat panel
 	MenuCallbackHandler.callback_khud_chat_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.chat_panel_location = value
+		KineticHUD.layout_settings.chat_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--hit direction
 	MenuCallbackHandler.callback_khud_hitdirection_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.hitdirection_panel_location = value
+		KineticHUD.layout_settings.hitdirection_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--suspicion panel
 	MenuCallbackHandler.callback_khud_suspicion_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.suspicion_panel_location = value
+		KineticHUD.layout_settings.suspicion_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
+
+--buffs panel
 	MenuCallbackHandler.callback_khud_buffs_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.buffs_panel_location = value
+		KineticHUD.layout_settings.buffs_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
-	
+
+--compass panel
 	MenuCallbackHandler.callback_khud_compass_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
-		KineticHUD.settings.compass_panel_location = value
+		KineticHUD.layout_settings.compass_panel_location = value
+		KineticHUD:AnimatePanelSelectedFlash(value)
 	end
 	
+	
+--on closed main menu
 	MenuCallbackHandler.callback_khud_close = function(this)
 		KineticHUD:Save()
 		--note to self: weapons menu and compass menu use this generic callback

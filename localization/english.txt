@@ -15,6 +15,12 @@
 	"khud_menu_layouts_player_vitals_armor_desc" : "AP Indicator",
 	"khud_menu_layouts_player_weapons_title" : "Player Weapons",
 	"khud_menu_layouts_player_weapons_desc" : "Weapon info such as Ammo, Kills, and Firemode",
+	"khud_menu_layouts_player_equipment_all_title" : "Player Items",
+	"khud_menu_layouts_player_equipment_all_desc" : "Deployables, Throwables, Zipties, and Mission Equipment.",
+	"khud_menu_layouts_player_equipment_title" : "Player Equipment",
+	"khud_menu_layouts_player_equipment_desc" : "Deployables, Throwables, Zipties, and Mission Equipment.",
+	"khud_menu_layouts_player_mission_equipment_title" : "Mission Equipment",
+	"khud_menu_layouts_player_mission_equipment_desc" : "Player mission items such as Thermite, Crowbars, Planks, etc.",
 	"khud_menu_layouts_teammates_title" : "Teammates",
 	"khud_menu_layouts_teammates_desc" : "HUD elements for other players/AI in the lobby",
 	"khud_menu_layouts_objectives_title" : "Objectives",
@@ -44,8 +50,19 @@
 	"khud_menu_layouts_cartographer_title" : "Location",
 	"khud_menu_layouts_cartographer_desc" : "Compass and Location Names",
 	
-	"khud_menu_layouts_location_generic_title" : "Panel Location",
-	"khud_menu_layouts_location_generic_desc" : "Change where this HUD item is displayed. (Requires Restart)",
+	"khud_menu_layouts_generic_location_title" : "Panel Location",
+	"khud_menu_layouts_generic_location_desc" : "Change which side of the screen to show this HUD item on. (Requires Restart)",
+	
+	"khud_menu_layouts_generic_x_title" : "Panel X",
+	"khud_menu_layouts_generic_x_desc" : "Change the horizontal position of this HUD item.",
+	
+	"khud_menu_layouts_generic_y_title" : "Panel Y",
+	"khud_menu_layouts_generic_y_desc" : "Change the vertical position of this HUD item.",
+	
+	"khud_menu_layouts_generic_scale_title" : "Panel Scale",
+	"khud_menu_layouts_generic_scale_desc" : "Change the size of this HUD item.",
+	
+	
 	
 	"khud_player_weapons_panel_set_x_title" : "Set Panel X",
 	"khud_player_weapons_panel_set_x_desc" : "Set the horizontal position of the Weapons Panel",

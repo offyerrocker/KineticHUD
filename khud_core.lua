@@ -105,10 +105,11 @@ KineticHUD._menu_ids = {
 									{
 										type = "multiple_choice",
 										id = "khud_player_vitals_panel_set_location",
-										title = "khud_menu_layouts_location_generic_title",
-										desc = "khud_menu_layouts_location_generic_desc",
+										title = "khud_menu_layouts_generic_location_title",
+										desc = "khud_menu_layouts_generic_location_desc",
 										items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 										callback = "callback_khud_player_vitals_panel_set_location",
+										settings_source = "layout",
 										value = "player_vitals_panel_location"
 									},
 									{
@@ -147,10 +148,11 @@ KineticHUD._menu_ids = {
 									{
 										type = "multiple_choice",
 										id = "khud_player_weapons_panel_set_location",
-										title = "khud_menu_layouts_location_generic_title",
-										desc = "khud_menu_layouts_location_generic_desc",
+										title = "khud_menu_layouts_generic_location_title",
+										desc = "khud_menu_layouts_generic_location_desc",
 										items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 										callback = "callback_khud_player_weapons_panel_set_location",
+										settings_source = "layout",
 										value = "player_weapons_panel_location"
 									},
 									{
@@ -158,25 +160,14 @@ KineticHUD._menu_ids = {
 										id = "khud_menu_layouts_player_weapons_div_1",
 										size = KineticHUD.menu_divider_sizes.medium
 									},
-									
-									{--weapons customization here
-										type = "slider",
-										id = "khud_player_weapons_panel_set_scale",
-										title = "khud_player_weapons_panel_set_scale_title",
-										desc = "khud_player_weapons_panel_set_scale_title",
-										callback = "callback_khud_player_weapons_panel_set_scale",
-										value = "player_weapons_panel_scale",
-										default_value = 1,
-										min = 0,
-										max = 3,
-										step = 0.1
-									},
 									{		
 										type = "slider",
 										id = "khud_player_weapons_panel_set_x",
 										title = "khud_player_weapons_panel_set_x_title",
 										description = "khud_player_weapons_panel_set_x_desc",
 										callback = "callback_khud_player_weapons_panel_set_x",
+										settings_source = "layout",
+										show_value = true,
 										value = "player_weapons_panel_x",
 										default_value = 750,
 										min = 0,
@@ -189,11 +180,168 @@ KineticHUD._menu_ids = {
 										title = "khud_player_weapons_panel_set_y_title",
 										description = "khud_player_weapons_panel_set_y_desc",
 										callback = "callback_khud_player_weapons_panel_set_y",
+										settings_source = "layout",
+										show_value = true,
 										value = "player_weapons_panel_y",
 										default_value = 1,
 										min = 0,
 										max = 1024,
 										step = 1
+									},
+									{
+										type = "slider",
+										id = "khud_player_weapons_panel_set_scale",
+										title = "khud_player_weapons_panel_set_scale_title",
+										desc = "khud_player_weapons_panel_set_scale_title",
+										callback = "callback_khud_player_weapons_panel_set_scale",
+										settings_source = "layout",
+										show_value = true,
+										value = "player_weapons_panel_scale",
+										default_value = 1,
+										min = 0,
+										max = 3,
+										step = 0.1
+									}
+								}
+							},
+							{
+								type = "menu",
+								id = "khud_menu_layouts_player_equipment_all",
+								title = "khud_menu_layouts_player_equipment_all_title",
+								desc = "khud_menu_layouts_player_equipment_all_desc",
+								area_bg = "none",
+								children = {
+									{
+										type = "menu",
+										id = "khud_menu_layouts_player_equipment",
+										title = "khud_menu_layouts_player_equipment_title",
+										desc = "khud_menu_layouts_player_equipment_desc",
+										area_bg = "none",
+										children = {
+											{
+												type = "multiple_choice",
+												id = "khud_player_equipment_panel_set_location",
+												title = "khud_menu_layouts_generic_location_title",
+												desc = "khud_menu_layouts_generic_location_desc",
+												items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+												callback = "callback_khud_player_equipment_panel_set_location",
+												settings_source = "layout",
+												value = "player_equipment_panel_location"
+											},
+											{
+												type = "divider",
+												id = "khud_menu_layouts_player_equipment_div_1",
+												size = KineticHUD.menu_divider_sizes.medium
+											},
+											{		
+												type = "slider",
+												id = "khud_player_equipment_panel_set_x",
+												title = "khud_menu_layouts_generic_x_title",
+												description = "khud_menu_layouts_generic_x_desc",
+												callback = "callback_khud_player_equipment_panel_set_x",
+												settings_source = "layout",
+												show_value = true,
+												value = "PLAYER_EQUIPMENT_X",
+												default_value = 750,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_equipment_panel_set_y",
+												title = "khud_menu_layouts_generic_y_title",
+												description = "khud_menu_layouts_generic_y_desc",
+												callback = "callback_khud_player_equipment_panel_set_y",
+												settings_source = "layout",
+												show_value = true,
+												value = "PLAYER_EQUIPMENT_Y",
+												default_value = 1,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_equipment_panel_set_scale",
+												title = "khud_menu_layouts_generic_scale_title",
+												desc = "khud_menu_layouts_generic_scale_desc",
+												callback = "callback_khud_player_equipment_panel_set_scale",
+												settings_source = "layout",
+												show_value = true,
+												value = "player_equipment_panel_scale",
+												default_value = 1,
+												min = 0,
+												max = 3,
+												step = 0.1
+											}
+										}
+									},
+									{
+										type = "menu",
+										id = "khud_menu_layouts_player_mission_equipment",
+										title = "khud_menu_layouts_player_mission_equipment_title",
+										desc = "khud_menu_layouts_player_mission_equipment_desc",
+										area_bg = "none",
+										children = {
+											{
+												type = "multiple_choice",
+												id = "khud_player_mission_equipment_panel_set_location",
+												title = "khud_menu_layouts_generic_location_title",
+												desc = "khud_menu_layouts_generic_location_desc",
+												items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+												callback = "callback_khud_player_mission_equipment_panel_set_location",
+												settings_source = "layout",
+												value = "player_mission_equipment_panel_location"
+											},
+											{
+												type = "divider",
+												id = "khud_menu_layouts_player_mission_equipment_div_1",
+												size = KineticHUD.menu_divider_sizes.medium
+											},
+											{		
+												type = "slider",
+												id = "khud_player_mission_equipment_panel_set_x",
+												title = "khud_menu_layouts_generic_x_title",
+												description = "khud_menu_layouts_generic_x_desc",
+												callback = "callback_khud_player_mission_equipment_panel_set_x",
+												settings_source = "layout",
+												show_value = true,
+												value = "PLAYER_MISSION_EQUIPMENT_X",
+												default_value = 750,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_mission_equipment_panel_set_y",
+												title = "khud_menu_layouts_generic_y_title",
+												description = "khud_menu_layouts_generic_y_desc",
+												callback = "callback_khud_player_mission_equipment_panel_set_y",
+												settings_source = "layout",
+												show_value = true,
+												value = "PLAYER_MISSION_EQUIPMENT_Y",
+												default_value = 1,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_mission_equipment_panel_set_scale",
+												title = "khud_menu_layouts_generic_scale_title",
+												desc = "khud_menu_layouts_generic_scale_desc",
+												callback = "callback_khud_player_mission_equipment_panel_set_scale",
+												settings_source = "layout",
+												show_value = true,
+												value = "player_mission_equipment_panel_scale",
+												default_value = 1,
+												min = 0,
+												max = 3,
+												step = 0.1
+											}
+										}
 									}
 								}
 							}
@@ -209,11 +357,51 @@ KineticHUD._menu_ids = {
 							{
 								type = "multiple_choice",
 								id = "khud_teammates_panel_set_location",
-								title = "khud_menu_layouts_location_generic_title",
-								desc = "khud_menu_layouts_location_generic_desc",
+								title = "khud_menu_layouts_generic_location_title",
+								desc = "khud_menu_layouts_generic_location_desc",
 								items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 								callback = "callback_khud_teammates_panel_set_location",
+								settings_source = "layout",
 								value = "teammates_panel_location"
+							},
+							{
+								type = "slider",
+								id = "khud_teammates_panel_set_x",
+								title = "khud_menu_layouts_generic_x_title",
+								desc = "khud_menu_layouts_generic_x_desc",
+								callback = "callback_khud_teammates_panel_set_x",
+								settings_source = "layout",
+								value = "teammates_panel_x",
+								min = -1280,
+								max = 1280,
+								step = 1,
+								show_value = true
+							},
+							{
+								type = "slider",
+								id = "khud_teammates_panel_set_y",
+								title = "khud_menu_layouts_generic_y_title",
+								desc = "khud_menu_layouts_generic_y_desc",
+								callback = "callback_khud_teammates_panel_set_y",
+								settings_source = "layout",
+								value = "teammates_panel_y",
+								min = -720,
+								max = 720,
+								step = 1,
+								show_value = true
+							},
+							{
+								type = "slider",
+								id = "khud_teammates_panel_set_scale",
+								title = "khud_menu_layouts_generic_scale_title",
+								desc = "khud_menu_layouts_generic_scale_desc",
+								callback = "callback_khud_teammates_panel_set_scale",
+								settings_source = "layout",
+								value = "teammates_panel_scale",
+								min = 0.01,
+								max = 5,
+								step = 0.1,
+								show_value = true
 							},
 							{
 								type = "divider",
@@ -234,11 +422,51 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_objective_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_objective_panel_set_location",
+						settings_source = "layout",
 						value = "objective_panel_location"
+					},
+					{
+						type = "slider",
+						id = "khud_objective_panel_set_x",
+						title = "khud_menu_layouts_generic_x_title",
+						desc = "khud_menu_layouts_generic_x_desc",
+						callback = "callback_khud_objective_panel_set_x",
+						settings_source = "layout",
+						value = "OBJECTIVE_X",
+						min = -1280,
+						max = 1280,
+						step = 1,
+						show_value = true
+					},
+					{
+						type = "slider",
+						id = "khud_objective_panel_set_y",
+						title = "khud_menu_layouts_generic_y_title",
+						desc = "khud_menu_layouts_generic_y_desc",
+						callback = "callback_khud_objective_panel_set_y",
+						settings_source = "layout",
+						value = "OBJECTIVE_Y",
+						min = -720,
+						max = 720,
+						step = 1,
+						show_value = true
+					},
+					{
+						type = "slider",
+						id = "khud_objective_panel_set_scale",
+						title = "khud_menu_layouts_generic_scale_title",
+						desc = "khud_menu_layouts_generic_scale_desc",
+						callback = "callback_khud_objective_panel_set_scale",
+						settings_source = "layout",
+						value = "objective_panel_scale",
+						min = 0.01,
+						max = 5,
+						step = 0.1,
+						show_value = true
 					},
 					{
 						type = "divider",
@@ -257,12 +485,52 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_assault_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_assault_panel_set_location",
+						settings_source = "layout",
 						value = "assault_panel_location"
 					},
+					{
+							type = "slider",
+							id = "khud_assault_panel_set_x",
+							title = "khud_menu_layouts_generic_x_title",
+							desc = "khud_menu_layouts_generic_x_desc",
+							callback = "callback_khud_assault_panel_set_x",
+							settings_source = "layout",
+							value = "ASSAULT_X",
+							min = -1280,
+							max = 1280,
+							step = 1,
+							show_value = true
+						},
+						{
+							type = "slider",
+							id = "khud_assault_panel_set_y",
+							title = "khud_menu_layouts_generic_y_title",
+							desc = "khud_menu_layouts_generic_y_desc",
+							callback = "callback_khud_assault_panel_set_y",
+							settings_source = "layout",
+							value = "ASSAULT_Y",
+							min = -720,
+							max = 720,
+							step = 1,
+							show_value = true
+						},
+						{
+							type = "slider",
+							id = "khud_assault_panel_set_scale",
+							title = "khud_menu_layouts_generic_scale_title",
+							desc = "khud_menu_layouts_generic_scale_desc",
+							callback = "callback_khud_assault_panel_set_scale",
+							settings_source = "layout",
+							value = "assault_panel_scale",
+							min = 0.01,
+							max = 5,
+							step = 0.1,
+							show_value = true
+						},
 					{
 						type = "divider",
 						id = "khud_menu_layouts_assault_panel_div_1",
@@ -280,10 +548,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_interaction_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_interaction_panel_set_location",
+						settings_source = "layout",
 						value = "interaction_panel_location"
 					},
 					{
@@ -303,10 +572,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_hints_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_hints_panel_set_location",
+						settings_source = "layout",
 						value = "hints_panel_location"
 					},
 					{
@@ -326,10 +596,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_presenter_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_presenter_panel_set_location",
+						settings_source = "layout",
 						value = "presenter_panel_location"
 					},
 					{
@@ -349,10 +620,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_chat_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_chat_panel_set_location",
+						settings_source = "layout",
 						value = "chat_panel_location"
 					},
 					{
@@ -372,10 +644,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_hitdirection_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_hitdirection_panel_set_location",
+						settings_source = "layout",
 						value = "hitdirection_panel_location"
 					},
 					{
@@ -425,10 +698,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_suspicion_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_suspicion_panel_set_location",
+						settings_source = "layout",
 						value = "suspicion_panel_location"
 					},
 					{
@@ -448,10 +722,11 @@ KineticHUD._menu_ids = {
 					{
 						type = "multiple_choice",
 						id = "khud_buffs_panel_set_location",
-						title = "khud_menu_layouts_location_generic_title",
-						desc = "khud_menu_layouts_location_generic_desc",
+						title = "khud_menu_layouts_generic_location_title",
+						desc = "khud_menu_layouts_generic_location_desc",
 						items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 						callback = "callback_khud_buffs_panel_set_location",
+						settings_source = "layout",
 						value = "buffs_panel_location"
 					},
 					{
@@ -478,10 +753,11 @@ KineticHUD._menu_ids = {
 							{
 								type = "multiple_choice",
 								id = "khud_compass_panel_set_location",
-								title = "khud_menu_layouts_location_generic_title",
-								desc = "khud_menu_layouts_location_generic_desc",
+								title = "khud_menu_layouts_generic_location_title",
+								desc = "khud_menu_layouts_generic_location_desc",
 								items = table.deep_map_copy(KineticHUD.hud_panel_locations),
 								callback = "callback_khud_compass_panel_set_location",
+								settings_source = "layout",
 								value = "compass_panel_location"
 							},
 							{
@@ -513,6 +789,18 @@ KineticHUD._cache = {
 
 KineticHUD._teammate_panels = {}
 
+
+KineticHUD.valign_values = {
+	"top",
+	"center",
+	"bottom"
+}
+KineticHUD.halign_values = {
+	"left",
+	"center",
+	"right"
+}
+
 --number values used for sizing, positioning etc. which should not be change-able by settings
 KineticHUD.hud_values = {
 	world_panels = {
@@ -530,7 +818,8 @@ KineticHUD.hud_values = {
 			OFFSET_X = -5.25,
 			OFFSET_Y = 0,
 			OFFSET_Z = -10,
-			RECT_COLOR = Color.red
+			RECT_COLOR = Color.red,
+			RECT_ALPHA = 0.5
 		},
 		{
 			name = "right_panel",
@@ -546,7 +835,8 @@ KineticHUD.hud_values = {
 			OFFSET_X = 5.25,
 			OFFSET_Y = 0,
 			OFFSET_Z = -10,
-			RECT_COLOR = Color.blue
+			RECT_COLOR = Color.blue,
+			RECT_ALPHA = 0.5
 		},
 		{
 			name = "top_panel",
@@ -562,7 +852,8 @@ KineticHUD.hud_values = {
 			OFFSET_X = 0,
 			OFFSET_Y = 1.5,
 			OFFSET_Z = -10,
-			RECT_COLOR = Color.yellow
+			RECT_COLOR = Color.yellow,
+			RECT_ALPHA = 0.5
 		},
 		{
 			name = "bottom_panel",
@@ -578,9 +869,11 @@ KineticHUD.hud_values = {
 			OFFSET_X = 0,
 			OFFSET_Y = -1.5,
 			OFFSET_Z = -10,
-			RECT_COLOR = Color.green
+			RECT_COLOR = Color.green,
+			RECT_ALPHA = 0.5
 		}
 	},
+	
 	
 	FIREMODE_SINGLE_TEXTURE = "textures/ui/firemode_dots_1",
 	FIREMODE_BURST_TEXTURE = "textures/ui/firemode_dots_2",
@@ -630,15 +923,22 @@ KineticHUD.hud_values = {
 	PLAYER_HEALTH_BAR_X = 700,
 	PLAYER_HEALTH_BAR_Y = 500,
 	
-	PLAYER_EQUIPMENT_X = 150,
-	PLAYER_EQUIPMENT_Y = 800,
 	PLAYER_EQUIPMENT_DEPLOYABLE_1_X = 0,
 	PLAYER_EQUIPMENT_DEPLOYABLE_1_Y = 0,
+	PLAYER_EQUIPMENT_DEPLOYABLE_2_X = 128 + 56,
+	PLAYER_EQUIPMENT_DEPLOYABLE_2_Y = 0,
+	PLAYER_EQUIPMENT_CABLE_TIES_X = 25,
+	PLAYER_EQUIPMENT_CABLE_TIES_Y = 75,
+	PLAYER_EQUIPMENT_THROWABLE_X = 25 + 128,
+	PLAYER_EQUIPMENT_THROWABLE_Y = 75,
+	
+	
+	PLAYER_EQUIPMENT_BOX_OUTLINE_THICKNESS = 2,
+	PLAYER_EQUIPMENT_BOX_OUTLINE_ALPHA = 0.5,
+	PLAYER_EQUIPMENT_BOX_BG_ALPHA = 0.5,
 	
 	PLAYER_MISSION_EQUIPMENT_W = 500,
 	PLAYER_MISSION_EQUIPMENT_H = 100,
-	PLAYER_MISSION_EQUIPMENT_X = 0,
-	PLAYER_MISSION_EQUIPMENT_Y = 700,
 	PLAYER_MISSION_EQUIPMENT_ICON_SIZE = 32,
 	PLAYER_MISSION_EQUIPMENT_FONT_SIZE = 24,
 	
@@ -646,8 +946,6 @@ KineticHUD.hud_values = {
 	
 	PLAYER_WEAPONS_W = 500,
 	PLAYER_WEAPONS_H = 400,
-	PLAYER_WEAPONS_X = 0,
-	PLAYER_WEAPONS_Y = 750,
 	
 	PLAYER_WEAPON_PRIMARY_SCALE = 1,
 	PLAYER_WEAPON_SECONDARY_SCALE = 0.75,
@@ -723,15 +1021,14 @@ KineticHUD.hud_values = {
 	TEAMMATE_SPEAKING_ICON_X = 0,
 	TEAMMATE_SPEAKING_ICON_Y = 0,
 	TEAMMATE_SPEAKING_ICON_SIZE_MUL = 1,	
+	TEAMMATE_SPEAKING_ICON_ID = "pd2_talk",
 	
 	TEAMMATE_DEPLOYABLE_X = 0,
 	TEAMMATE_DEPLOYABLE_Y = 0,
 	TEAMMATE_REVIVES_FONT_SIZE = 20,
-				    
+	
 	ASSAULT_W = 300,
 	ASSAULT_H = 100,
-	ASSAULT_X = 0,
-	ASSAULT_Y = 0,
 	ASSAULT_ICON_W = 32,
 	ASSAULT_ICON_H = 32,
 	ASSAULT_ICON_X = 0,
@@ -747,8 +1044,7 @@ KineticHUD.hud_values = {
 	
 	OBJECTIVE_W = 500,
 	OBJECTIVE_H = 100,
-	OBJECTIVE_X = 0,
-	OBJECTIVE_Y = 0,
+	
 	OBJECTIVE_HALIGN = "left", --these ones are manually applied
 	OBJECTIVE_VALIGN = "top",
 	
@@ -773,14 +1069,19 @@ KineticHUD.hud_values = {
 	OBJECTIVE_COUNT_TEXT_FONT_SIZE = 32,
 	OBJECTIVE_COUNT_TEXT_COLOR = Color.white,
 	
+	OBJECTIVE_ANIMATE_TEXT_TYPING_SPEED = 0.1, --seconds per character in typing animation
+	OBJECTIVE_ANIMATE_TEXT_TYPING_HOLD_DURATION = 3,
+	OBJECTIVE_ANIMATE_TEXT_TYPING_CURSOR_BLINK_SPEED = 1,
+	OBJECTIVE_ANIMATE_TEXT_BACKSPACE_DURATION = 0.5,
+	
 	CARRY_W = 500,
 	CARRY_H = 100,
-	CARRY_X = 0,
-	CARRY_Y = 400,
+	CARRY_ICON_ID = "bag_icon",
 	CARRY_ICON_X = 0,
 	CARRY_ICON_Y = 0,
 	CARRY_ICON_W = 24,
 	CARRY_ICON_H = 24,
+	CARRY_ICON_ALPHA = 0.8,
 	CARRY_LABEL_X = 32,
 	CARRY_LABEL_Y = 0,
 	CARRY_LABEL_FONT_SIZE = 24,
@@ -791,8 +1092,6 @@ KineticHUD.hud_values = {
 	CARRY_VALUE_FONT_SIZE = 24,
 	CARRY_VALUE_HALIGN = "left",
 	CARRY_VALUE_VALIGN = "top",
-	
-	
 	
 	HEALTH_THRESHOLD_NORMAL = 1,
 	HEALTH_THRESHOLD_STRESSED = 0.5,
@@ -892,55 +1191,67 @@ KineticHUD.hud_values = {
 	}
 }
 
-KineticHUD.layout_settings = table.deep_map_copy(KineticHUD.hud_values)
-
-KineticHUD.debug_value_1 = 0.5
-
---default settings
-KineticHUD.default_settings = {
+KineticHUD.default_layout_settings = {
+	HEIST_TIMER_FONT_SIZE = 24,
+	
 	player_vitals_panel_location = 4,
+	player_vitals_panel_scale = 1,
+
+	player_weapons_panel_x = 0,
+	player_weapons_panel_y = 750,
 	player_weapons_panel_location = 2, --locations are [1-4]
+	player_weapons_panel_scale = 1,
+	
+	player_equipment_panel_scale = 1,
 	player_equipment_panel_location = 1,
+	PLAYER_EQUIPMENT_X = 150,
+	PLAYER_EQUIPMENT_Y = 800,
+	
+	player_mission_equipment_panel_scale = 1,
 	player_mission_equipment_panel_location = 1,
-	teammate_panel_location = 1,
-	assault_panel_location = 2,
-	hints_panel_location = 2,
+	PLAYER_MISSION_EQUIPMENT_X = 0,
+	PLAYER_MISSION_EQUIPMENT_Y = 700,
+	
+	
 	presenter_panel_location = 3,
-	objective_panel_location = 1,
 	interaction_panel_location = 4, --5, after i make that
 	chat_panel_location = 1,
 	hitdirection_panel_location = 4,
 	suspicion_panel_location = 3,
 	buffs_panel_location = 4,
 	compass_panel_location = 3,
-	carry_panel_location = 1,
+	hints_panel_location = 2,
 	
-	player_mission_equipment_panel_scale = 1,
-	player_vitals_panel_scale = 1,
-	player_weapons_panel_scale = 1,
-	player_equipment_panel_scale = 1,
-	player_weapons_panel_x = 0,
-	player_weapons_panel_y = 750,
-	objective_panel_scale = 1,
-	teammate_panel_scale = 1,
+	
+	teammates_panel_location = 1,
+	teammates_panel_scale = 1,
+	teammates_panel_x = 0,
+	teammates_panel_y = 0,
+	
 	assault_panel_scale = 1,
+	assault_panel_location = 2,
+	ASSAULT_X = 0,
+	ASSAULT_Y = 0,
+	
+	objective_panel_scale = 1,
+	objective_panel_location = 1,
+	OBJECTIVE_X = 0,
+	OBJECTIVE_Y = 0,
+	
 	carry_panel_scale = 1,
-	PLAYER_HEALTH_BAR_HALIGN = 1,
-	PLAYER_HEALTH_BAR_VALIGN = 1,
-	HEIST_TIMER_FONT_SIZE = 24
+	carry_panel_location = 1,
+	CARRY_X = 0,
+	CARRY_Y = 400
+	
 }
 
-KineticHUD.valign_values = {
-	"top",
-	"center",
-	"bottom"
-}
-KineticHUD.halign_values = {
-	"left",
-	"center",
-	"right"
+KineticHUD.debug_value_1 = 0.5
+
+--default settings
+KineticHUD.default_settings = {
 }
 
+KineticHUD.layout_settings = table.deep_map_copy(KineticHUD.default_layout_settings)
 KineticHUD.settings = table.deep_map_copy(KineticHUD.default_settings)
 --loading settings from existing save file comes after, so that it is layed over the default_settings
 
@@ -1180,41 +1491,59 @@ end
 
 --io
 
-function KineticHUD:LoadLayout() --not used
-	local file = io.open(KineticHUD._layout_save_path, "r")
+function KineticHUD:LoadLayout()
+	local file = io.open(self._layout_save_path, "r")
 	if (file) then
 		for k, v in pairs(json.decode(file:read("*all"))) do
-			KineticHUD.layout_settings[k] = v
+			self.layout_settings[k] = v
 		end
 	else
-		KineticHUD:SaveLayout()
+		self:SaveLayout()
 	end
 end
 
-function KineticHUD:SaveLayout() --not used
-	local file = io.open(KineticHUD._layout_save_path, "w+")
+function KineticHUD:SaveLayout()
+	local file = io.open(self._layout_save_path, "w+")
 	if file then
-		file:write(json.encode(KineticHUD.layout_settings))
+		file:write(json.encode(self.layout_settings))
 		file:close()
 	end
 
 end
 
-function KineticHUD:Load()
-	local file = io.open(KineticHUD._settings_save_path, "r")
-	if (file) then
-		for k, v in pairs(json.decode(file:read("*all"))) do
-			KineticHUD.settings[k] = v
-		end
-	else
-		KineticHUD:Save()
+function KineticHUD:Load(skip_settings,skip_layout)
+	if not skip_settings then 
+		self:LoadSettings()
+	end
+	if not skip_layout then 
+		self:LoadLayout()
 	end
 end
 
-function KineticHUD:Save()
-	local file = io.open(KineticHUD._settings_save_path, "w+")
+function KineticHUD:Save(skip_settings,skip_layout)
+	if not skip_settings then 
+		self:SaveSettings()
+	end
+	if not skip_layout then 
+		self:SaveLayout()
+	end
+end
+
+function KineticHUD:LoadSettings()
+	local file = io.open(self._settings_save_path, "r")
+	if (file) then
+		for k, v in pairs(json.decode(file:read("*all"))) do
+			self.settings[k] = v
+		end
+	else
+		self:Save()
+	end
+end
+
+function KineticHUD:SaveSettings()
+	local file = io.open(self._settings_save_path, "w+")
 	if file then
-		file:write(json.encode(KineticHUD.settings))
+		file:write(json.encode(self.settings))
 		file:close()
 	end
 end
