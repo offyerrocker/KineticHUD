@@ -1150,8 +1150,8 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 	local margin_small = hv.MARGIN_SMALL * scale
 	local border_thickness = 2
 	
-	local box_w = 116
-	local box_h = 48
+	local box_w = hv.PLAYER_EQUIPMENT_BOX_W * scale
+	local box_h = hv.PLAYER_EQUIPMENT_BOX_H * scale
 	
 	local text_x = 48 + margin_small
 	local text_y = 0
@@ -2126,7 +2126,7 @@ function KineticHUD:LayoutPlayerEquipmentPanel(params)
 	
 	local deployable_2 = player_equipment_panel:child("deployable_2")
 	deployable_2:set_position(deployable_2_x,deployable_2_y)
-	deployable_2:hide() 
+--	deployable_2:hide() 
 	
 	local cable_ties = player_equipment_panel:child("cable_ties")
 	cable_ties:set_position(cable_ties_x,cable_ties_y)
@@ -2781,6 +2781,7 @@ function KineticHUD:SetPlayerDeployableEquipment(data)
 		local amount_1 = amount[1]
 		local amount_2 = amount[2]
 		local index = data.index
+		local has_any
 		local deployable
 		if index == 2 then 
 			deployable = player_equipment_panel:child("deployable_2")
@@ -2789,15 +2790,21 @@ function KineticHUD:SetPlayerDeployableEquipment(data)
 		end
 		
 		if amount_1 then 
+			has_any = true
 			local text_1 = deployable:child("text")
 			self.SetDigitalText(text_1,amount_1,2)
 		end
 		if amount_2 then 
+			has_any = true
 			local text_2 = deployable:child("text_2")
 			if not text_2:visible() then
 				text_2:show()
 			end
+--			deployable:child("icon_gradient_bg"):set_w(self.hud_values.PLAYER_EQUIPMENT_BOX_W * self.layout_settings.player_equipment_panel_scale)
 			self.SetDigitalText(text_2,amount_2,2)
+		end
+		if has_any then 
+			deployable:show()
 		end
 		if icon then 
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(icon)
