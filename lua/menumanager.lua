@@ -471,6 +471,10 @@ function KineticHUD:Setup(parent_panel)
 	managers.dyn_resource:load(Idstring("font"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 	managers.dyn_resource:load(Idstring("texture"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 
+	if managers.network:session() then 
+		self._cache.local_peer_id = managers.network:session():local_peer():id()
+	end
+	
 	self._gui = World:newgui()
 	self:CreateWorldPanels()
 	self:CreateHUD(parent_panel)

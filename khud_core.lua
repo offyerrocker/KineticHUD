@@ -850,7 +850,8 @@ KineticHUD._workspaces = {}
 KineticHUD._cache = {
 	selections_by_unit = {},
 	kills_by_weapon_unit = {},
-	teammate_health = {}
+	teammate_health = {},
+	local_peer_id = nil
 }
 
 KineticHUD._teammate_panels = {}
