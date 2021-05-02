@@ -6,7 +6,6 @@ DEVELOPMENT:
 		reposition with fov (solves ADS and vehicle issues)
 		main color scheme
 		misc category- eg. heist timer scale
-		animation for carry panel
 		updater should work when paused?
 	
 	
@@ -1691,12 +1690,13 @@ function KineticHUD:CreateCarryPanel(skip_layout)
 	
 	local hv = self.hud_values
 	local layout_settings = self.layout_settings
+	local scale = layout_settings.player_carry_panel_scale
 	
-	local selected_parent_panel = self._world_panels[layout_settings.carry_panel_location]
+	local selected_parent_panel = self._world_panels[layout_settings.player_carry_panel_location]
 	local carry_panel = selected_parent_panel:panel({
 		name = "carry_panel",
-		w = hv.CARRY_W,
-		h = hv.CARRY_H,
+		w = hv.CARRY_W * scale,
+		h = hv.CARRY_H * scale,
 		x = layout_settings.CARRY_X,
 		y = layout_settings.CARRY_Y,
 		visible = false
@@ -1714,6 +1714,12 @@ function KineticHUD:CreateCarryPanel(skip_layout)
 		alpha = hv.CARRY_ICON_ALPHA
 	})	
 	
+	local debug_rect = carry_panel:rect({
+		name = "debug_rect",
+		color = Color.green,
+		visible = false,
+		alpha = 0.1
+	})
 	
 	if not skip_layout then 
 		self:LayoutCarryPanel()
@@ -2493,8 +2499,8 @@ function KineticHUD:LayoutCarryPanel()
 	local scale = layout_settings.carry_panel_scale
 	
 	
-	local carry_x = hv.CARRY_X
-	local carry_y = hv.CARRY_Y
+	local carry_x = layout_settings.CARRY_X
+	local carry_y = layout_settings.CARRY_Y
 	local carry_w = hv.CARRY_W * scale
 	local carry_h = hv.CARRY_H * scale
 	
@@ -3179,6 +3185,7 @@ function KineticHUD:ShowCarry(carry_id,value)
 		carry_panel:show()
 		local bag_label = carry_panel:child("bag_label")
 		local bag_value = carry_panel:child("bag_value")
+		local bag_icon = carry_panel:child("bag_icon")
 		if alive(bag_label) then 
 			self:animate_stop(bag_label)
 			carry_panel:remove(bag_label)
@@ -3190,18 +3197,30 @@ function KineticHUD:ShowCarry(carry_id,value)
 		
 		local hv = self.hud_values
 		local layout_settings = self.layout_settings
-		local scale = self.settings.carry_panel_scale
-			
+		local scale = layout_settings.player_carry_panel_scale
+		local margin_small = hv.MARGIN_SMALL * scale
+		
+		local carry_icon_x = hv.CARRY_ICON_X * scale
+		local carry_icon_y = hv.CARRY_ICON_Y * scale
+		
 		local carry_label_font_size = hv.CARRY_LABEL_FONT_SIZE * scale
-		local carry_label_x = layout_settings.CARRY_LABEL_X * scale
-		local carry_label_y = layout_settings.CARRY_LABEL_Y * scale
+		local carry_label_x = hv.CARRY_LABEL_X * scale
+		local carry_label_y = hv.CARRY_LABEL_Y * scale
 		
 		local carry_value_font_size = hv.CARRY_VALUE_FONT_SIZE * scale
-		local carry_value_x = layout_settings.CARRY_VALUE_X * scale
-		local carry_value_y = layout_settings.CARRY_VALUE_Y * scale
+		local carry_value_x = hv.CARRY_VALUE_X * scale
+		local carry_value_y = hv.CARRY_VALUE_Y * scale
 		
-		local td = tweak_data.carry[tostring(carry_id)]
+		
+		local carry_td = tweak_data.carry
+		local td = carry_td[tostring(carry_id)]
+		local weight_mul = 1
+		if td.type and carry_td.types[td.type] then 
+			weight_mul = carry_td.types[td.type].move_speed_modifier or weight_mul
+		end
+		local value_animate_duration = hv.CARRY_ANIMATE_TEXT_VALUE_DURATION
 		local name = td and td.name_id and managers.localization:text(td.name_id) or ("ERROR: " .. tostring(carry_id))
+		local label_animate_duration = hv.CARRY_ANIMATE_TEXT_LABEL_TYPING_SPEED * utf8.len(name)
 		bag_label = carry_panel:text({
 			name = "bag_label",
 			font = self._fonts.syke,
@@ -3211,13 +3230,33 @@ function KineticHUD:ShowCarry(carry_id,value)
 			y = carry_label_y,
 			align = hv.CARRY_LABEL_HALIGN,
 			vertical = hv.CARRY_LABEL_VALIGN,
+			alpha = 1,
 			color = self.color_data.white
 		})
+		local carry_h = carry_panel:h()
+	--[[
+		local n_x,n_y,n_w,n_h = bag_label:text_rect()
+		
+		local bag_icon_x = n_x + n_w + margin_small
+		local bag_icon_y = 0
+		
+		bag_icon:set_position(bag_icon_x,bag_icon_y)
+		self:animate_stop(bag_icon)
+		self:animate(bag_icon,"animate_move_sin",nil,3,bag_icon_x,bag_icon_y,0,0)
+	--]]
+		self:animate_stop(bag_icon)
+		bag_icon:set_position(0,carry_h)
+		local function cb_icon_move_2(o)
+			self:animate(o,"animate_move_pow",nil,0.5,o:x(),o:y(),carry_icon_x,carry_icon_y,2)
+		end
+		self:animate(bag_icon,"animate_move_sin",cb_icon_move_2,0.5 / weight_mul,bag_icon:x(),bag_icon:y(),0,(carry_h - carry_icon_y) * (1 - weight_mul))
+	
 --		self:animate(bag_label,"animate_text_unscramble",nil,3,name,nil,nil)
 		
-		local value_string = value and managers.experience:cash_string(value) or ""
+		local value_string = value and managers.experience:cash_string(0) or ""
+		
 		bag_value = carry_panel:text({
-			name = "bag_label",
+			name = "bag_value",
 			font = self._fonts.syke,
 			text = value_string,
 			font_size = carry_value_font_size,
@@ -3225,9 +3264,21 @@ function KineticHUD:ShowCarry(carry_id,value)
 			y = carry_value_y,
 			align = hv.CARRY_VALUE_HALIGN,
 			vertical = hv.CARRY_VALUE_VALIGN,
+			visible = value and true or false,
 			color = self.color_data.white
 		})
 		
+		local done_cb 
+		
+		if value then
+			done_cb = function()
+			--self:animate_wait(hv.CARRY_ANIMATE_ICON_WAIT_DURATION,function()
+				self:animate(bag_value,"animate_text_money_count",nil,value_animate_duration,1,value,hv.CARRY_ANIMATE_TEXT_VALUE_POWER)
+			end
+		end
+		
+		
+		self:animate(bag_label,"animate_text_typing",done_cb,label_animate_duration,name,"|",1,nil)
 	end
 end
 
@@ -3758,6 +3809,28 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_player_mission_equipment_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
 		KineticHUD.layout_settings.player_mission_equipment_panel_location = value
+	end
+	
+--player carry bag loot panel
+	MenuCallbackHandler.callback_khud_player_carry_panel_set_x = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.CARRY_X = value
+		KineticHUD:LayoutCarryPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_carry_panel_set_y = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.CARRY_Y = value
+		KineticHUD:LayoutCarryPanel()
+	end
+	MenuCallbackHandler.callback_khud_player_carry_panel_set_scale = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_carry_panel_scale = value
+		KineticHUD:LayoutCarryPanel()
+		--todo re-apply scale here
+	end
+	MenuCallbackHandler.callback_khud_player_carry_panel_set_location = function(self,item)
+		local value = tonumber(item:value())
+		KineticHUD.layout_settings.player_carry_panel_location = value
 	end
 	
 --teammates panel

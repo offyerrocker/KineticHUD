@@ -342,6 +342,72 @@ KineticHUD._menu_ids = {
 												step = 0.1
 											}
 										}
+									},
+									{
+										type = "menu",
+										id = "khud_menu_layouts_player_carry",
+										title = "khud_menu_layouts_player_carry_title",
+										desc = "khud_menu_layouts_player_carry_desc",
+										area_bg = "none",
+										children = {
+											{
+												type = "multiple_choice",
+												id = "khud_player_carry_panel_set_location",
+												title = "khud_menu_layouts_generic_location_title",
+												desc = "khud_menu_layouts_generic_location_desc",
+												items = table.deep_map_copy(KineticHUD.hud_panel_locations),
+												callback = "callback_khud_player_carry_panel_set_location",
+												settings_source = "layout",
+												value = "player_carry_panel_location"
+											},
+											{
+												type = "divider",
+												id = "khud_menu_layouts_player_carry_div_1",
+												size = KineticHUD.menu_divider_sizes.medium
+											},
+											{		
+												type = "slider",
+												id = "khud_player_carry_panel_set_x",
+												title = "khud_menu_layouts_generic_x_title",
+												description = "khud_menu_layouts_generic_x_desc",
+												callback = "callback_khud_player_carry_panel_set_x",
+												settings_source = "layout",
+												show_value = true,
+												value = "CARRY_X",
+												default_value = 750,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_carry_panel_set_y",
+												title = "khud_menu_layouts_generic_y_title",
+												description = "khud_menu_layouts_generic_y_desc",
+												callback = "callback_khud_player_carry_panel_set_y",
+												settings_source = "layout",
+												show_value = true,
+												value = "CARRY_Y",
+												default_value = 1,
+												min = 0,
+												max = 1024,
+												step = 1
+											},
+											{
+												type = "slider",
+												id = "khud_player_carry_panel_set_scale",
+												title = "khud_menu_layouts_generic_scale_title",
+												desc = "khud_menu_layouts_generic_scale_desc",
+												callback = "callback_khud_player_carry_panel_set_scale",
+												settings_source = "layout",
+												show_value = true,
+												value = "player_carry_panel_scale",
+												default_value = 1,
+												min = 0,
+												max = 3,
+												step = 0.1
+											}
+										}
 									}
 								}
 							}
@@ -1078,20 +1144,25 @@ KineticHUD.hud_values = {
 	CARRY_H = 100,
 	CARRY_ICON_ID = "bag_icon",
 	CARRY_ICON_X = 0,
-	CARRY_ICON_Y = 0,
+	CARRY_ICON_Y = 50,
 	CARRY_ICON_W = 24,
 	CARRY_ICON_H = 24,
 	CARRY_ICON_ALPHA = 0.8,
 	CARRY_LABEL_X = 32,
-	CARRY_LABEL_Y = 0,
+	CARRY_LABEL_Y = -24,
 	CARRY_LABEL_FONT_SIZE = 24,
 	CARRY_LABEL_HALIGN = "left",
-	CARRY_LABEL_VALIGN = "top",
+	CARRY_LABEL_VALIGN = "bottom",
 	CARRY_VALUE_X = 32,
-	CARRY_VALUE_Y = 24,
+	CARRY_VALUE_Y = 0,
 	CARRY_VALUE_FONT_SIZE = 24,
 	CARRY_VALUE_HALIGN = "left",
-	CARRY_VALUE_VALIGN = "top",
+	CARRY_VALUE_VALIGN = "bottom",
+	
+	CARRY_ANIMATE_TEXT_LABEL_TYPING_SPEED = 0.1,
+	CARRY_ANIMATE_ICON_WAIT_DURATION = 1,
+	CARRY_ANIMATE_TEXT_VALUE_DURATION = 1,
+	CARRY_ANIMATE_TEXT_VALUE_POWER = 1,
 	
 	HEALTH_THRESHOLD_NORMAL = 1,
 	HEALTH_THRESHOLD_STRESSED = 0.5,
@@ -1212,6 +1283,10 @@ KineticHUD.default_layout_settings = {
 	PLAYER_MISSION_EQUIPMENT_X = 0,
 	PLAYER_MISSION_EQUIPMENT_Y = 700,
 	
+	player_carry_panel_location = 1,
+	player_carry_panel_scale = 1,
+	CARRY_X = 0,
+	CARRY_Y = 400,
 	
 	presenter_panel_location = 3,
 	interaction_panel_location = 4, --5, after i make that
@@ -1236,12 +1311,8 @@ KineticHUD.default_layout_settings = {
 	objective_panel_scale = 1,
 	objective_panel_location = 1,
 	OBJECTIVE_X = 0,
-	OBJECTIVE_Y = 0,
+	OBJECTIVE_Y = 0
 	
-	carry_panel_scale = 1,
-	carry_panel_location = 1,
-	CARRY_X = 0,
-	CARRY_Y = 400
 	
 }
 
@@ -1358,6 +1429,20 @@ function KineticHUD.animate_weapon_panels_switch(o,t,dt,start_t,duration,start_x
 	end
 end
 
+function KineticHUD.animate_move_pow(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power)
+	power = power or 2
+	
+	if t - start_t > duration then 
+		o:set_position(end_x,end_y)
+		return true
+	end
+	
+	local progress = math.pow((t - start_t) / duration,power or 2)
+	local d_x = end_x - start_x
+	local d_y = end_y - start_y
+	o:set_position(start_x + (d_x * progress),start_y + (d_y * progress))
+end
+
 function KineticHUD.animate_move_rotate_clockwise(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power)
 	power = power or 2
 	
@@ -1441,6 +1526,18 @@ function KineticHUD.animate_text_unscramble(o,t,dt,start_t,duration,end_text,scr
 		end
 	end
 	o:set_text(new_text)
+end
+
+--sets a text object to an increasing interpolated formatted cash amount string
+--eg. animates from "$0", counting up to "$200"
+function KineticHUD.animate_text_money_count(o,t,dt,start_t,duration,start_amount,end_amount,power)
+	local progress = math.pow((t - start_t) / duration,power or 1)
+	if t - start_t > duration then 
+		o:set_text(managers.experience:cash_string(end_amount))
+		return true
+	end
+	local interp_amount = (end_amount - start_amount) * progress
+	o:set_text(managers.experience:cash_string(interp_amount))
 end
 
 function KineticHUD.animate_color_shift_duo(o,t,dt,start_t,duration,color_1,color_2)

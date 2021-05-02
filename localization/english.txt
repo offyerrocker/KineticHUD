@@ -62,7 +62,9 @@
 	"khud_menu_layouts_generic_scale_title" : "Panel Scale",
 	"khud_menu_layouts_generic_scale_desc" : "Change the size of this HUD item.",
 	
-	
+	"khud_menu_layouts_player_carry_title" : "Carry",
+	"khud_menu_layouts_player_carry_desc" : "Player Bag Loot HUD",
+
 	
 	"khud_player_weapons_panel_set_x_title" : "Set Panel X",
 	"khud_player_weapons_panel_set_x_desc" : "Set the horizontal position of the Weapons Panel",
