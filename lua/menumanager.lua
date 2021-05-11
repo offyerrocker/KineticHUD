@@ -2,8 +2,12 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		reposition with fov (solves ADS and vehicle issues)
+			--todo: write new vector3 data to hud_values to change position by vector3 angle * distance, rather than by direct x/y/z coords
+		
+		
+		
+		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		main color scheme
 		misc category- eg. heist timer scale
 		updater should work when paused?
