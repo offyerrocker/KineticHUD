@@ -467,7 +467,7 @@ end
 --Called once to start the HUD initialization process, along with a reference to the parent hud for optional "flat" panel usage. Also loads assets required for the HUD to function
 --Arguments: parent_panel [Panel]. The panel object to create the HUD on.
 --Returns: nil
-function KineticHUD:Setup(parent_panel)
+function KineticHUD:Setup()
 	managers.dyn_resource:load(Idstring("font"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 	managers.dyn_resource:load(Idstring("texture"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 
@@ -477,12 +477,21 @@ function KineticHUD:Setup(parent_panel)
 	
 	self._gui = World:newgui()
 	self:CreateWorldPanels()
-	self:CreateHUD(parent_panel)
+--	self:CreateFlatHUD(parent_panel)
+	self:CreateWorldHUD()
 	
 	BeardLib:AddUpdater("kinetichud_update",callback(self,self,"Update"))
 	
+	Hooks:Call("khud_on_load_buff_data",self._buff_data)
+	
+	if managers.gameinfo then 
+		self:RegisterBuffListeners()
+	end
+	
+	
 	self:RegisterUpdateCheckPlayer()
 end
+
 
 --Create world panels to be linked later, and stores them in a table. 
 --Returns: nil
@@ -518,10 +527,10 @@ function KineticHUD:CreateWorldPanels()
 			color = rect_color,
 			layer = -1,
 			alpha = 0.2,
-			visible = false
+			visible = true
 		})
 		
-		self._workspaces[panel_name] = ws
+		self._workspaces[i] = ws
 		self._world_panels[i] = panel
 	end
 end
@@ -531,9 +540,9 @@ end
 --Returns: bool
 function KineticHUD:LinkWS(link_target_object)
 	local done_any = false
-	for i,panel in pairs(self._world_panels) do 
+	for i,panel in ipairs(self._world_panels) do 
 		local hv = self.hud_values.world_panels[i]
-		local workspace = self._workspaces[hv.name]
+		local workspace = self._workspaces[i]
 		
 		local world_w = hv.WORLD_W
 		local world_h = hv.WORLD_H
@@ -570,6 +579,59 @@ function KineticHUD:LinkWS(link_target_object)
 		done_any = true
 	end
 	return done_any
+end
+
+function KineticHUD:LayoutWorldPanels(dis)
+	dis = dis or 1
+	local player = managers.player:local_player()
+	local link_target_object
+	if alive(player) then 
+		link_target_object = player:camera()._camera_object
+	end
+	if not alive(link_target_object) then 
+		self:c_log("ERROR: LayoutWorldPanels(): no link target object")
+		return
+	end
+	
+	for i,panel in ipairs(self._world_panels) do 
+		local hv = self.hud_values.world_panels[i]
+		local workspace = self._workspaces[i]
+
+		local world_w = hv.WORLD_W
+		local world_h = hv.WORLD_H
+		local panel_w = hv.GUI_W
+		local panel_h = hv.GUI_H
+		
+		--rotation is already applied relative to the linked object, so we just need the offsets;
+		--hence, no rotation adding unlike in LinkWS()
+		
+		local rot = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
+		
+		local x_axis = Vector3(world_w,0,0)
+		
+		mvector3.rotate_with(x_axis,rot)
+		
+		local y_axis = Vector3(0,-world_h,0)
+		
+		mvector3.rotate_with(y_axis,rot)
+		
+		local center = Vector3(world_w / 2,-world_h / 2, 0)
+		
+		mvector3.rotate_with(center,rot)
+		
+		local offset = Vector3(hv.OFFSET_X * dis,hv.OFFSET_Y * dis,hv.OFFSET_Z * dis)
+			--x+ is distance right
+			--y+ is distance upward
+			--z+ is distance backward
+			
+		mvector3.rotate_with(offset,rot)
+		
+		local position = link_target_object:position()
+		
+		workspace:set_world(panel_w,panel_h,- center + offset,x_axis,y_axis)
+	end
+	
+	
 end
 
 --Removes the updater from RegisterUpdateCheckPlayer(), which called UpdateCheckPlayer(). This is safe to call multiple times.
@@ -609,21 +671,32 @@ function KineticHUD:RegisterUpdateCheckPlayer()
 	BeardLib:AddUpdater(self._updater_id_check_player,callback(self,self,"UpdateCheckPlayer"))
 end
 
---Creates the main HUD elements onto the appropriate panel, depending on user options.
---Safe to call multiple times, as it removes preexisting duplicate HUD elements.
---Arguments: parent_panel [Panel]. The panel object to create the HUD on.
---Returns: nil
-function KineticHUD:CreateHUD(parent_panel)
-		
-	self._parent_panel = parent_panel
-	if alive(self._base)  then 
-		parent_panel:remove(self._base)
-	end
-	local base = parent_panel:panel({
-		name = "kinetichud"
-	})
-	self._panel = base
+--Experimental: Adds buff listeners for pjal3urb's GameInfoManager plugin
+function KineticHUD:RegisterBuffListeners()
+--[[
+	managers.gameinfo:register_listener("khud_change_whisper_mode_listener", "whisper_mode", "change", function(...)
+		buttr = {...}
+		self:c_log("Changed whisper mode state")
+		logall(buttr)
+	end, nil, true)
 	
+	managers.gameinfo:register_listener("kinetichud_register_pager_answer","pager", "set_answered", function(pager_data)
+--		Log("Received pager answered data")
+--		Log(pager_data)
+	end, nil, nil)
+--]]	
+	
+	
+	
+	
+	
+end
+
+--Creates the main HUD elements, using the in-world HUD panels.
+--Safe to call multiple times, as it removes preexisting duplicate HUD elements.
+--Returns: nil
+function KineticHUD:CreateWorldHUD()
+		
 	local font_ids = Idstring("font")
 	local dyn_pkg = DynamicResourceManager.DYN_RESOURCES_PACKAGE
 	local font_resources_ready = managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.digital),dyn_pkg)
@@ -642,9 +715,25 @@ function KineticHUD:CreateHUD(parent_panel)
 	self:CreatePresenter()
 	self:CreateCarryPanel()
 	self:CreateBuffsPanel()
+	self:CreateChatPanel()
+	
 	
 	self:CreateAssaultPanel()
 	self:CreateObjectivePanel()
+	
+end
+
+--unused
+--Arguments: parent_panel [Panel]. The panel object to create the HUD on.
+function KineticHUD:CreateFlatHUD(parent_panel)
+	self._parent_panel = parent_panel
+	if alive(self._base)  then 
+		parent_panel:remove(self._base)
+	end
+	local base = parent_panel:panel({
+		name = "kinetichud"
+	})
+	self._panel = base
 	
 end
 
@@ -1091,7 +1180,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 end
 
 function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.player_equipment_panel_location]
+	local selected_parent_panel = self._world_panels[self.layout_settings.player_equipment_panel_location]
 	if not alive(selected_parent_panel) then 
 		return
 	end
@@ -1113,11 +1202,11 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 	
 	local deployable_1 = self:CreatePlayerEquipmentBox(player_equipment_panel,{name = "deployable_1",icon="",double=true})
 	deployable_1:set_position(deployable_1_x,deployable_1_y)
---	deployable_1:hide() 
+	deployable_1:hide() 
 	
 	local deployable_2 = self:CreatePlayerEquipmentBox(player_equipment_panel,{name = "deployable_2",icon="",double=true})
 	deployable_2:set_position(deployable_2_x,deployable_2_y)
---	deployable_2:hide() 
+	deployable_2:hide() 
 	
 	local cable_ties = self:CreatePlayerEquipmentBox(player_equipment_panel,{name = "cable_ties",icon="equipment_cable_ties",double=false})
 	cable_ties:set_position(cable_ties_x,cable_ties_y)
@@ -1730,6 +1819,29 @@ function KineticHUD:CreateCarryPanel(skip_layout)
 	end
 	
 	
+end
+
+function KineticHUD:CreateChatPanel(skip_layout)
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.chat_panel_location]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	local panel = selected_parent_panel:panel({
+		name = "chat_panel_main",
+		x = 0,
+		y = 0
+	})
+	self._chat_panel = panel
+	
+	if not skip_layout then 
+		self:LayoutChatPanel()
+	end
+end
+
+function KineticHUD:LayoutChatPanel()
+--	self._chat_panel:set_position(0,0)
+--	self._chat_panel:set_size(0,0)
 end
 
 --Arranges the subelements of the HUD panel that contains the player's health, armor, etc. 
@@ -2781,7 +2893,7 @@ function KineticHUD:SetPlayerDeployableEquipment(data)
 		local amount_1 = amount[1]
 		local amount_2 = amount[2]
 		local index = data.index
-		local has_any
+		local has_any = false
 		local deployable
 		if index == 2 then 
 			deployable = player_equipment_panel:child("deployable_2")
@@ -3134,6 +3246,7 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 			deployable = teammate:child("deployable_1")
 		end
 		if not deployable:visible() then 
+			deployable:show()
 			queue_layout = true
 		end
 		
@@ -3522,7 +3635,7 @@ end
 
 --buff
 function KineticHUD:CreateBuffsPanel(skip_layout)
-	local selected_parent_panel = self._world_panels[self.settings.buffs_panel_location]
+	local selected_parent_panel = self._world_panels[self.layout_settings.buffs_panel_location]
 	
 	if not alive(selected_parent_panel) then 
 		return
@@ -3534,6 +3647,13 @@ function KineticHUD:CreateBuffsPanel(skip_layout)
 		x = 0,
 		y = 0
 	})
+	local debug_rect = parent_buffs_panel:rect({
+		name = "debug_rect",
+		alpha = 0.1,
+		visible = false,
+		color = Color.red
+	})
+	
 	self._buffs_panel = parent_buffs_panel
 	if not skip_layout then 
 		self:LayoutBuffsPanel()
@@ -3541,16 +3661,25 @@ function KineticHUD:CreateBuffsPanel(skip_layout)
 end
 
 
---set size and position of buffs panel here
+--set size and position of buffs panel here 
 function KineticHUD:LayoutBuffsPanel()
 	local buffs_panel = self._buffs_panel
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.buffs_panel_scale
+	local hud_values = self.hud_values
+	local buffs_w = hud_values.BUFFS_PANEL_W * scale
+	local buffs_h = hud_values.BUFFS_PANEL_H * scale
 	
-	local buffs_w,buffs_h = 600,300
-	local buffs_x,buffs_y = 0,0
+	local buffs_x = layout_settings.buffs_panel_x
+	local buffs_y = layout_settings.buffs_panel_y
 	
-	buffs_panel:set_size(600,300)
+	buffs_panel:set_size(buffs_w,buffs_h)
 	
-	local halign,valign
+	local _halign = layout_settings.buffs_panel_halign
+	local halign = _halign and self.halign_values[_halign]
+	
+	local _valign = layout_settings.buffs_panel_valign
+	local valign = _valign and self.valign_values[_valign]
 	
 	local selected_parent_panel = buffs_panel:parent()
 	if halign == "center" then 
@@ -3572,8 +3701,106 @@ function KineticHUD:LayoutBuffsPanel()
 	buffs_panel:move(buffs_x,buffs_y)
 end
 
+function KineticHUD:RegisterBuff(id)
+
+end
+
+--buttw = KineticHUD:AddBuff({id = "hello",texture = "guis/textures/pd2/cn_minighost"})
+--creates a hud item with the buff specified
 function KineticHUD:AddBuff(data)
-	--
+	local id = data.id
+	local texture = data.texture
+	local texture_rect = data.texture_rect
+	local hud_values = self.hud_values
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.buffs_panel_scale
+	
+	local font = self._fonts.syke
+	if data.font then 
+		font = self._fonts[data.font] or font
+	end
+	local font_size = (data.font_size or hud_values.BUFF_FONT_SIZE) * scale
+	
+	local margin_medium = hud_values.MARGIN_MEDIUM * scale
+	
+	local buffs_panel = self._buffs_panel
+	
+	local icon_w = hud_values.BUFF_ICON_W * scale
+	local icon_h = hud_values.BUFF_ICON_H * scale
+	
+	local panel_w = hud_values.BUFF_W * scale
+	local panel_h = hud_values.BUFF_H * scale
+	local panel_x = 0 * scale
+	local panel_y = 0 * scale
+	
+	local panel = buffs_panel:panel({
+		name = id,
+		x = panel_x,
+		y = panel_y,
+		w = panel_w,
+		h = panel_h,
+		layer = 3
+	})
+	
+	local icon = panel:bitmap({
+		name = "icon",
+		texture = texture,
+		texture_rect = texture_rect,
+		w = icon_w,
+		h = icon_h,
+		x = margin_medium,
+		y = (panel_h - icon_h) / 2,
+		layer = 2
+	})
+	
+	local label = panel:text({
+		name = "label",
+		text = id,
+		font = font,
+		font_size = font_size,
+		x = icon:x() + icon:w() + margin_medium,
+		layer = 3,
+		align = "left",
+		vertical = "center"
+	})
+	
+	local bg = panel:bitmap({
+		name = "bg",
+		texture = "textures/ui/gradient",
+		texture_rect = nil,
+		w = panel_w,
+		h = panel_h,
+		layer = 1,
+		alpha = 0.5,
+		color = self.color_data.black
+	})
+	
+	local r = math.random()
+	local debug_rect = panel:rect({
+		name = "debug_rect",
+		color = Color(r,1 - r,1),
+		visible = true,
+		layer = -2,
+		alpha = 0.1
+	})
+	
+--	self:AnimateLayoutBuffs()
+	--todo insert by priority
+	return panel
+end
+
+function KineticHUD:RemoveBuff(id)
+	
+end
+
+function KineticHUD:AnimateLayoutBuffs()
+	do return end
+	
+	local buffs = {}
+	
+	for _,_ in ipairs(buffs) do 
+		--animate move buff by x/y according to priority
+	end
 end
 
 Hooks:Add("MenuManagerSetupCustomMenus", "MenuManagerSetupCustomMenus_khud", function(menu_manager, nodes)
@@ -3992,11 +4219,6 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuHelper:LoadFromJsonFile(KineticHUD._menu_path .. "menu_main.json", KineticHUD, KineticHUD.settings)
 
 end)
-
-
---load hud buff data
---dofile(KineticHUD._mod_path .. "buff/buff_data.lua")
-
 
 
 

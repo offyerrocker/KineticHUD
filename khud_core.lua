@@ -7,6 +7,8 @@ KineticHUD._layout_save_path = SavePath .. "KineticHUD_2_layout.txt"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
+KineticHUD.MOUSE_ID = "khud_mouse_chat"
+
 dofile(KineticHUD._mod_path .. "lua/utils/QuickAnimate.lua")
 
 KineticHUD.url = {
@@ -61,6 +63,10 @@ KineticHUD.menu_divider_sizes = {
 	xlarge = 48,
 	yourmom = 64
 }
+
+--load hud buff data
+KineticHUD._buff_data = KineticHUD._buff_data or blt.vm.loadfile(KineticHUD._mod_path .. "buff/buff_data.lua") or {}
+Hooks:Register("khud_on_load_buff_data")
 
 --one menu to rule them all
 --all menus are, to some degree, sub-menus of this one
@@ -1112,6 +1118,15 @@ KineticHUD.hud_values = {
 	ASSAULT_PHASE_LABEL_COLOR = Color.white,
 	ASSAULT_PHASE_LABEL_FONT_SIZE = 32,
 	
+	BUFFS_PANEL_W = 600,
+	BUFFS_PANEL_H = 300,
+	
+	BUFF_FONT_SIZE = 36,
+	BUFF_ICON_W = 32,
+	BUFF_ICON_H = 32,
+	BUFF_W = 300,
+	BUFF_H = 56,
+	
 	OBJECTIVE_W = 500,
 	OBJECTIVE_H = 100,
 	
@@ -1297,10 +1312,16 @@ KineticHUD.default_layout_settings = {
 	chat_panel_location = 1,
 	hitdirection_panel_location = 4,
 	suspicion_panel_location = 3,
-	buffs_panel_location = 4,
 	compass_panel_location = 3,
 	hints_panel_location = 2,
 	
+	buffs_panel_location = 4,
+	buffs_panel_scale = 1,
+	buffs_panel_animation_speed = 1,
+	buffs_panel_x = 0,
+	buffs_panel_y = 0,
+	buffs_panel_halign = 1,
+	buffs_panel_valign = 1,
 	
 	teammates_panel_location = 1,
 	teammates_panel_scale = 1,

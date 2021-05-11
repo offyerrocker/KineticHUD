@@ -1,3 +1,5 @@
+do return end
+
 KineticHUD._buff_data = {
 	["vip"] = {
 		source = "manual",

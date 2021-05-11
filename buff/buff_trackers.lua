@@ -1,10 +1,4 @@
-if GameInfoManager then 
-	
-
-
-
-
-
+if managers.gameinfo then 
 
 end
 
