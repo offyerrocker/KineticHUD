@@ -8,6 +8,8 @@ You can think of this as the full version of KineticHUD (that was one long beta,
 ### About KHUD:
 
 [spoiler]
+	vr compatibility:
+		yes (may not look the best, but it's stable)
 	hud customizability:
 		each element should have a changeable scale
 		each element should have a changeable position

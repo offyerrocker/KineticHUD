@@ -1368,7 +1368,182 @@ function KineticHUD:ResetSettings()
 	self.settings = table.deep_map_copy(self.default_settings)
 end
 
-
+--experimental. recreates a guiobject using another as reference. can be used to "clone" a guiobject to another parent
+--GuiObject source, Panel new_parent, table params: GuiObject new_object,Panel new_parent,table cloning_failures
+--example: KineticHUD.CloneGuiObject(orig_eq_panel,new_eq_panel,{force_recreate = true,recreate_tree = true})
+function KineticHUD.CloneGuiObject(source,new_parent,params)
+	if alive(source) then 
+		if alive(new_parent) and new_parent.type_name == "Panel" then 
+			
+			local function assert_nonnil(a,b)
+				if a == nil then 
+					return b
+				else
+					return a
+				end
+			end
+			
+			params = type(params) == "table" and params or {}
+			
+--			params.destroy_orig = params.destroy_orig --do not use; bugs the heck out atm
+			
+			params.name = params.name or source:name()
+			params.layer = params.layer or source:layer()
+			params.visible = assert_nonnil(params.visible,source:visible())
+			params.x = params.x or source:x()
+			params.y = params.y or source:y()
+			params.w = params.w or source:w()
+			params.h = params.h or source:h()
+			params.halign = params.halign or source:halign()
+			params.valign = params.valign or source:valign()
+			params.alpha = params.alpha or source:alpha()
+			
+			local gui_type = source.type_name
+			local e --list of objects that could not be successfully created
+			local existing_gui_obj = new_parent:child(params.name)
+			local new_gui_obj
+			
+			if gui_type == "Bitmap" then 
+				
+				params.texture = params.texture or source:texture_name()
+				params.texture_rect = params.texture_rect --no getter
+				params.color = params.color or source:color()
+				params.rotation = params.rotation or source:rotation()
+				params.render_template = params.render_template or source:render_template()
+				params.blend_mode = params.blend_mode --no getter
+				
+				if alive(existing_gui_obj) and not params.force_recreate then 
+					existing_gui_obj:set_texture(params.texture)
+					existing_gui_obj:set_color(params.color)
+					existing_gui_obj:set_render_template(params.render_template)
+					existing_gui_obj:set_blend_mode(params.blend_mode)
+					
+					new_gui_obj = existing_gui_obj
+				else
+					new_gui_obj = new_parent:bitmap(params)
+				end
+				
+			elseif gui_type == "Gradient" then 
+				
+				params.color = params.color or source:color()
+				params.rotation = params.rotation or source:rotation()
+				params.render_template = params.render_template or source:render_template()
+				params.blend_mode = params.blend_mode --no getter
+				params.orientation = params.orientation or source:orientation()
+				params.gradient_points = params.gradient_points --no getter
+				
+				new_gui_obj = new_parent:gradient(params)
+			elseif gui_type == "MultiBitmap" then 
+				log("ERROR: CloneGuiObject(): [".. tostring(gui_type) .."] is not supported!")
+			elseif gui_type == "Panel" then 
+				
+				new_gui_obj = new_parent:panel(params)
+				--experimental; recreates each of its children throughout the rest of the tree
+				if params.deep_clone then 
+					e = {}
+					for i,o in ipairs(source:children()) do 
+						local new_child,p,new_gui_type = KineticHUD.CloneGuiObject(o,new_gui_obj,{destroy_orig = params.destroy_orig,deep_clone = params.deep_clone})
+						if not alive(new_child) then 
+							table.insert(e,{parent = p,gui_type = new_gui_type})
+						end
+					end
+				end
+				
+			elseif gui_type == "Polygon" then 
+				log("ERROR: CloneGuiObject(): [".. tostring(gui_type) .."] is not fully supported.")
+--				log(debug.traceback())
+				params.color = params.color or source:color()
+				params.rotation = params.rotation or source:rotation()
+				params.render_template = params.render_template or source:render_template()
+				params.blend_mode = params.blend_mode --no getter
+				params.convex = params.convex --no getter
+				params.triangles = params.triangles --no getter
+				params.colored_triangles = params.triangles --no getter
+				
+				new_gui_obj = new_parent:polygon(params)
+			elseif gui_type == "Polyline" then 
+				log("ERROR: CloneGuiObject(): [".. tostring(gui_type) .."] is not yet supported.")
+				log(debug.traceback())
+				return nil,new_parent,gui_type
+			elseif gui_type == "Rect" then 
+				params.color = params.color or source:color()
+				params.rotation = params.rotation or source:rotation()
+				params.render_template = params.render_template or source:render_template()
+				params.blend_mode = params.blend_mode --no getter
+				
+				new_gui_obj = new_parent:rect(params)
+			elseif gui_type == "Text" then 
+				params.color = params.color or source:color()
+				params.rotation = params.rotation or source:rotation()
+				params.render_template = params.render_template or source:render_template()
+				params.blend_mode = params.blend_mode --no getter
+				params.text = params.text or source:text()
+				params.font = params.font --font() getter returns an Idstring; font here is a string asset path
+				params.font_scale = params.font_scale or source:font_scale()
+				params.font_size = params.font_size or source:font_size()
+				params.monospace = params.monospace or source:monospace()
+				params.kern = params.kern or source:kern()
+				params.word_wrap = assert_nonnil(params.word_wrap or source:word_wrap())
+				params.align = params.align or source:align()
+				params.vertical = params.vertical or source:vertical()
+				
+				if params.force_recreate then 
+					new_gui_obj = new_parent:text(params)
+				else
+					new_gui_obj = existing_gui_obj
+				end
+				if alive(new_gui_obj) then 
+					new_gui_obj:set_color(params.color)
+					new_gui_obj:set_rotation(params.rotation)
+					new_gui_obj:set_render_template(params.render_template)
+					new_gui_obj:set_blend_mode(params.blend_mode)
+					new_gui_obj:set_text(params.text)
+					new_gui_obj:set_font(source:font())
+					new_gui_obj:set_font_size(params.font_size)
+					new_gui_obj:set_font_scale(params.font_scale)
+					new_gui_obj:set_monospace(params.monospace)
+					new_gui_obj:set_kern(params.kern)
+					new_gui_obj:set_word_wrap(params.word_wrap)
+					new_gui_obj:set_align(params.align)
+					new_gui_obj:set_vertical(params.vertical)
+				end
+				
+			elseif gui_type == "Unit" then
+				log("ERROR: CloneGuiObject(): [".. tostring(gui_type) .."] is not supported!")
+				log(debug.traceback())
+			elseif gui_type == "Video" then
+				log("ERROR: CloneGuiObject(): [".. tostring(gui_type) .."] is not supported!")
+				log(debug.traceback())
+				
+			else
+				log("ERROR: CloneGuiObject(): Unknown type name [" .. tostring(gui_type) .. "]")
+			end
+			
+			if alive(new_gui_obj) then
+				new_gui_obj:set_position(params.x,params.y)
+				new_gui_obj:set_size(params.w,params.h)
+				new_gui_obj:set_layer(params.layer)
+				new_gui_obj:set_visible(params.visible)
+				new_gui_obj:set_halign(params.halign)
+				new_gui_obj:set_valign(params.valign)
+				new_gui_obj:set_alpha(params.alpha)
+				
+				if params.destructive_clone then 
+					if existing_gui_obj and existing_gui_obj ~= new_gui_obj and alive(existing_gui_obj) then 
+						existing_gui_obj:parent():remove(existing_gui_obj)
+					end
+				end
+			end
+			
+			return new_gui_obj,new_parent,gui_type,e
+		else
+			log("ERROR: CloneGuiObject(): invalid new_parent parameter " .. tostring(new_parent))
+		end
+	else
+		log("ERROR: CloneGuiObject(): Invalid source GuiObject " .. tostring(source))
+		log(debug.traceback())
+	end
+end
 
 --misc management
 

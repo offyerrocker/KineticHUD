@@ -1,6 +1,19 @@
---Practically speaking, QuickAnimate is just a series of organized updaters.
---It can work on any data types, but it will be most useful on gui objects like Panel, Bitmap, Text, Rect, Gradient, etc.
---written by Offyerrocker
+--[[
+Practically speaking, QuickAnimate is just a series of organized updaters.
+It can work on any data types, but it will be most useful on gui objects like Panel, Bitmap, Text, Rect, Gradient, etc.
+Now, you might be asking: 
+"Offy, you know that the GuiObject class has its own animate function, right?"
+My rebuttal is as follows: 
+	I did not know how to use it until after I created QuickAnimate,
+	and also writing a class/instance to control gui animations allows me to globally pause them, set callbacks, etc. 
+	
+	Currently, my only real restriction is that only one animation can be applied to any given object at a time- 
+	In events where multiple existing animations need to apply to a single object,
+	I usually just create an animate function which calls each of those multiple animations in sequence. 
+
+Please contact me if you need help with using or understanding QuickAnimate.
+	written by Offyerrocker
+--]]
 local THIS_VERSION = 2
 
 if QuickAnimate and QuickAnimate.VERSION and (QuickAnimate.VERSION >= THIS_VERSION) then 

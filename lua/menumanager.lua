@@ -3,9 +3,6 @@
 DEVELOPMENT:
 	CURRENT TODO:
 		reposition with fov (solves ADS and vehicle issues)
-			--todo: write new vector3 data to hud_values to change position by vector3 angle * distance, rather than by direct x/y/z coords
-		
-		
 		
 		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		main color scheme
@@ -24,6 +21,7 @@ DEVELOPMENT:
 		add maniac/expres hud elements
 		add player cartographer hud element
 		add player compass hud element
+			waypoints on the compass bar
 		implement player/team mission equipments
 		dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
 		
@@ -585,8 +583,8 @@ function KineticHUD:LinkWS(link_target_object)
 	return done_any
 end
 
-function KineticHUD:LayoutWorldPanels(dis)
-	dis = dis or 1
+function KineticHUD:LayoutWorldPanels(m)
+	m = m or 1
 	local player = managers.player:local_player()
 	local link_target_object
 	if alive(player) then 
@@ -623,7 +621,7 @@ function KineticHUD:LayoutWorldPanels(dis)
 		
 		mvector3.rotate_with(center,rot)
 		
-		local offset = Vector3(hv.OFFSET_X * dis,hv.OFFSET_Y * dis,hv.OFFSET_Z * dis)
+		local offset = Vector3(hv.OFFSET_X / m,hv.OFFSET_Y / m,hv.OFFSET_Z)
 			--x+ is distance right
 			--y+ is distance upward
 			--z+ is distance backward
@@ -1223,6 +1221,7 @@ function KineticHUD:CreatePlayerEquipmentPanel(skip_layout)
 	if not skip_layout then 
 		self:LayoutPlayerEquipmentPanel()
 	end
+	return player_equipment_panel
 end
 
 function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
@@ -4028,7 +4027,20 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 	MenuCallbackHandler.callback_khud_player_equipment_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
 		KineticHUD.layout_settings.player_equipment_panel_location = value
-		KineticHUD:AnimatePanelSelectedFlash(value)
+		--[[
+		local orig_eq_panel = KineticHUD._player_equipment_panel
+		local new_eq_panel = KineticHUD._world_panels[value]
+		if alive(new_eq_panel) then 
+			KineticHUD._player_equipment_panel = KineticHUD.CloneGuiObject(orig_eq_panel,new_eq_panel,{destructive_clone = false,force_recreate = true,deep_clone = true})
+			if alive(orig_eq_panel) then 
+				orig_eq_panel:parent():remove(orig_eq_panel)
+				--on close, remove original
+			end
+			if not Application:paused() then 
+				KineticHUD:AnimatePanelSelectedFlash(value)
+			end
+		end
+		--]]
 	end
 	
 --player mission mission_equipment panel
