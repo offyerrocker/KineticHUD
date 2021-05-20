@@ -64,8 +64,6 @@ KineticHUD.menu_divider_sizes = {
 	yourmom = 64
 }
 
---load hud buff data
-KineticHUD._buff_data = KineticHUD._buff_data or blt.vm.loadfile(KineticHUD._mod_path .. "buff/buff_data.lua") or {}
 Hooks:Register("khud_on_load_buff_data")
 
 --one menu to rule them all
@@ -1118,12 +1116,12 @@ KineticHUD.hud_values = {
 	ASSAULT_PHASE_LABEL_COLOR = Color.white,
 	ASSAULT_PHASE_LABEL_FONT_SIZE = 32,
 	
-	BUFFS_PANEL_W = 600,
-	BUFFS_PANEL_H = 300,
+	BUFFS_PANEL_W = 1100,
+	BUFFS_PANEL_H = 600,
 	
 	BUFF_FONT_SIZE = 36,
-	BUFF_ICON_W = 32,
-	BUFF_ICON_H = 32,
+	BUFF_ICON_W = 48,
+	BUFF_ICON_H = 48,
 	BUFF_W = 300,
 	BUFF_H = 56,
 	
@@ -1545,6 +1543,43 @@ function KineticHUD.CloneGuiObject(source,new_parent,params)
 	end
 end
 
+
+function KineticHUD.format_seconds(raw)
+	return string.format("%i:%02d",math.floor(raw / 60),math.floor(raw % 60))
+end
+
+
+--i had to write this because get_specialization_icon_data() always picks the top tier. booooo
+function KineticHUD.get_specialization_icon_data_by_tier(spec,tier,no_fallback)
+	local sm = managers.skilltree
+	local st = tweak_data.skilltree
+	
+	spec = spec or sm:get_specialization_value("current_specialization")
+
+	local data = st.specializations[spec]
+	local max_tier = sm:get_specialization_value(spec, "tiers", "max_tier")
+	local tier_data = data and data[tier or max_tier] --this and the arg tier are the only things i changed. :|
+
+	if not tier_data then
+		if no_fallback then
+			return
+		else
+			return tweak_data.hud_icons:get_icon_data("fallback")
+		end
+	end
+
+	local guis_catalog = "guis/" .. (tier_data.texture_bundle_folder and "dlcs/" .. tostring(tier_data.texture_bundle_folder) .. "/" or "")
+	local x = tier_data.icon_xy and tier_data.icon_xy[1] or 0
+	local y = tier_data.icon_xy and tier_data.icon_xy[2] or 0
+
+	return guis_catalog .. "textures/pd2/specialization/icons_atlas", {
+		x * 64,
+		y * 64,
+		64,
+		64
+	}
+end
+
 --misc management
 
 
@@ -1845,5 +1880,15 @@ function KineticHUD:SaveSettings()
 	end
 end
 
+
+KineticHUD._buff_data = KineticHUD._buff_data or {}
+--load hud buff data
+local load_buff_data,e = blt.vm.loadfile(KineticHUD._mod_path .. "buff/buff_data.lua")
+if e then 
+	KineticHUD:c_log("Error: Could not load buff data.")
+	KineticHUD:c_log(e)
+elseif load_buff_data then 
+	KineticHUD._buff_data = load_buff_data() or KineticHUD._buff_data
+end
 
 return KineticHUD

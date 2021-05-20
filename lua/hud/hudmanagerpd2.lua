@@ -11,7 +11,6 @@ Hooks:PreHook(HUDManager,"_setup_player_info_hud_pd2","khud_hudpd2_create",funct
 	end
 end)
 
-
 Hooks:PostHook(HUDManager,"set_disabled","khud_hudmanager_hidehud",function(self)
 	KineticHUD:HideHUD()
 end)

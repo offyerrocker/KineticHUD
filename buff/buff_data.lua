@@ -1,6 +1,333 @@
-do return end
+local buff_data = {
+--skills
 
-KineticHUD._buff_data = {
+	--mastermind
+	combat_medic_interaction = {
+		icon_id = "combat_medic",
+		source = "skill",
+--		text = "khud_buff_combat_medic_reviving",
+		value_format = "x%.2f"
+	},
+	combat_medic_success = {
+		icon_id = "combat_medic",
+		source = "skill",
+--		text = "khud_buff_combat_medic_revived",
+		value_format = "x%.2f"
+	},
+	quick_fix = {
+		icon_id = "tea_time",
+		source = "skill",
+--		text = "khud_buff_quick_fix",
+		value_format = nil
+	},
+	pain_killer = {
+		icon_id = "pain_killer",
+		source = "skill",
+--		text = "khud_buff_painkillers",
+		value_format = nil
+	},
+	inspire = {
+		icon_id = "inspire",
+		source = "skill",
+--		text = "khud_buff_inspire_basic",
+		value_format = nil
+	},
+	inspire_debuff = {
+		icon_id = "inspire",
+		source = "skill",
+--		text = "khud_buff_inspire_basic_cooldown",
+		text_color_id = "light_red",
+		value_format = nil
+	},
+	inspire_revive_debuff = {
+		icon_id = "inspire",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_inspire_aced_cooldown",
+		text_color_id = "light_red",
+		value_format = ""
+	},
+	forced_friendship = {
+		disabled = true,
+		icon_id = "triathlete",
+		source = "skill",
+--		text = "khud_buff_forced_friendship",
+		value_format = nil
+	},
+	partner_in_crime = {
+		icon_id = "control_freak",
+		source = "skill",
+--		text = "khud_buff_partners_in_crime",
+		value_format = nil
+	},
+	partner_in_crime_aced = {
+		icon_id = "control_freak",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_partners_in_crime_aced",
+		value_format = nil
+	},
+	hostage_taker = {
+		icon_id = "hostage_taker",
+		source = "skill",
+--		text = "khud_buff_hostage_taker",
+		value_format = nil
+	},
+	ammo_efficiency = { --doesn't appear to work
+		icon_id = "ammo_efficiency",
+		source = "skill",
+--		text = "khud_buff_ammo_efficiency",
+		value_format = nil
+	},
+	aggressive_reload_aced = {
+		icon_id = "speedy_reload",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_aggressive_reload",
+		value_format = "x%i"
+	},
+	
+	--enforcer
+	underdog = {
+		icon_id = "underdog",
+		source = "skill",
+--		text = "khud_buff_underdog",
+		value_format = "x%.2f"
+	},
+	underdog_aced = {
+		disabled = true,
+		icon_id = "underdog",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_underdog_aced",
+		value_format = "x%.2f"
+	},
+	overkill = {
+		icon_id = "overkill",
+		source = "skill",
+--		text = "khud_buff_label_overkill",
+		value_format = "x%.2f"
+	},
+	overkill_aced = { --doesn't appear to work. shouldn't matter since it has identical proc conditions to basic anyway
+		disabled = false,
+		icon_id = "overkill",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_label_overkill_aced",
+		value_format = "x%.2f"
+	},
+	die_hard = {
+		icon_id = "show_of_force",
+		source = "skill",
+		value_format = "x%.1f"
+	},
+	bullseye_debuff = {
+		icon_id = "prison_wife",
+		source = "skill",
+--		text = "khud_buff_bullseye",
+		text_color_id = "light_red",
+		value_format = nil
+	},
+		--scavenger 6th kill ammobox killcount?
+	bullet_storm = {
+		icon_id = "ammo_reservoir",
+		source = "skill",
+		text = "khud_buff_label_maniac",
+		value_format = ""
+	},
+		--fully loaded aced kills to grenade?
+	
+	--technician
+	lock_n_load = {
+		icon_id = "shock_and_awe",
+		source = "skill",
+--		text = "khud_buff_label_lock_n_load",
+		value_format = "x%.1f"
+	},
+	
+	--ghost
+	sixth_sense = {
+		icon_id = "chameleon",
+		source = "skill",
+--		text = "khud_buff_label_sixth_sense",
+		value_format = nil
+	},
+	dire_need = {
+		icon_id = "dire_need",
+		source = "skill",
+--		text = "khud_buff_label_dire_need",
+		value_format = nil
+	},
+		--shockproof stun window timer?
+	second_wind = {
+		icon_id = "scavenger",
+		source = "skill",
+--		text = "khud_buff_label_second_wind",
+		value_format = "x%.1f"
+	},
+	unseen_strike = {
+		icon_id = "unseen_strike",
+		source = "skill",
+--		text = "khud_buff_label_unseen_strike",
+		value_format = "x%.2f"
+	},
+	unseen_strike_debuff = {
+		icon_id = "unseen_strike",
+		source = "skill",
+		text = "khud_buff_label_unseen_strike_cooldown",
+		text_color_id = "light_red",
+		value_format = ""
+	},
+	
+	--fugitive
+	desperado = {
+		icon_id = "expert_handling",
+		source = "skill",
+--		text = "khud_buff_label_desperado",
+		value_format = "x%0.2f"
+	},
+	trigger_happy = {
+		icon_id = "trigger_happy",
+		source = "skill",
+--		text = "khud_buff_label_trigger_happy",
+		value_format = "x%0.2f"
+	},
+	running_from_death_reload_speed = {
+		icon_id = "running_from_death",
+		source = "skill",
+		text = "khud_buff_label_running_from_death_reload",
+		value_format = "x%.1f"
+	},
+	
+	running_from_death_swap_speed = {
+		disabled = true, --todo change this to disabled by default in settings
+		icon_id = "running_from_death",
+		source = "skill",
+		text = "khud_buff_label_running_from_death_swap",
+		value_format = "x%.1f"
+	},
+	
+	running_from_death_move_speed = {
+		disabled = true, --todo change this to disabled by default in settings
+		icon_id = "running_from_death",
+		aced = true,
+		source = "skill",
+		text = "khud_buff_label_running_from_death_move",
+		value_format = "x%.1f"
+	},
+	up_you_go = {
+		icon_id = "up_you_go",
+		source = "skill",
+--		text = "khud_buff_label_up_you_go",
+		value_format = "x%.1f"
+	},
+	swan_song = {
+		icon_id = "perseverance",
+		source = "skill",
+--		text = "khud_buff_label_swan_song",
+		value_format = ""
+	},
+	swan_song_aced = {
+		icon_id = "perseverance",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_label_swan_song_aced",
+		value_format = ""
+	},
+	messiah = {
+		icon_id = "",
+		source = "skill",
+--		text = "khud_buff_label_messiah",
+		value_format = nil
+	},
+	--messiah ready
+	--messiah charge present
+		--combine both messiah buffs into one?
+	bloodthirst_basic = {
+		icon_id = "bloodthirst",
+		source = "skill",
+--		text = "khud_buff_label_bloodthirst_basic",
+		value_format = "x%i"
+	},
+	bloodthirst_aced = {
+		icon_id = "bloodthirst",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_label_bloodthirst_aced",
+		value_format = "x%.1f"
+	},
+	berserker = {
+		icon_id = "wolverine",
+		source = "skill",
+--		text = "khud_buff_label_berserker_basic",
+		value_format = "x%.1f"
+	},
+	berserker_aced = {
+		icon_id = "wolverine",
+		aced = true,
+		source = "skill",
+--		text = "khud_buff_label_berserker_aced",
+		value_format = "x%.1f"
+	},
+	
+	
+--perkdecks
+
+--[[--crew chief
+	cc_passive_health_multiplier = {
+	
+	},
+	cc_hostage_health_multiplier = {
+	
+	},
+	cc_passive_stamina_multiplier = {
+	
+	},
+	cc_hostage_stamina_multiplier = {
+	
+	},
+	cc_passive_damage_reduction = {
+	
+	},
+	cc_hostage_damage_reduction = {
+	
+	},
+	--]]
+	grinder = { --does not seem to show number of stacks
+		icon_id = 11,
+		source = "perk",
+		tier_floors = {1,3,5,7,9},
+--		text = "khud_buff_label_grinder",
+		value_format = nil
+	},
+	grinder_debuff = {
+		icon_id = 11,
+		source = "perk",
+		tier_floors = {1,3,5,7,9},
+--		text = "khud_buff_label_grinder_cooldown",
+		text_color_id = "light_red",
+		value_format = nil
+	},
+	maniac = {
+		icon_id = 14,
+		source = "perk",
+		icon_tier = 1,
+		tier_floors = {1,9},
+--		text = "khud_buff_label_maniac",
+		value_format = "x%i"
+	}
+
+	
+--general
+	--flashbang duration?
+	--ecm duration (normal, feedback, cooldown)
+	--cam looping duration
+}
+if deathvox and deathvox:IsTotalCrackdownEnabled() then 
+	--add TCD-specific/changed skills here
+end
+
+local unverified_buff_data = {
 	["vip"] = {
 		source = "manual",
 		priority = 1,
@@ -84,42 +411,9 @@ KineticHUD._buff_data = {
 		text_color = Color("FFD700"),
 		flash = false
 	},
-	["long_dis_revive"] = {
-		source = "skill",
-		priority = 3,
-		icon = "inspire",
-		icon_rect = {4,9},
-		label = "noblehud_buff_long_dis_revive_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 20,
-		text_color = KineticHUD.color_data.red,
-		flash = true
-	},
-	["morale_boost"] = {
-		source = "skill",
-		priority = 3,
-		icon = "inspire",
-		icon_rect = {4,9},
-		label = "noblehud_buff_morale_boost_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 4,
-		flash = false
-	},
 	["fully_loaded"] = { --throwable pickup chance; not implemented
 		disabled = true,
 		priority = 2
-	},
-	["dire_need"] = { --todo
-		source = "skill",
-		priority = 1,
-		icon = "drop_soap",
-		label = "noblehud_buff_dire_need",
-		label_compact = "$TIMER",
-		duration = 10,
-		value_type = "timer",
-		flash = true
 	},
 	["hitman"] = {
 		source = "perk",
@@ -227,18 +521,6 @@ KineticHUD._buff_data = {
 		value_type = "timer",
 		flash = false
 	},
-	["grinder"] = {
-		source = "perk",
-		priority = 2,
-		icon = 11,
-		icon_tier = 1, --overridden by tier_floors
-		tier_floors = {1,3,5,7,9},
-		icon_rect = {6,1},
-		label = "noblehud_buff_grinder_label",
-		label_compact = "x$VALUE",
-		value_type = "value",
-		flash = false
-	},
 	["yakuza"] = {
 		source = "perk",
 		priority = 2,
@@ -260,18 +542,6 @@ KineticHUD._buff_data = {
 		label = "noblehud_buff_expresident_label",
 		label_compact = "$VALUE%",
 		value_type = "value", --stored health
-		flash = true
-	},
-	["hysteria"] = {
-		source = "perk",
-		priority = 2,
-		icon = 14,
-		icon_rect = {1,7},
-		tier_floors = {1,9},
-		icon_tier = 1,
-		label = "noblehud_buff_maniac_label",
-		label_compact = "x$VALUE",
-		value_type = "value",
 		flash = true
 	},
 	["anarchist_armor_regen"] = {
@@ -448,17 +718,6 @@ KineticHUD._buff_data = {
 		value_type = "timer",
 		flash = true
 	},
-	["swan_song"] = {
-		source = "skill",
-		priority = 3,
-		icon = "perseverance",
-		duration = 3, --6 aced
-		label = "noblehud_buff_swan_song_label",
-		label_compact = "$TIMER",
-		text_color = KineticHUD.color_data.tf2_strange,
-		value_type = "timer",
-		flash = true
-	},
 	["messiah_charge"] = {
 		source = "skill",
 		priority = 2,
@@ -478,18 +737,6 @@ KineticHUD._buff_data = {
 		label = "noblehud_buff_messiah_ready_label",
 		label_compact = "RDY", --!
 		value_type = "status",
-		flash = true
-	},
-	["bullseye"] = { --DONE
-		source = "skill",
-		priority = 5,
-		icon = "prison_wife",
-		icon_rect = {6,11},
-		label = "noblehud_buff_bullseye_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		text_color = KineticHUD.color_data.red,
-		duration = 2.5,
 		flash = true
 	},
 	["uppers_aced_cooldown"] = {
@@ -512,215 +759,6 @@ KineticHUD._buff_data = {
 		value_type = "status",
 		flash = false
 	},
-	["berserker_damage_multiplier"] = {
-		source = "skill",
-		priority = 2,
-		icon = "wolverine",
-		label = "noblehud_buff_berserker_aced_label",
-		label_compact = "$VALUE%",
-		value_type = "value",
-		flash = true
-	},
-	["berserker_melee_damage_multiplier"] = {
-		source = "skill",
-		priority = 2,
-		icon = "wolverine",
-		label = "noblehud_buff_berserker_label",
-		label_compact = "$VALUE%",
-		value_type = "value",
-		flash = true
-	},
-	["bullet_storm"] = {
-		source = "skill",
-		priority = 3,
-		icon = "ammo_reservoir",
-		icon_rect = {0,3},
-		label = "noblehud_buff_bulletstorm_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false	
-	},
-	["unseen_strike"] = { --DONE
-		source = "skill",
-		priority = 3,
-		icon = "unseen_strike",
-		label = "noblehud_buff_unseen_strike_label",
-		label_compact = "$TIMER",
-		duration = 18, --debug purposes only; t is passed
-		value_type = "timer",
-		flash = false
-	},
-	["overkill_damage_multiplier"] = {
-		source = "skill",
-		priority = 3,
-		icon = "overkill",
-		label = "noblehud_buff_overkill_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false
-	},
-	["bloodthirst_melee"] = {
-		source = "skill",
-		priority = 3,
-		disabled = false,
-		icon = "bloodthirst", --assassin?
-		label = "noblehud_buff_bloodthirst_melee_label",
-		label_compact = "x$VALUE",
-		value_type = "value", --not sure
-		flash = false
-	},
-	["bloodthirst_reload_speed"] = {
-		source = "skill",
-		priority = 4,
-		icon = "bloodthirst",
-		icon_rect = {1,7},
-		label = "noblehud_buff_bloodthirst_reload_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 10,
-		flash = false	
-	},
-	["team_damage_speed_multiplier_received"] = {
-		source = "skill",
-		priority = 5,
-		icon = "scavenger",
-		icon_rect = {10,9},
-		label = "noblehud_buff_second_wind_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 5,
-		flash = false
-	},
-	["damage_speed_multiplier"] = {
-		source = "skill",
-		priority = 5,
-		icon = "scavenger",
-		icon_rect = {10,9},
-		label = "noblehud_buff_second_wind_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 5,
-		flash = false
-	},
-	["sixth_sense"] = {
-		source = "skill",
-		priority = 7,
-		icon = "chameleon",
-		label = "noblehud_buff_sixth_sense_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		persistent_timer = true,
---		timer_source = "player",
-		flash = false
-	},
-	["revive_damage_reduction"] = { --combat medic
-		source = "skill",
-		priority = 5,
-		icon = "combat_medic",
-		icon_rect = {5,7},
-		label = "noblehud_buff_combat_medic_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 5,
-		flash = false
-	},
-	["trigger_happy"] = {
-		source = "skill",
-		priority = 3,
-		icon = "trigger_happy",
-		label = "noblehud_buff_trigger_happy_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 2, --4 aced
-		flash = false
-	},
-	["desperado"] = {
-		source = "skill",
-		priority = 3,
-		icon = "expert_handling",
-		label = "noblehud_buff_desperado_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 10,
-		flash = false
-	},
-	["partners_in_crime"] = {
-		source = "skill",
-		priority = 3,
-		icon = "control_freak",
-		label = "noblehud_buff_partners_in_crime_label",
-		label_compact = "",
-		value_type = "status", --move speed from hostage
-		flash = false
-	},
-	["partners_in_crime_aced"] = {
-		source = "skill",
-		priority = 3,
-		disabled = true, --same proc conditions as basic
-		icon = "control_freak",
-		label = "noblehud_buff_partners_in_crime_aced_label",
-		label_compact = "",
-		value_type = "status", --hp boost from hostage
-		flash = false,
-	},
-	["single_shot_fast_reload"] = {
-		source = "skill",
-		priority = 5,
-		icon = "speedy_reload",
-		label = "noblehud_buff_aggressive_reload_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		duration = 4,
-		flash = false
-	},
-	["shock_and_awe_reload_multiplier"] = {
-		source = "skill",
-		priority = 5,
-		icon = "shock_and_awe",
-		label = "noblehud_buff_lock_n_load_label",
-		label_compact = "x$VALUE",
-		value_type = "value", --auto multikills reload speed from skilltree "lock n load"
-		flash = false
-	},
-	["dmg_multiplier_outnumbered"] = { --underdog dmg boost; DONE
-		source = "skill",
-		priority = 7,
-		icon = "underdog",
-		label = "noblehud_buff_underdog_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false
-	},
-	["dmg_dampener_outnumbered"] = { --underdog dmg resist; DONE
-		source = "skill",
-		priority = 7,
-		disabled = true,
-		icon = "underdog",
-		label = "noblehud_buff_underdog_aced_label",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false
-	},
-	["dmg_dampener_close_contact"] = { --dmg resist; activates in conjuction with underdog but lasts 5 seconds??? ovk y u do dis
-		source = "skill",
-		priority = 7,
-		disabled = true,
-		icon = "underdog",
-		label = "dmg_dampener_close_contact",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false
-	},	
-	["dmg_dampener_outnumbered_strong"] = { --same as above, but aced
-		source = "skill",
-		priority = 7,
-		disabled = true,
-		icon = "underdog",
-		label = "dmg_dampener_outnumbered_strong",
-		label_compact = "$TIMER",
-		value_type = "timer",
-		flash = false
-	},
 	["combat_medic_damage_multiplier"] = {
 		priority = 5,
 		disabled = true
@@ -733,60 +771,7 @@ KineticHUD._buff_data = {
 		disabled = true,
 		priority = 2,
 		value_type = "status"
-	},
-	["first_aid_damage_reduction"] = { --120s 10% damage reduction from using fak/docbag
-		source = "skill",
-		priority = 3,
-		icon = "tea_time",
-		icon_rect = {1,11},
-		label = "noblehud_buff_quick_fix_label",
-		value_type = "timer",
-		label_compact = "$TIMER",
-		flash = false
-	},
-	["reload_weapon_faster"] = { --running from death basic, part 1
-		source = "skill",
-		priority = 3,
-		icon = "running_from_death", --or speedy_reload
-		label = "noblehud_buff_running_from_death_reload_label",
-		value_type = "timer", --reload + swap faster after revive
-		label_compact = "$TIMER",
-		duration = 10,
-		flash = true	
-	},
-	["swap_weapon_faster"] = { --running from death basic, part 2; disabled due to identical proc conditions + duration
-		disabled = true,
-		source = "skill",
-		priority = 3,
-		icon = "speedy_reload",
-		label = "noblehud_buff_running_from_death_swap_label",
-		value_type = "timer",
-		label_compact = "$TIMER",
-		duration = 10,
-		flash = true
-	},
-	["increased_movement_speed"] = { --running from death aced; disabled due to identical proc conditions + duration
-		disabled = true,
-		source = "skill",
-		priority = 3,
-		icon = "running_from_death",
-		label = "noblehud_buff_running_from_death_aced_label",
-		value_type = "timer",
-		label_compact = "$TIMER",
-		duration = 10,
-		flash = true
-	},
-	["revived_damage_resist"] = { --up you go basic
-		source = "skill",
-		priority = 3,
-		icon = "up_you_go",
-		icon_rect = {11,4},
-		label = "noblehud_buff_up_you_go_label",
-		value_type = "timer",
-		label_compact = "$TIMER",
-		duration = 10,
-		flash = true
 	}
 }
 
---todo addbuff/removebuff functions
+return buff_data

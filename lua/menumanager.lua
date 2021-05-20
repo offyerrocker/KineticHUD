@@ -2,12 +2,26 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
+		aligns/sizing for buffs panel
+		aggregated buffs (dodge, crit, damage resist, regen)
+		misc buffs (winters)
+		remaining perk deck buffs (throwables, etc)
+		player state buffs (tased, downed, electrocuted, flashbanged etc)
+		odd buffs (uppers nearby/ready, messiah ready/charged, etc)
+		grinder stacks? similar internally stacked perk deck effects like biker
+		separate buff handlers for cameras etc?
+			loot?
+			enemies?
+			pickups?
+			timers?
+			(post-release)
+		
+		
 		reposition with fov (solves ADS and vehicle issues)
 		
 		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
 		main color scheme
 		misc category- eg. heist timer scale
-		updater should work when paused?
 	
 	
 	
@@ -18,20 +32,20 @@ DEVELOPMENT:
 			player vitals
 			player equipment
 		event hooks for player join/leave to reset values like hud, hp, etc.
-		add maniac/expres hud elements
 		add player cartographer hud element
 		add player compass hud element
 			waypoints on the compass bar
-		implement player/team mission equipments
+		implement team mission equipments
 		dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
 		
 		--flashing assault light during assaults; different colors based on assault phase (bai compat)
 		
 		
 		underbarrel weapon support for main player
-		test world_to_screen on world panels (update/persist script with static location paired with console settracker)
+		substitute for world_to_screen on world panels
 		non-focused weapon icon is not properly resized on setting the icon image
 			
+		updater should work when paused?
 		
 	DESIRED FEATURES:
 		button prompts next to hud icons?
@@ -486,9 +500,7 @@ function KineticHUD:Setup()
 	
 	Hooks:Call("khud_on_load_buff_data",self._buff_data)
 	
-	if managers.gameinfo then 
-		self:RegisterBuffListeners()
-	end
+	self:RegisterBuffListeners()
 	
 	
 	self:RegisterUpdateCheckPlayer()
@@ -529,7 +541,7 @@ function KineticHUD:CreateWorldPanels()
 			color = rect_color,
 			layer = -1,
 			alpha = 0.2,
-			visible = true
+			visible = false
 		})
 		
 		self._workspaces[i] = ws
@@ -675,6 +687,10 @@ end
 
 --Experimental: Adds buff listeners for pjal3urb's GameInfoManager plugin
 function KineticHUD:RegisterBuffListeners()
+	if managers.gameinfo then 
+	
+		managers.gameinfo:register_listener("khud_buff_listener","buff","activate",callback(self,self,"RegisterBuff"))
+		managers.gameinfo:register_listener("khud_buff_listener","buff","deactivate",callback(self,self,"UnregisterBuff"))
 --[[
 	managers.gameinfo:register_listener("khud_change_whisper_mode_listener", "whisper_mode", "change", function(...)
 		buttr = {...}
@@ -691,7 +707,7 @@ function KineticHUD:RegisterBuffListeners()
 	
 	
 	
-	
+	end
 end
 
 --Creates the main HUD elements, using the in-world HUD panels.
@@ -2993,6 +3009,12 @@ function KineticHUD:SetPlayerArmor(current,total)
 	end
 end
 
+Hooks:Add("dcs_standalone_on_revives_changed","khud_downcounterstandalone_onreviveschanged",function(peer_id,revives,prev_revives)
+	if peer_id == LuaNetworking:LocalPeerID() then 
+		KineticHUD:SetPlayerRevives(revives)
+	end
+end)
+
 function KineticHUD:SetPlayerRevives(amount)
 	if alive(self._player_vitals_panel) then 
 		self.SetDigitalText(self._player_vitals_panel:child("revives_text"),amount,1)
@@ -3583,6 +3605,8 @@ function KineticHUD:UpdateHUD(t,dt)
 		end
 	end
 	
+	self:UpdateHUDBuffs(t,dt)
+	
 end
 
 function KineticHUD:AnimatePanelSelectedFlash(id)
@@ -3650,13 +3674,14 @@ function KineticHUD:CreateBuffsPanel(skip_layout)
 		x = 0,
 		y = 0
 	})
+	--[[
 	local debug_rect = parent_buffs_panel:rect({
 		name = "debug_rect",
 		alpha = 0.1,
 		visible = false,
 		color = Color.red
 	})
-	
+	--]]
 	self._buffs_panel = parent_buffs_panel
 	if not skip_layout then 
 		self:LayoutBuffsPanel()
@@ -3704,16 +3729,253 @@ function KineticHUD:LayoutBuffsPanel()
 	buffs_panel:move(buffs_x,buffs_y)
 end
 
-function KineticHUD:RegisterBuff(id)
-
+function KineticHUD:IsBuffEnabled(id) --todo check from buff settings
+	return true
 end
 
---buttw = KineticHUD:AddBuff({id = "hello",texture = "guis/textures/pd2/cn_minighost"})
+function KineticHUD:IsBuffCompactLabelMode() 
+	return false
+end
+
+function KineticHUD:RegisterBuff(_,id,data)
+	local buff_data = id and self._buff_data[id]
+	if buff_data then 
+		if not buff_data.disabled and self:IsBuffEnabled(id) then 
+			local buff_item = self:GetBuffItem(id) 
+			if buff_item then
+				self:AnimateRefreshBuff(buff_item)
+			else
+				self:AddBuffItem(id,buff_data,data)
+			end
+		end
+	else
+		self:c_log("No buff data found for " .. tostring(id))
+	end
+end
+
+function KineticHUD:AnimateRefreshBuff(buff_item)
+	--register is only called on new buffs- this should never actually be executed
+
+	local buff_refresher = buff_item:child("refresher")
+	if alive(buff_refresher) then 
+		buff_item:remove(buff_refresher)
+	end
+	
+	buff_refresher = buff_item:rect({
+		name = "refresher",
+		color = self.color_data.white,
+		alpha = 0,
+		layer = -2
+	})
+	
+	local remove_gui = callback(buff_refresher,buff_refresher,"remove")
+	
+	local function anim_fadeout(o)
+		self:animate(o,"animate_fadeout",remove_gui(o),0.5,0)
+	end
+	
+	self:animate(buff_refresher,"animate_fadein",anim_fadeout,0.1,1)
+	
+	--update buff text/color/icon?
+	--flash on refresh
+	
+end
+
+function KineticHUD:UnregisterBuff(_,id,data)
+	self:RemoveBuffItem(id)
+end
+
+function KineticHUD:GetBuffItem(id)
+	local buffs_panel = self._buffs_panel
+	if id and alive(buffs_panel) then 
+		return buffs_panel:child(tostring(id))
+	end
+end
+
+function KineticHUD:GetBuffIcon(id,data)
+
+	local icon_id = data.icon_id
+	local icon_tier = data.icon_tier
+	local tier_floors = data.tier_floors
+	local source = data.source
+	
+	local texture,texture_rect
+	if source == "icon" then 
+		texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon_id)
+	elseif source == "skill" then 
+		texture = "guis/textures/pd2/skilltree_2/icons_atlas_2"
+		local SKILL_ICON_SIZE = 80
+		local x,y = unpack(tweak_data.skilltree.skills[icon_id].icon_xy)
+		texture_rect = {x * SKILL_ICON_SIZE,y * SKILL_ICON_SIZE,SKILL_ICON_SIZE,SKILL_ICON_SIZE}
+	elseif source == "skill_1" then --that reads "skill_" and then the numerical form of "one"
+		texture = "guis/textures/pd2/skilltree/icons_atlas"
+		local SKILL_ICON_SIZE = 64
+		local x,y = unpack(tweak_data.skilltree.skills[icon_id].icon_xy)
+		texture_rect = {x * SKILL_ICON_SIZE,y * SKILL_ICON_SIZE,SKILL_ICON_SIZE,SKILL_ICON_SIZE}
+	elseif source == "perk" then 
+		texture,texture_rect = KineticHUD.get_specialization_icon_data_by_tier(icon_id,icon_tier,tier_floors)
+	end
+	
+	return texture,texture_rect
+end
+
+function KineticHUD:UpdateHUDBuffs(t,dt)
+	local buffs_panel = self._buffs_panel
+	
+	local hud_values = self.hud_values
+	local layout_settings = self.layout_settings
+	local scale = layout_settings.buffs_panel_scale
+	local margin_medium = hud_values.MARGIN_MEDIUM * scale
+	
+	local compact_label = self:IsBuffCompactLabelMode()
+	local rows = true
+	
+	local buffs_w,buffs_h = buffs_panel:size()
+	local x,y = 0,0
+	
+	for i,buff_panel in ipairs(buffs_panel:children()) do 
+	
+		local id = buff_panel:name()
+		
+		local buff_info = managers.gameinfo:get_buffs()[id]
+		local buff_data = self._buff_data[id]
+		if buff_info and buff_data then 
+			local skill_id = buff_data.icon_id
+			local source = buff_data.source
+			local aced = buff_data.aced
+			
+			
+			local text = ""
+			if not compact_label then 
+				if buff_data.text then
+					text = managers.localization:text(buff_data.text)
+				else
+					if source == "perk" then 
+						local skilltd = tweak_data.skilltree.specializations[skill_id]
+						if skilltd then 
+							text = managers.localization:text(skilltd.name_id)
+						end
+					elseif source == "skill" then 
+						local skilltd = tweak_data.skilltree.skills[skill_id]
+						if skilltd then 
+							text = managers.localization:text(skilltd.name_id)
+							if aced then 
+								text = text .. " " .. managers.localization:text("khud_aced_buff")
+							end
+						end
+					end
+				end
+			end
+			
+			if buff_info then 
+				local duration = ""
+				local value = ""
+				
+				if buff_info.expire_t then 
+					local duration_remaining = buff_info.expire_t - t
+					duration = KineticHUD.format_seconds(math.ceil(duration_remaining))
+				end
+				if buff_info.value then 
+					if buff_data.value_format then 
+						value = string.format(buff_data.value_format,buff_info.value)
+					else
+						value = buff_info.value
+					end
+				end
+				if value ~= "" then 
+					text = text .. " " .. value
+				end
+				if duration ~= "" then 
+					text = text .. " " .. duration
+				end
+				
+--				self:c_log("Logging buff_info for " .. tostring(id) .. "<--")
+--				logall(buff_info)
+--				self:c_log("</-->" .. tostring(id))
+			else
+--				self:c_log("buff_info is nil for " .. tostring(id))
+			end
+			local label = buff_panel:child("label")
+			label:set_text(text)
+		
+		end
+		if i > 1 then 
+			local buff_w = buff_panel:w()
+			local buff_h = buff_panel:h()
+			if rows then 
+				x = x + buff_w
+				if x + margin_medium + buff_w > buffs_w then 
+					x = 0
+					y = y + margin_medium + buff_h
+				end
+			else --organize buffs by columns 
+				y = y + buff_h
+				if y + margin_medium + buff_h > buffs_h then 
+					x = x + margin_medium + buff_w
+					y = 0
+				end
+			end
+		end
+		buff_panel:set_position(x,y)
+	end
+end
+
+--buttw = KineticHUD:AddBuffItem({id = "hello",texture = "guis/textures/pd2/cn_minighost"})
 --creates a hud item with the buff specified
-function KineticHUD:AddBuff(data)
-	local id = data.id
-	local texture = data.texture
-	local texture_rect = data.texture_rect
+function KineticHUD:AddBuffItem(id,data,buff_info)
+
+	local skill_id = data.icon_id
+	local aced = data.aced
+	
+	local texture,texture_rect
+	local text = ""
+	local text_color = self.color_data.white
+	local icon_color = self.color_data.white
+	if data.text_color_id then 
+		text_color = self.color_data[data.text_color_id] or text_color
+	end
+	if data.icon_color_id then 
+		icon_color = self.color_data[data.icon_color_id] or icon_color
+	end
+	
+	local skilltd = tweak_data.skilltree.skills[skill_id]
+	if not self:IsBuffCompactLabelMode() then 
+		if data.text then
+			text = managers.localization:text(data.text)
+		elseif skilltd then 
+			text = managers.localization:text(skilltd.name_id)
+		end
+	end
+		
+	if buff_info then 
+		local duration = ""
+		local value = ""
+		
+		if buff_info.t and buff_info.expire_t then 
+			duration = KineticHUD.format_seconds(buff_info.expire_t - buff_info.t)
+		end
+		if buff_info.value then 
+			if data.value_format then 
+				value = string.format(data.value_format,buff_info.value)
+			else
+				value = buff_info.value
+			end
+		end
+		
+		if duration ~= "" then 
+			text = text .. " " .. tostring(duration)
+		end
+		if value ~= "" then 
+			text = text .. " " .. tostring(value)
+		end
+	end
+	
+	if data.texture then 
+		texture,texture_rect = data.texture,data.texture_rect
+	else
+		texture,texture_rect = KineticHUD:GetBuffIcon(id,data)
+	end
+	
 	local hud_values = self.hud_values
 	local layout_settings = self.layout_settings
 	local scale = layout_settings.buffs_panel_scale
@@ -3753,15 +4015,34 @@ function KineticHUD:AddBuff(data)
 		h = icon_h,
 		x = margin_medium,
 		y = (panel_h - icon_h) / 2,
+		color = icon_color,
 		layer = 2
+	})
+	
+	local aced_texture = "guis/textures/pd2/skilltree_2/ace_symbol"
+	local aced_texture_rect = nil
+	local aced_icon = panel:bitmap({
+		name = "aced_icon",
+		texture = aced_texture,
+		texture_rect = aced_texture_rect,
+		blend_mode = "add",
+		--set rotation to 360 to disable clipping
+		w = icon_w,
+		h = icon_h,
+		x = margin_medium,
+		y = (panel_h - icon_h) / 2,
+		color = tweak_data.screen_colors.button_stage_2,
+		layer = 1,
+		visible = aced
 	})
 	
 	local label = panel:text({
 		name = "label",
-		text = id,
+		text = text,
 		font = font,
 		font_size = font_size,
 		x = icon:x() + icon:w() + margin_medium,
+		color = text_color,
 		layer = 3,
 		align = "left",
 		vertical = "center"
@@ -3773,11 +4054,12 @@ function KineticHUD:AddBuff(data)
 		texture_rect = nil,
 		w = panel_w,
 		h = panel_h,
-		layer = 1,
+		layer = 0,
 		alpha = 0.5,
 		color = self.color_data.black
 	})
 	
+	--[[
 	local r = math.random()
 	local debug_rect = panel:rect({
 		name = "debug_rect",
@@ -3786,14 +4068,18 @@ function KineticHUD:AddBuff(data)
 		layer = -2,
 		alpha = 0.1
 	})
+	--]]
 	
 --	self:AnimateLayoutBuffs()
 	--todo insert by priority
 	return panel
 end
 
-function KineticHUD:RemoveBuff(id)
-	
+function KineticHUD:RemoveBuffItem(id)
+	local buff_item = self:GetBuffItem(id)
+	if buff_item then 
+		buff_item:parent():remove(buff_item)
+	end
 end
 
 function KineticHUD:AnimateLayoutBuffs()

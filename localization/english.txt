@@ -86,5 +86,14 @@
 	"khud_panel_right_title" : "Right Panel",
 	"khud_panel_top_title" : "Top Panel",
 	"khud_panel_bottom_title" : "Bottom Panel",
-	"khud_hud_player_name_loading" : "LOADING..."
+	"khud_hud_player_name_loading" : "LOADING...",
+	
+	
+	"khud_aced_buff" : "Aced",
+	"khud_buff_inspire_basic_cooldown" : "Inspire Cooldown",
+	"khud_buff_inspire_aced_cooldown" : "Inspire Aced Cooldown",
+	"khud_buff_label_unseen_strike_cooldown" : "Unseen Strike Cooldown",
+	"khud_buff_label_running_from_death_reload" : "RFD Reload Speed",
+	"khud_buff_label_running_from_death_swap" : "RFD Swap Speed",
+	"khud_buff_label_running_from_death_move" : "RFD Movement Speed",
 }

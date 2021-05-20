@@ -33,7 +33,7 @@ Hooks:PostHook(HUDTeammate,"set_condition","khud_hudteammate_set_condition",func
 	if icon_data == "mugshot_downed" then 
 	elseif icon_data == "mugshot_normal" then
 	end
-	KineticHUD:c_log("Player " .. tostring(self._id) .. ": set condition " .. tostring(text) .. "[" .. tostring(icon_data) .. "]")
+--	KineticHUD:c_log("Player " .. tostring(self._id) .. ": set condition " .. tostring(text) .. "[" .. tostring(icon_data) .. "]")
 end)
 
 
@@ -43,12 +43,12 @@ Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
 	local total = data.total
 	local revives = data.revives
 	if self._main_player then 
-		if revives then 
+		if revives and not DownCounterStandalone then 
 			KineticHUD:SetPlayerRevives(revives)
 		end
 		KineticHUD:SetPlayerHealth(current,total)
 	else
-		if revives then 
+		if revives and not DownCounterStandalone then 
 			KineticHUD:SetTeammateRevives(self._id,revives)
 		end
 		KineticHUD:SetTeammateHealth(self._id,current,total)
