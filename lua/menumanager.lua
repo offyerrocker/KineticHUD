@@ -2837,10 +2837,9 @@ function KineticHUD:AnimateSwitchWeapons(highlighted_index)
 			w1 = weapons_panel:child("2")
 		end
 		
-		local scale = self.settings.player_weapons_panel_scale
-		
 		local hud_values = self.hud_values
 		local layout_settings = self.layout_settings
+		local scale = layout_settings.player_weapons_panel_scale
 		
 		local weapons_panel_w = hud_values.PLAYER_WEAPONS_W
 		local weapons_panel_h = hud_values.PLAYER_WEAPONS_H
