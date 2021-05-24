@@ -1124,6 +1124,8 @@ KineticHUD.hud_values = {
 	BUFF_ICON_H = 48,
 	BUFF_W = 300,
 	BUFF_H = 56,
+	BUFF_W_COMPACT = 100,
+	
 	
 	OBJECTIVE_W = 500,
 	OBJECTIVE_H = 100,
@@ -1335,8 +1337,6 @@ KineticHUD.default_layout_settings = {
 	objective_panel_location = 1,
 	OBJECTIVE_X = 0,
 	OBJECTIVE_Y = 0
-	
-	
 }
 
 KineticHUD.debug_value_1 = 0.5
