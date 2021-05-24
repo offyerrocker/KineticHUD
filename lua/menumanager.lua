@@ -2631,7 +2631,7 @@ function KineticHUD:LayoutCarryPanel()
 	
 	local hv = self.hud_values
 	local layout_settings = self.layout_settings
-	local scale = layout_settings.carry_panel_scale
+	local scale = layout_settings.player_carry_panel_scale
 	
 	
 	local carry_x = layout_settings.CARRY_X
