@@ -3580,6 +3580,6 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		KineticHUD:Save()
 		--note to self: weapons menu and compass menu use this generic callback
 	end
-	KineticHUD:Load()
 end)
+KineticHUD:Load()
 	
