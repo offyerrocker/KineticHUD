@@ -569,7 +569,7 @@ function KineticHUD:LinkWS(link_target_object)
 	local ws_flat = managers.hud._workspace
 	local ws_flat_panel = ws_flat:panel()
 	local camera = managers.player:local_player():camera()._camera_object
-	local rot = camera:rotation()
+	local camrot = camera:rotation()
 	for i,panel in ipairs(self._world_panels) do 
 		local hv = self.hud_values.world_panels[i]
 		local workspace = self._workspaces[i]
@@ -582,10 +582,15 @@ function KineticHUD:LinkWS(link_target_object)
 		
 		local panel_w = hv.GUI_W
 		local panel_h = hv.GUI_H
-		local offset_yaw = hv.OFFSET_YAW -- + rot:yaw()
-		local offset_pitch = hv.OFFSET_PITCH -- + rot:pitch()  
-		local offset_roll = hv.OFFSET_ROLL -- + rot:pitch()
+		local offset_yaw = hv.OFFSET_YAW -- + camrot:yaw()
+		local offset_pitch = hv.OFFSET_PITCH -- + camrot:pitch()  
+		local offset_roll = hv.OFFSET_ROLL -- + camrot:pitch()
 		local distance = hv.DISTANCE
+		
+		local offset_x = hv.OFFSET_X
+		local offset_y = hv.OFFSET_Y
+		local offset_z = hv.OFFSET_Z
+		
 		
 		if true then 
 			
@@ -624,9 +629,25 @@ function KineticHUD:LinkWS(link_target_object)
 			y_axis = d_y * world_h
 			
 			if hv.HALIGN == "right" then 
-				pos = _right - (d_x * world_w)
+				
+				local _x = math.cos(offset_yaw) * world_w
+				local _y = math.sin(offset_yaw) * world_w
+				
+				pos = _right - (d_x * world_w) - (d_z * _y)
+				
+				local temp = (d_z * _y) + (d_x * _x)
+				x_axis = temp
+				
+				offset_x = -offset_x
 			elseif hv.HALIGN == "center" then 
-				pos = (x_axis - (d_x * world_w)) / 2
+				--origin_center
+				
+				local _x = math.cos(offset_yaw) * world_w
+				local _y = math.sin(offset_yaw) * world_w
+				
+				pos = (origin + ((_right - origin) / 2)) - (x_axis / 2) -- (d_x * _x) - (d_z * _y)
+				x_axis = (d_z * _y) + (d_x * _x)
+				
 			else --defaults to "left"
 				pos = origin
 				local _x = math.cos(offset_yaw) * world_w
@@ -640,7 +661,7 @@ function KineticHUD:LinkWS(link_target_object)
 --				Draw:brush(Color.red:with_alpha(0.1)):sphere(origin,1/3)
 --				Draw:brush(Color.yellow:with_alpha(0.1)):sphere(_fwd,1/3)
 --				Draw:brush(Color.green:with_alpha(0.1)):sphere(_right + y_axis,1/3)
---				Draw:brush(Color(0,1,1):with_alpha(0.1)):sphere(origin_center,1/3)
+				Draw:brush(Color(0,1,1):with_alpha(0.1)):sphere(origin_center,1/3)
 --				Draw:brush(Color.blue:with_alpha(0.1)):sphere(_right,1/3)
 				
 			
@@ -656,15 +677,22 @@ function KineticHUD:LinkWS(link_target_object)
 			end
 			
 			if hv.VALIGN == "bottom" then 
+				pos = pos + (_bottom - origin) - y_axis
+				offset_y = -offset_y
 			elseif hv.VALIGN == "center" then 
+				pos = pos + ((_bottom - origin) - y_axis) / 2
 			else --defaults to "top"
 			end
+			
 			local top_left = pos
 			if link_target_object then 
 				
 				Draw:brush(Color.red:with_alpha(0.1)):sphere(top_left,1/3)
 				Draw:brush(Color.green:with_alpha(0.1)):sphere(top_left + x_axis,1/3)
 				Draw:brush(Color.blue:with_alpha(0.1)):sphere(top_left + y_axis,1/3)
+				
+				local offset_pos = (x_axis * offset_x) + (y_axis * offset_y) + (z_axis * offset_z)
+				top_left = top_left + offset_pos
 				
 				workspace:set_linked(panel_w,panel_h,link_target_object,top_left,x_axis,y_axis)
 				done_any = true
@@ -3844,7 +3872,7 @@ function KineticHUD:IsBuffEnabled(id) --todo check from buff settings
 end
 
 function KineticHUD:IsBuffCompactLabelMode() 
-	return true
+	return false
 end
 
 function KineticHUD:RegisterBuff(_,id,data)

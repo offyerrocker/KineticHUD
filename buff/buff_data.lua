@@ -411,6 +411,19 @@ local unverified_buff_data = {
 		text_color = Color("FFD700"),
 		flash = false
 	},
+	["muscle_regen"] = {
+		source = "perk",
+		priority = 1,
+		icon = 17,
+		icon_tier = 9,
+		persistent_timer = true,
+		label = "noblehud_buff_regen_aggregated_label",
+		label_compact = "x$VALUE $TIMER",
+		duration = 10,
+		value_type = "timer",
+		text_color = Color("FFD700"),
+		flash = false
+	},
 	["fully_loaded"] = { --throwable pickup chance; not implemented
 		disabled = true,
 		priority = 2
