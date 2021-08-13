@@ -552,7 +552,7 @@ function KineticHUD:CreateWorldPanels()
 			color = rect_color,
 			layer = -1,
 			alpha = 0.2,
-			visible = false
+			visible = self.hud_values.DEBUG_PANELS_VISIBLE
 		})
 		
 		self._workspaces[i] = ws
@@ -573,23 +573,20 @@ function KineticHUD:LinkWS(link_target_object)
 		local hv = self.hud_values.world_panels[i]
 		local workspace = self._workspaces[i]
 		
-		local world_w = hv.WORLD_W 
-		local world_h = hv.WORLD_H
 		
 		local w_scale = hv.W_SCALAR
 		local h_scale = hv.H_SCALAR
 		
 		local panel_w = hv.GUI_W
 		local panel_h = hv.GUI_H
-		local offset_yaw = hv.OFFSET_YAW
-		local offset_pitch = hv.OFFSET_PITCH
-		local offset_roll = hv.OFFSET_ROLL
-		local distance = hv.DISTANCE
+		local offset_yaw = hv.OFFSET_YAW or 0
+		local offset_pitch = hv.OFFSET_PITCH or 0
+		local offset_roll = hv.OFFSET_ROLL or 0
+		local distance = hv.DISTANCE or 0
 		
-		local offset_x = hv.OFFSET_X
-		local offset_y = hv.OFFSET_Y
-		local offset_z = hv.OFFSET_Z
-		
+		local offset_x = hv.OFFSET_X or 0
+		local offset_y = hv.OFFSET_Y or 0
+		local offset_z = hv.OFFSET_Z or 0
 		
 		if true then 
 			
@@ -602,8 +599,8 @@ function KineticHUD:LinkWS(link_target_object)
 			local _bottom = ws_flat:screen_to_world(camera,Vector3(0,ws_flat_panel:h(),distance))
 			local _fwd = camera:position() + (camera:rotation():y() * distance) --ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:h()/2,ws_flat_panel:h()/2,distance + 1))
 
-			world_w = mvector3.length(_right - origin) * w_scale
-			world_h = mvector3.length(_bottom - origin) * h_scale
+			local world_w = mvector3.length(_right - origin) * w_scale
+			local world_h = mvector3.length(_bottom - origin) * h_scale
 			
 --			local fwd = ws_flat:screen_to_world(camera,Vector3(0,0,distance + yaw_dis)
 			
@@ -673,6 +670,22 @@ function KineticHUD:LinkWS(link_target_object)
 			end
 			
 			local top_left = pos
+			
+			--[[ nonfunctional
+			if offset_pitch % 360 > 0 then 
+				if offset_pitch % 360 > 180 then 
+				
+					local _y = math.cos(offset_pitch) * world_h
+					local _z = math.sin(offset_pitch) * world_h
+					
+					top_left = top_left + (_z * d_z)
+					z_axis = z_axis + (_y * d_y)
+				else
+					top_left = top_left + (_y * d_y)
+					z_axis = z_axis + (_z * d_z)
+				end
+			end
+			--]]
 			if link_target_object then 
 				
 --				Draw:brush(Color.red:with_alpha(0.1)):sphere(top_left,1/3)
@@ -687,6 +700,9 @@ function KineticHUD:LinkWS(link_target_object)
 			end
 			
 		else
+			--old orientation/alignment method
+			local world_w = hv.WORLD_W 
+			local world_h = hv.WORLD_H
 			
 			local ra = link_target_object:rotation()
 			
@@ -862,9 +878,10 @@ function KineticHUD:CreateWorldHUD()
 	self:CreateBuffsPanel()
 	self:CreateChatPanel()
 	
-	
 	self:CreateAssaultPanel()
 	self:CreateObjectivePanel()
+	
+--	self:CreateStatsPanel() --created from newhudstatsscreen
 	
 end
 
@@ -1984,6 +2001,254 @@ function KineticHUD:CreateChatPanel(skip_layout)
 		self:LayoutChatPanel()
 	end
 end
+
+function KineticHUD:CreateStatsPanel(skip_layout)
+
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[5]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	
+	local is_whisper_mode = managers.groupai and managers.groupai:state():whisper_mode()	
+	local job_data = managers.job:current_job_data()
+	local stage_data = managers.job:current_stage_data()
+	local level_data = managers.job:current_level_data()
+	
+	local mission_level_text = ""
+	local cs_tier_text = ""
+	local days_text = ""
+	local difficulty_text = ""
+	local od_indicator_text = ""
+	local payout_text = managers.localization:text("hud_day_payout", {
+		MONEY = managers.experience:cash_string(managers.money:get_potential_payout_from_current_stage())
+	})
+	local pagers_text = ""
+	--todo ghostable icon
+	
+	if managers.crime_spree:is_active() then 
+		local mission = managers.crime_spree:get_mission(managers.crime_spree:current_played_mission())
+		if mission then 
+			mission_level_text = managers.localization:text(tweak_data.levels[mission.level.level_id].name_id)
+		end
+		cs_tier_text = managers.localization:text("menu_cs_level", {
+			level = managers.experience:cash_string(managers.crime_spree:server_spree_level(), "")
+		})
+		
+	else
+		local job_chain = managers.job:current_job_chain_data()
+		local day = managers.job:current_stage()
+		local days = job_chain and #job_chain or 0
+		days_text = managers.localization:to_upper_text("hud_days_title", {
+			DAY = day,
+			DAYS = days
+		})
+		
+		if level_data then 
+			mission_level_text = managers.localization:to_upper_text(level_data.name_id)
+		end
+		
+	end
+	
+	if job_data then 
+		local job_stars = managers.job:current_job_stars()
+		local difficulty_stars = managers.job:current_difficulty_stars()
+		local difficulty = tweak_data.difficulties[difficulty_stars + 2] or 1
+		local difficulty_text = managers.localization:to_upper_text(tweak_data.difficulty_name_ids[difficulty])
+		--color = difficulty_stars > 0 and tweak_data.screen_colors.risk or tweak_data.screen_colors.text
+		if Global.game_settings.one_down then 
+			od_indicator_text = managers.localization:to_upper_text("menu_one_down")
+		end
+	end
+	
+	
+	if managers.job:is_level_ghostable(managers.job:current_level_id()) then
+		if is_whisper_mode then 
+			local pagers_used = managers.groupai:state():get_nr_successful_alarm_pager_bluffs()
+			local max_pagers_data = managers.player:has_category_upgrade("player", "corpse_alarm_pager_bluff") and tweak_data.player.alarm_pager.bluff_success_chance_w_skill or tweak_data.player.alarm_pager.bluff_success_chance
+			local max_num_pagers = #max_pagers_data
+			
+			for i, chance in ipairs(max_pagers_data) do
+				if chance == 0 then
+					max_num_pagers = i - 1
+
+					break
+				end
+			end
+			pagers_text = string.format("%i / %i",pagers_used,max_num_pagers)
+			--managers.localization:text("hud_stats_pagers_used")
+			--local pagers_texture, pagers_rect = tweak_data.hud_icons:get_icon_data("pagers_used")
+			
+		end
+		
+		
+		
+	end
+	
+	local mandatory_bags_data = managers.loot:get_mandatory_bags_data()
+	local mandatory_amount = mandatory_bags_data and mandatory_bags_data.amount
+	local secured_amount = managers.loot:get_secured_mandatory_bags_amount()
+	local bonus_amount = managers.loot:get_secured_bonus_bags_amount()
+	--managers.localization:text("hud_stats_bags_secured")
+	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
+		
+	--	if mandatory_amount and mandatory_amount > 0 then
+--		local str = bonus_amount > 0 and string.format("%d/%d+%d", secured_amount, mandatory_amount, bonus_amount) or string.format("%d/%d", secured_amount, mandatory_amount)
+--		end
+
+	--managers.localization:to_upper_text("hud_body_bags")
+	--	local body_texture, body_rect = tweak_data.hud_icons:get_icon_data("equipment_body_bag")
+	
+--	local secured_bags_money = managers.experience:cash_string(managers.money:get_secured_mandatory_bags_money() + managers.money:get_secured_bonus_bags_money())
+--	local instant_cash = managers.experience:cash_string(managers.loot:get_real_total_small_loot_value())
+--managers.localization:to_upper_text("hud_instant_cash")
+	
+	if alive(self._stats_panel) then 
+		selected_parent_panel:remove(self._stats_panel)
+		self._stats_panel = nil
+	end
+	local panel = selected_parent_panel:panel({
+		name = "stats_panel",
+		x = 0,
+		y = 0,
+		visible = false
+	})
+	self._stats_panel = panel
+	
+	local mission_info_panel = panel:panel({
+		name = "mission_info_panel"
+	})
+	local mission_name = mission_info_panel:text({ --from cs or from normal
+		name = "mission_name",
+		text = mission_level_text,
+		y = 0,
+		font = self._fonts.syke,
+		font_size = 64
+	})
+	local crimespree_level = mission_info_panel:text({
+		name = "crimespree_level",
+		text = cs_tier_text,
+		y = 30,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	local mission_day = mission_info_panel:text({
+		name = "mission_day",
+		text = days_text,
+		y = 45,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	local difficulty_name = mission_info_panel:text({
+		name = "difficulty_name",
+		text = difficulty_text,
+		y = 80,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local one_down_indicator = mission_info_panel:text({
+		name = "one_down_indicator",
+		text = od_indicator_text,
+		x = 100,
+		y = 80,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local payout_indicator = mission_info_panel:text({
+		name = "mission_payout",
+		text = payout_text,
+		y = 100,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	---ghost icon here
+	local pagers_indicator = mission_info_panel:text({
+		name = "pagers_indicator",
+		text = pagers_text,
+		y = 0,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	local objectives_panel = panel:panel({
+		name = "objectives_panel",
+		y = 120
+	})
+	--objectives are generated
+	
+	local converts_panel = panel:panel({
+		name = "converts_panel"
+	})
+	--converts are generated
+	
+	if not skip_layout then 
+--		layout here
+	end
+end
+
+function KineticHUD:RefreshStatsObjectives()
+	
+	--[[
+	for i, data in pairs(managers.objectives:get_active_objectives()) do
+		placer:add_bottom(self._left:fine_text({
+			word_wrap = true,
+			wrap = true,
+			align = "left",
+			text = utf8.to_upper(data.text),
+			font = tweak_data.hud.medium_font,
+			font_size = tweak_data.hud.active_objective_title_font_size,
+			w = row_w
+		}))
+		placer:add_bottom(self._left:fine_text({
+			word_wrap = true,
+			wrap = true,
+			font_size = 24,
+			align = "left",
+			text = data.description,
+			font = tweak_data.hud_stats.objective_desc_font,
+			w = row_w
+		}), 0)
+	end
+
+	--]]
+end
+
+function KineticHUD:RefreshStatsLoot()
+
+end
+
+function KineticHUD:RefreshStatsInventory()
+
+end
+
+function KineticHUD:RefreshStatsMutators()
+
+end
+
+function KineticHUD:RefreshStatsAchievements()
+
+end
+
+function KineticHUD:RefreshStatsConverts()
+	
+end
+
+function KineticHUD:RefreshHUDStats()
+	if not alive(self._stats_panel) then 
+		self:CreateStatsPanel()
+	end
+	self:RefreshStatsLoot()
+	self:RefreshStatsInventory()
+	self:RefreshStatsMutators()
+	self:RefreshStatsAchievements()
+	
+	self:RefreshStatsObjectives()
+	self:RefreshStatsConverts()
+end
+
 
 function KineticHUD:LayoutChatPanel()
 --	self._chat_panel:set_position(0,0)

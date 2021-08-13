@@ -874,6 +874,7 @@ KineticHUD.halign_values = {
 
 --number values used for sizing, positioning etc. which should not be change-able by settings
 KineticHUD.hud_values = {
+	DEBUG_PANELS_VISIBLE = false,
 	world_panels = {
 		{
 			name = "left_panel",
@@ -889,7 +890,7 @@ KineticHUD.hud_values = {
 			GUI_W = 500,
 			GUI_H = 1000,
 			OFFSET_YAW = 15,
-			OFFSET_PITCH = 90,
+			OFFSET_PITCH = 0,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0.05,
 			OFFSET_Y = 0,
@@ -911,7 +912,7 @@ KineticHUD.hud_values = {
 			GUI_W = 500,
 			GUI_H = 1000,
 			OFFSET_YAW = -15,
-			OFFSET_PITCH = 90,
+			OFFSET_PITCH = 0,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0.05,
 			OFFSET_Y = 0,
@@ -933,7 +934,7 @@ KineticHUD.hud_values = {
 			GUI_W = 800,
 			GUI_H = 450,
 			OFFSET_YAW = 0,
-			OFFSET_PITCH = 90 + 10,
+			OFFSET_PITCH = 10,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0,
 			OFFSET_Y = 0.2,
@@ -955,12 +956,34 @@ KineticHUD.hud_values = {
 			GUI_W = 1600 / 1.5,
 			GUI_H = 900 / 1.5,
 			OFFSET_YAW = 0,
-			OFFSET_PITCH = 90 - 10,
+			OFFSET_PITCH = 10,
 			OFFSET_ROLL = 0,
 			OFFSET_X = 0,
 			OFFSET_Y = 0.2,
 			OFFSET_Z = 0,
 			RECT_COLOR = Color.green,
+			RECT_ALPHA = 0.5
+		},
+		{
+			name = "stats_top_panel",
+			localized_name = "khud_panel_stats_top_title",
+			DISTANCE = 5,
+			HALIGN = "left",
+			VALIGN = "top",
+			TEXT = "STATS TOP PANEL",
+			W_SCALAR = 0.6,
+			H_SCALAR = 0.6,
+			WORLD_W = 11,
+			WORLD_H = 6,
+			GUI_W = 800,
+			GUI_H = 450,
+			OFFSET_YAW = 10,
+			OFFSET_PITCH = 10,
+			OFFSET_ROLL = 0,
+			OFFSET_X = 0,
+			OFFSET_Y = 0.2,
+			OFFSET_Z = 0,
+			RECT_COLOR = Color(0,1,1),
 			RECT_ALPHA = 0.5
 		}
 	},
