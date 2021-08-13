@@ -138,7 +138,7 @@ local buff_data = {
 		--fully loaded aced kills to grenade?
 	
 	--technician
-	lock_n_load = {
+	shock_and_awe = {
 		icon_id = "shock_and_awe",
 		source = "skill",
 --		text = "khud_buff_label_lock_n_load",

@@ -2,19 +2,30 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		aligns/sizing for buffs panel
-		aggregated buffs (dodge, crit, damage resist, regen)
-		misc buffs (winters)
-		remaining perk deck buffs (throwables, etc)
-		player state buffs (tased, downed, electrocuted, flashbanged etc)
-		odd buffs (uppers nearby/ready, messiah ready/charged, etc)
-		grinder stacks? similar internally stacked perk deck effects like biker
-		separate buff handlers for cameras etc?
-			loot?
-			enemies?
-			pickups?
-			timers?
-			(post-release)
+		killcounter
+			fire burn deaths count as 2 kills
+	
+		buffs
+			aligns/sizing for buffs panel
+			aggregated buffs (dodge, crit, damage resist, regen)
+			misc buffs (winters)
+			remaining perk deck buffs (throwables, etc)
+			player state buffs (tased, downed, electrocuted, flashbanged etc)
+			odd buffs (uppers nearby/ready, messiah ready/charged, etc)
+			grinder stacks? similar internally stacked perk deck effects like biker
+			separate buff handlers for cameras etc?
+				loot?
+				enemies?
+				pickups?
+				timers?
+				(post-release)
+			
+			buffs customization menu
+				compact
+				priority
+			--scale should only apply to individual buffs, not the master buffs panel
+			
+			buff visual sorting/animation
 		
 		
 		reposition with fov (solves ADS and vehicle issues)
@@ -23,7 +34,7 @@ DEVELOPMENT:
 		main color scheme
 		misc category- eg. heist timer scale
 	
-	
+		hud tabscreen
 	
 		preview image for any given menu
 		write player equipment
@@ -541,7 +552,7 @@ function KineticHUD:CreateWorldPanels()
 			color = rect_color,
 			layer = -1,
 			alpha = 0.2,
-			visible = false
+			visible = true
 		})
 		
 		self._workspaces[i] = ws
@@ -554,43 +565,143 @@ end
 --Returns: bool
 function KineticHUD:LinkWS(link_target_object)
 	local done_any = false
+	
+	local ws_flat = managers.hud._workspace
+	local ws_flat_panel = ws_flat:panel()
+	local camera = managers.player:local_player():camera()._camera_object
+	local rot = camera:rotation()
 	for i,panel in ipairs(self._world_panels) do 
 		local hv = self.hud_values.world_panels[i]
 		local workspace = self._workspaces[i]
 		
-		local world_w = hv.WORLD_W
+		local world_w = hv.WORLD_W 
 		local world_h = hv.WORLD_H
+		
+		local w_scale = hv.W_SCALAR
+		local h_scale = hv.H_SCALAR
+		
 		local panel_w = hv.GUI_W
 		local panel_h = hv.GUI_H
+		local offset_yaw = hv.OFFSET_YAW -- + rot:yaw()
+		local offset_pitch = hv.OFFSET_PITCH -- + rot:pitch()  
+		local offset_roll = hv.OFFSET_ROLL -- + rot:pitch()
+		local distance = hv.DISTANCE
 		
-		local ra = link_target_object:rotation()
-		
-		local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
-		
-		local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-		
-		local x_axis = Vector3(world_w,0,0)
-		
-		mvector3.rotate_with(x_axis,rot)
-		
-		local y_axis = Vector3(0,-world_h,0)
-		
-		mvector3.rotate_with(y_axis,rot)
-		
-		local center = Vector3(world_w / 2,-world_h / 2)
-		
-		mvector3.rotate_with(center,rot)
-		
-		local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
-			--x+ is distance right
-			--y+ is distance upward
-			--z+ is distance backward
+		if true then 
 			
-		mvector3.rotate_with(offset,rot)
+	--		local _topleft = ws_flat:screen_to_world(camera,Vector3(0,0,distance))
+	--		local _bottomright = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),ws_flat_panel:h(),distance))
+
+			local origin = ws_flat:screen_to_world(camera,Vector3(0,0,distance)) --top left
+--			local _left = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),0,distance))
+			local origin_center = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:h()/2,ws_flat_panel:h()/2,0))
+			local _right = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),0,distance))
+			local _bottom = ws_flat:screen_to_world(camera,Vector3(0,ws_flat_panel:h(),distance))
+			local _fwd = camera:position() + (camera:rotation():y() * distance) --ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:h()/2,ws_flat_panel:h()/2,distance + 1))
+
+			world_w = mvector3.length(_right - origin) * w_scale
+			world_h = mvector3.length(_bottom - origin) * h_scale
+			
+--			local fwd = ws_flat:screen_to_world(camera,Vector3(0,0,distance + yaw_dis)
+			
+			local x_axis = _right - origin
+			local y_axis = _bottom - origin
+			local z_axis = _fwd - origin_center
+			
+			local pos = Vector3()
+			local d_x = mvector3.copy(x_axis)
+			mvector3.normalize(d_x)
+			
+			local d_y = mvector3.copy(y_axis)
+			mvector3.normalize(d_y)
+			
+			local d_z = mvector3.copy(z_axis)
+			mvector3.normalize(d_z)
+			
+			
+			
+			x_axis = d_x * world_w
+			y_axis = d_y * world_h
+			
+			if hv.HALIGN == "right" then 
+				pos = _right - (d_x * world_w)
+			elseif hv.HALIGN == "center" then 
+				pos = (x_axis - (d_x * world_w)) / 2
+			else --defaults to "left"
+				pos = origin
+				local _x = math.cos(offset_yaw) * world_w
+				local _y = math.sin(offset_yaw) * world_w
+				local temp = (d_z * _y) + (d_x * _x)
+
+				x_axis = temp
+				Draw:brush(Color(1,0,1):with_alpha(0.1)):sphere(origin + temp,1/3)
+
+
+--				Draw:brush(Color.red:with_alpha(0.1)):sphere(origin,1/3)
+--				Draw:brush(Color.yellow:with_alpha(0.1)):sphere(_fwd,1/3)
+--				Draw:brush(Color.green:with_alpha(0.1)):sphere(_right + y_axis,1/3)
+--				Draw:brush(Color(0,1,1):with_alpha(0.1)):sphere(origin_center,1/3)
+--				Draw:brush(Color.blue:with_alpha(0.1)):sphere(_right,1/3)
+				
+			
+--				Console:SetTrackerValue("trackera",tostring(x_axis))
+--				Console:SetTrackerValue("trackerb",tostring(y_axis))
+				Console:SetTrackerValue("trackerc",tostring(d_z))
+				Console:SetTrackerValue("trackerd",tostring(d_x))
+				
+				Draw:brush(Color(1,0,1):with_alpha(0.5)):line(origin,origin+(x_axis * 5),1)
+				Draw:brush(Color(1,1,0):with_alpha(0.5)):line(origin,origin+(y_axis * 5),1)
+				Draw:brush(Color(0,1,1):with_alpha(0.5)):line(origin,origin+(z_axis * 5),1)
+				
+			end
+			
+			if hv.VALIGN == "bottom" then 
+			elseif hv.VALIGN == "center" then 
+			else --defaults to "top"
+			end
+			local top_left = pos
+			if link_target_object then 
+				
+				Draw:brush(Color.red:with_alpha(0.1)):sphere(top_left,1/3)
+				Draw:brush(Color.green:with_alpha(0.1)):sphere(top_left + x_axis,1/3)
+				Draw:brush(Color.blue:with_alpha(0.1)):sphere(top_left + y_axis,1/3)
+				
+				workspace:set_linked(panel_w,panel_h,link_target_object,top_left,x_axis,y_axis)
+				done_any = true
+			end
+			
+		else
+			
+			local ra = link_target_object:rotation()
+			
+			local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
+			
+			local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
+			
+			local x_axis = Vector3(world_w,0,0)
+			
+			mvector3.rotate_with(x_axis,rot)
+			
+			local y_axis = Vector3(0,-world_h,0)
+			
+			mvector3.rotate_with(y_axis,rot)
+			
+			local center = Vector3(world_w / 2,-world_h / 2)
+			
+			mvector3.rotate_with(center,rot)
+			
+			local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
+				--x+ is distance right
+				--y+ is distance upward
+				--z+ is distance backward
+				
+			mvector3.rotate_with(offset,rot)
+			
+			local position = link_target_object:position()
+			workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
 		
-		local position = link_target_object:position()
-		workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
-		done_any = true
+			done_any = true
+		end
 	end
 	return done_any
 end
@@ -3733,7 +3844,7 @@ function KineticHUD:IsBuffEnabled(id) --todo check from buff settings
 end
 
 function KineticHUD:IsBuffCompactLabelMode() 
-	return false
+	return true
 end
 
 function KineticHUD:RegisterBuff(_,id,data)
@@ -3827,10 +3938,12 @@ function KineticHUD:UpdateHUDBuffs(t,dt)
 	local margin_medium = hud_values.MARGIN_MEDIUM * scale
 	
 	local compact_label = self:IsBuffCompactLabelMode()
+	
 	local rows = true
+	local align = "left"
+	local valign = "right"
 	
 	local buffs_w,buffs_h = buffs_panel:size()
-	local x,y = 0,0
 	
 	for i,buff_panel in ipairs(buffs_panel:children()) do 
 	
@@ -3898,22 +4011,29 @@ function KineticHUD:UpdateHUDBuffs(t,dt)
 			label:set_text(text)
 		
 		end
-		if i > 1 then 
-			local buff_w = buff_panel:w()
-			local buff_h = buff_panel:h()
-			if rows then 
-				x = x + buff_w
-				if x + margin_medium + buff_w > buffs_w then 
-					x = 0
-					y = y + margin_medium + buff_h
-				end
-			else --organize buffs by columns 
-				y = y + buff_h
-				if y + margin_medium + buff_h > buffs_h then 
-					x = x + margin_medium + buff_w
-					y = 0
+		
+		local x,y = 0,0
+		if align == "left" then 
+			
+			if i > 1 then 
+				local buff_w = buff_panel:w()
+				local buff_h = buff_panel:h()
+				if rows then 
+					x = x + buff_w
+					if x + margin_medium + buff_w > buffs_w then 
+						x = 0
+						y = y + margin_medium + buff_h
+					end
+				else --organize buffs by columns 
+					y = y + buff_h
+					if y + margin_medium + buff_h > buffs_h then 
+						x = x + margin_medium + buff_w
+						y = 0
+					end
 				end
 			end
+		elseif align == "right" then 
+		
 		end
 		buff_panel:set_position(x,y)
 	end
@@ -3925,6 +4045,8 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 
 	local skill_id = data.icon_id
 	local aced = data.aced
+	
+	local compact_mode = self:IsBuffCompactLabelMode()
 	
 	local texture,texture_rect
 	local text = ""
@@ -3938,7 +4060,7 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 	end
 	
 	local skilltd = tweak_data.skilltree.skills[skill_id]
-	if not self:IsBuffCompactLabelMode() then 
+	if not compact_mode then 
 		if data.text then
 			text = managers.localization:text(data.text)
 		elseif skilltd then 
@@ -3993,7 +4115,11 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 	local icon_h = hud_values.BUFF_ICON_H * scale
 	
 	local panel_w = hud_values.BUFF_W * scale
+	if compact_mode then 
+		panel_w = hud_values.BUFF_W_COMPACT * scale
+	end
 	local panel_h = hud_values.BUFF_H * scale
+	
 	local panel_x = 0 * scale
 	local panel_y = 0 * scale
 	
@@ -4012,7 +4138,7 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 		texture_rect = texture_rect,
 		w = icon_w,
 		h = icon_h,
-		x = margin_medium,
+		x = 0,
 		y = (panel_h - icon_h) / 2,
 		color = icon_color,
 		layer = 2
@@ -4028,7 +4154,7 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 		--set rotation to 360 to disable clipping
 		w = icon_w,
 		h = icon_h,
-		x = margin_medium,
+		x = 0,
 		y = (panel_h - icon_h) / 2,
 		color = tweak_data.screen_colors.button_stage_2,
 		layer = 1,
@@ -4107,7 +4233,7 @@ function KineticHUD.traverse(tbl,indexed_targets,func,...)
 			indexed_targets[tostring(v)] = true
 			local next_traversal_target,args = func(k,v,...)
 			if next_traversal_target then 
-				KineticHUD.traverse(next_traversal_target,indexed_targets,func,unpack(args))
+				KineticHUD.traverse(next_traversal_target,indexed_targets,func,unpack(args or {}))
 			end
 		end
 	end

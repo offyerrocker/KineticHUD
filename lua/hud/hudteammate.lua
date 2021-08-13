@@ -39,8 +39,8 @@ end)
 
 --vitals
 Hooks:PostHook(HUDTeammate,"set_health","khud_set_health",function(self,data)
-	local current = data.current
-	local total = data.total
+	local current = data.current * 10
+	local total = data.total * 10
 	local revives = data.revives
 	if self._main_player then 
 		if revives and not DownCounterStandalone then 
