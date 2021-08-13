@@ -552,7 +552,7 @@ function KineticHUD:CreateWorldPanels()
 			color = rect_color,
 			layer = -1,
 			alpha = 0.2,
-			visible = true
+			visible = false
 		})
 		
 		self._workspaces[i] = ws
@@ -569,7 +569,6 @@ function KineticHUD:LinkWS(link_target_object)
 	local ws_flat = managers.hud._workspace
 	local ws_flat_panel = ws_flat:panel()
 	local camera = managers.player:local_player():camera()._camera_object
-	local camrot = camera:rotation()
 	for i,panel in ipairs(self._world_panels) do 
 		local hv = self.hud_values.world_panels[i]
 		local workspace = self._workspaces[i]
@@ -582,9 +581,9 @@ function KineticHUD:LinkWS(link_target_object)
 		
 		local panel_w = hv.GUI_W
 		local panel_h = hv.GUI_H
-		local offset_yaw = hv.OFFSET_YAW -- + camrot:yaw()
-		local offset_pitch = hv.OFFSET_PITCH -- + camrot:pitch()  
-		local offset_roll = hv.OFFSET_ROLL -- + camrot:pitch()
+		local offset_yaw = hv.OFFSET_YAW
+		local offset_pitch = hv.OFFSET_PITCH
+		local offset_roll = hv.OFFSET_ROLL
 		local distance = hv.DISTANCE
 		
 		local offset_x = hv.OFFSET_X
@@ -598,7 +597,6 @@ function KineticHUD:LinkWS(link_target_object)
 	--		local _bottomright = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),ws_flat_panel:h(),distance))
 
 			local origin = ws_flat:screen_to_world(camera,Vector3(0,0,distance)) --top left
---			local _left = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),0,distance))
 			local origin_center = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:h()/2,ws_flat_panel:h()/2,0))
 			local _right = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),0,distance))
 			local _bottom = ws_flat:screen_to_world(camera,Vector3(0,ws_flat_panel:h(),distance))
@@ -655,24 +653,14 @@ function KineticHUD:LinkWS(link_target_object)
 				local temp = (d_z * _y) + (d_x * _x)
 
 				x_axis = temp
-				Draw:brush(Color(1,0,1):with_alpha(0.1)):sphere(origin + temp,1/3)
-
-
---				Draw:brush(Color.red:with_alpha(0.1)):sphere(origin,1/3)
---				Draw:brush(Color.yellow:with_alpha(0.1)):sphere(_fwd,1/3)
---				Draw:brush(Color.green:with_alpha(0.1)):sphere(_right + y_axis,1/3)
-				Draw:brush(Color(0,1,1):with_alpha(0.1)):sphere(origin_center,1/3)
---				Draw:brush(Color.blue:with_alpha(0.1)):sphere(_right,1/3)
+--				Draw:brush(Color(1,0,1):with_alpha(0.1)):sphere(origin + temp,1/3)
+--				Draw:brush(Color(0,1,1):with_alpha(0.1)):sphere(origin_center,1/3)
+--				Console:SetTrackerValue("trackerc",tostring(d_z))
+--				Console:SetTrackerValue("trackerd",tostring(d_x))
 				
-			
---				Console:SetTrackerValue("trackera",tostring(x_axis))
---				Console:SetTrackerValue("trackerb",tostring(y_axis))
-				Console:SetTrackerValue("trackerc",tostring(d_z))
-				Console:SetTrackerValue("trackerd",tostring(d_x))
-				
-				Draw:brush(Color(1,0,1):with_alpha(0.5)):line(origin,origin+(x_axis * 5),1)
-				Draw:brush(Color(1,1,0):with_alpha(0.5)):line(origin,origin+(y_axis * 5),1)
-				Draw:brush(Color(0,1,1):with_alpha(0.5)):line(origin,origin+(z_axis * 5),1)
+--				Draw:brush(Color(1,0,1):with_alpha(0.5)):line(origin,origin+(x_axis * 5),1)
+--				Draw:brush(Color(1,1,0):with_alpha(0.5)):line(origin,origin+(y_axis * 5),1)
+--				Draw:brush(Color(0,1,1):with_alpha(0.5)):line(origin,origin+(z_axis * 5),1)
 				
 			end
 			
@@ -687,9 +675,9 @@ function KineticHUD:LinkWS(link_target_object)
 			local top_left = pos
 			if link_target_object then 
 				
-				Draw:brush(Color.red:with_alpha(0.1)):sphere(top_left,1/3)
-				Draw:brush(Color.green:with_alpha(0.1)):sphere(top_left + x_axis,1/3)
-				Draw:brush(Color.blue:with_alpha(0.1)):sphere(top_left + y_axis,1/3)
+--				Draw:brush(Color.red:with_alpha(0.1)):sphere(top_left,1/3)
+--				Draw:brush(Color.green:with_alpha(0.1)):sphere(top_left + x_axis,1/3)
+--				Draw:brush(Color.blue:with_alpha(0.1)):sphere(top_left + y_axis,1/3)
 				
 				local offset_pos = (x_axis * offset_x) + (y_axis * offset_y) + (z_axis * offset_z)
 				top_left = top_left + offset_pos
@@ -3671,8 +3659,9 @@ end
 function KineticHUD:UpdateHUD(t,dt)
 	local player = managers.player:local_player()
 	if player then
-		
+		self:LinkWS(player:camera()._camera_object)
 	end
+	
 	
 	local hud_values = self.hud_values
 	local ekg_speed = hud_values.EKG_SPEED
