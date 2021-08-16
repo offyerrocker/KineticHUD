@@ -69,6 +69,7 @@ end
 
 function HUDStatsScreen:hide()
 	if alive(KineticHUD._stats_panel) then 
+		KineticHUD:ShowHUD()
 		KineticHUD._stats_panel:hide()
 	end
 end
@@ -76,6 +77,7 @@ end
 
 function HUDStatsScreen:show()
 	if alive(KineticHUD._stats_panel) then 
+		KineticHUD:HideHUD()
 		KineticHUD._stats_panel:show()
 	end
 end

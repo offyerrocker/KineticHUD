@@ -472,10 +472,12 @@ end
 --Hides all workspaces associated with KineticHUD
 --Arguments: none
 --Returns: nil
-function KineticHUD:HideHUD()
-	for panel_name,ws in pairs(self._workspaces) do 
+function KineticHUD:HideHUD(force)
+	for id,ws in pairs(self._workspaces) do 
 		if alive(ws) then 
-			ws:hide()
+			if force or not self.hud_values.world_panels[id].unhidable then 
+				ws:hide()
+			end
 		end
 	end
 end
@@ -483,10 +485,12 @@ end
 --Shows all workspaces associated with KineticHUD
 --Arguments: none
 --Returns: nil
-function KineticHUD:ShowHUD()
-	for panel_name,ws in pairs(self._workspaces) do 
+function KineticHUD:ShowHUD(force)
+	for id,ws in pairs(self._workspaces) do 
 		if alive(ws) then 
-			ws:show()
+			if force or not self.hud_values.world_panels[id].unhidable then 
+				ws:show()
+			end
 		end
 	end
 end
@@ -1671,6 +1675,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		x = color_indicator_x,
 		y = color_indicator_y,
 		color = self.color_data.teal,
+		visible = false,
 		layer = 4
 	})
 	
@@ -1695,6 +1700,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		font_size = nametag_font_size,
 		align = "left",
 		vertical = "top",
+		visible = false,
 		layer = 6
 	})
 	
@@ -2018,9 +2024,9 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 	local mission_level_text = ""
 	local cs_tier_text = ""
 	local days_text = ""
-	local difficulty_text = ""
-	local od_indicator_text = ""
-	local payout_text = managers.localization:text("hud_day_payout", {
+	local difficulty_string = ""
+	local od_indicator_text
+	local payout_text = "> " .. managers.localization:text("hud_day_payout", {
 		MONEY = managers.experience:cash_string(managers.money:get_potential_payout_from_current_stage())
 	})
 	local pagers_text = ""
@@ -2031,7 +2037,7 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		if mission then 
 			mission_level_text = managers.localization:text(tweak_data.levels[mission.level.level_id].name_id)
 		end
-		cs_tier_text = managers.localization:text("menu_cs_level", {
+		cs_tier_text = "> " .. managers.localization:text("menu_cs_level", {
 			level = managers.experience:cash_string(managers.crime_spree:server_spree_level(), "")
 		})
 		
@@ -2039,7 +2045,7 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		local job_chain = managers.job:current_job_chain_data()
 		local day = managers.job:current_stage()
 		local days = job_chain and #job_chain or 0
-		days_text = managers.localization:to_upper_text("hud_days_title", {
+		days_text = "> " .. managers.localization:to_upper_text("hud_days_title", {
 			DAY = day,
 			DAYS = days
 		})
@@ -2054,7 +2060,8 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		local job_stars = managers.job:current_job_stars()
 		local difficulty_stars = managers.job:current_difficulty_stars()
 		local difficulty = tweak_data.difficulties[difficulty_stars + 2] or 1
-		local difficulty_text = managers.localization:to_upper_text(tweak_data.difficulty_name_ids[difficulty])
+		difficulty_string = "> " .. managers.localization:to_upper_text(tweak_data.difficulty_name_ids[difficulty])
+		
 		--color = difficulty_stars > 0 and tweak_data.screen_colors.risk or tweak_data.screen_colors.text
 		if Global.game_settings.one_down then 
 			od_indicator_text = managers.localization:to_upper_text("menu_one_down")
@@ -2123,7 +2130,7 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		text = mission_level_text,
 		y = 0,
 		font = self._fonts.syke,
-		font_size = 64
+		font_size = 48
 	})
 	local crimespree_level = mission_info_panel:text({
 		name = "crimespree_level",
@@ -2141,21 +2148,24 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		font_size = 32
 	})
 	
+	local difficulty_string_len
+	if od_indicator_text then 
+		difficulty_string = difficulty_string .. " | "
+		difficulty_string_len = #difficulty_string
+		difficulty_string = difficulty_string .. od_indicator_text
+	else
+		difficulty_string_len = #difficulty_string + 1
+	end
+	
 	local difficulty_name = mission_info_panel:text({
 		name = "difficulty_name",
-		text = difficulty_text,
+		text = difficulty_string,
 		y = 80,
 		font = self._fonts.syke,
 		font_size = 32
 	})
-	local one_down_indicator = mission_info_panel:text({
-		name = "one_down_indicator",
-		text = od_indicator_text,
-		x = 100,
-		y = 80,
-		font = self._fonts.syke,
-		font_size = 32
-	})
+	difficulty_name:set_range_color(difficulty_string_len,math.huge,tweak_data.screen_colors.one_down)
+	
 	local payout_indicator = mission_info_panel:text({
 		name = "mission_payout",
 		text = payout_text,
@@ -3476,7 +3486,9 @@ function KineticHUD:AddPlayerMissionEquipment(data)
 		layer = 0
 	})
 	local function cb()
-		self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),self.color_data.white)
+		if alive(bitmap) then 
+			self:animate(bitmap,"animate_color_shift_duo",nil,0.5,bitmap:color(),self.color_data.white)
+		end
 	end
 	self:animate_wait(2,cb)
 	--[[
@@ -3578,14 +3590,18 @@ end
 function KineticHUD:SetTeammateName(i,name)
 	local teammate_panel = self._teammate_panels[i]
 	if teammate_panel then 
-		teammate_panel:child("nametag_panel"):child("nametag"):set_text(name)
+		local nametag = teammate_panel:child("nametag_panel"):child("nametag")
+		nametag:show()
+		nametag:set_text(name)
 	end
 end
 
 function KineticHUD:SetTeammatePeerId(i,id)
 	local teammate_panel = self._teammate_panels[i]
 	if teammate_panel then 
-		teammate_panel:child("color_indicator"):set_color(tweak_data.chat_colors[#tweak_data.chat_colors])
+		local color_indicator = teammate_panel:child("color_indicator")
+		color_indicator:show()
+		color_indicator:set_color(tweak_data.chat_colors[#tweak_data.chat_colors])
 	end
 end
 
@@ -3668,7 +3684,7 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 		
 		if data.icon then 
 			local icon_box = deployable:child("icon_box")
-			local deployable_icon = icon_box:child("icon")
+			local deployable_icon = icon_box:child("icon_bitmap")
 			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon)
 			if alive(deployable_icon) then 
 				deployable_icon:set_image(texture,unpack(texture_rect))

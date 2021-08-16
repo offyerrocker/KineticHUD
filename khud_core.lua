@@ -966,6 +966,7 @@ KineticHUD.hud_values = {
 		},
 		{
 			name = "stats_top_panel",
+			unhidable = true,
 			localized_name = "khud_panel_stats_top_title",
 			DISTANCE = 5,
 			HALIGN = "left",
@@ -980,7 +981,7 @@ KineticHUD.hud_values = {
 			OFFSET_YAW = 10,
 			OFFSET_PITCH = 10,
 			OFFSET_ROLL = 0,
-			OFFSET_X = 0,
+			OFFSET_X = 0.1,
 			OFFSET_Y = 0.2,
 			OFFSET_Z = 0,
 			RECT_COLOR = Color(0,1,1),
