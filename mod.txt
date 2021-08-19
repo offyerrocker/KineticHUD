@@ -3,7 +3,7 @@
 	"description" : "Buffs tracker, QuickChat, ECM Timer, and more!",
 	"author" : "Offyerrocker"
 	"contact" : "Discord: Offyerrocker#3878",
-	"version" : "v0.144 beta",
+	"version" : "v0.145 beta",
 	"blt_version" : 2,
 	"image" : "khud.png",
 	"color" : "255 234 99",
