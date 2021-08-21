@@ -13,6 +13,8 @@
 	"khud_menu_layouts_player_vitals_health_desc" : "HP Indicator",
 	"khud_menu_layouts_player_vitals_armor_title" : "Armor",
 	"khud_menu_layouts_player_vitals_armor_desc" : "AP Indicator",
+	
+	
 	"khud_menu_layouts_player_weapons_title" : "Player Weapons",
 	"khud_menu_layouts_player_weapons_desc" : "Weapon info such as Ammo, Kills, and Firemode",
 	"khud_menu_layouts_player_equipment_all_title" : "Player Items",
@@ -65,6 +67,11 @@
 	"khud_menu_layouts_player_carry_title" : "Carry",
 	"khud_menu_layouts_player_carry_desc" : "Player Bag Loot HUD",
 
+	"khud_menu_layouts_player_vitals_health_fill_title" : "Set Health Bar Color...",
+	"khud_menu_layouts_player_vitals_armor_fill_title" : "Set Armor Bar Color...",
+	
+	
+	"khud_menu_layouts_generic_color_desc" : "Change the color of this HUD item. Requires ColorPicker.",
 	
 	"khud_player_weapons_panel_set_x_title" : "Set Panel X",
 	"khud_player_weapons_panel_set_x_desc" : "Set the horizontal position of the Weapons Panel",
@@ -96,4 +103,8 @@
 	"khud_buff_label_running_from_death_reload" : "RFD Reload Speed",
 	"khud_buff_label_running_from_death_swap" : "RFD Swap Speed",
 	"khud_buff_label_running_from_death_move" : "RFD Movement Speed",
+	
+	
+	"khud_prompt_missing_colorpicker_title" : "Missing ColorPicker Dependency",
+	"khud_prompt_missing_colorpicker_desc" : "You must have the mod \"ColorPicker\" installed in order to customize colors!\nYou can get it here: https://modwork.shop/29641 "
 }

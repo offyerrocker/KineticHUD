@@ -24,6 +24,7 @@ KineticHUD.color_data = {
 	grey = Color("888888"),
 	gray = Color("888888"),
 	red = Color("ff0000"),
+	dark_red = Color("741d1d"),
 	light_red = Color("ff8080"), --not pink. completely different color
 	orange = Color("ffbd80"),
 	gold = Color("ffd080"),
@@ -128,6 +129,14 @@ KineticHUD._menu_ids = {
 										desc = "khud_menu_layouts_player_vitals_health_desc",
 										area_bg = "none",
 										children = {
+											{
+												type = "button",
+												id = "khud_player_vitals_panel_customize_health_fill_color",
+												title = "khud_menu_layouts_player_vitals_health_fill_title",
+												desc = "khud_menu_layouts_generic_color_desc",
+												callback = "callback_khud_player_vitals_panel_customize_health_fill_color",
+												area_bg = "none"
+											}
 										}
 									},
 									{
@@ -137,9 +146,16 @@ KineticHUD._menu_ids = {
 										desc = "khud_menu_layouts_player_vitals_armor_desc",
 										area_bg = "none",
 										children = {
+											{
+												type = "button",
+												id = "khud_player_vitals_panel_customize_armor_fill_color",
+												title = "khud_menu_layouts_player_vitals_armor_fill_title",
+												desc = "khud_menu_layouts_generic_color_desc",
+												callback = "callback_khud_player_vitals_panel_customize_armor_fill_color",
+												area_bg = "none"
+											}
 										}
 									}
-									
 								}
 							},
 							{
@@ -879,6 +895,7 @@ KineticHUD.hud_values = {
 		{
 			name = "left_panel",
 			localized_name = "khud_panel_left_title",
+			is_world_workspace = true,
 			DISTANCE = 5,
 			HALIGN = "left",
 			VALIGN = "top",
@@ -901,6 +918,7 @@ KineticHUD.hud_values = {
 		{
 			name = "right_panel",
 			localized_name = "khud_panel_right_title",
+			is_world_workspace = true,
 			DISTANCE = 5,
 			HALIGN = "right",
 			VALIGN = "top",
@@ -923,6 +941,7 @@ KineticHUD.hud_values = {
 		{
 			name = "top_panel",
 			localized_name = "khud_panel_top_title",
+			is_world_workspace = true,
 			DISTANCE = 6,
 			HALIGN = "center",
 			VALIGN = "top",
@@ -945,6 +964,7 @@ KineticHUD.hud_values = {
 		{
 			name = "bottom_panel",
 			localized_name = "khud_panel_bottom_title",
+			is_world_workspace = true,
 			DISTANCE = 6,
 			HALIGN = "center",
 			VALIGN = "bottom",
@@ -968,6 +988,7 @@ KineticHUD.hud_values = {
 			name = "stats_top_panel",
 			unhidable = true,
 			localized_name = "khud_panel_stats_top_title",
+			is_world_workspace = true,
 			DISTANCE = 5,
 			HALIGN = "left",
 			VALIGN = "top",
@@ -984,6 +1005,13 @@ KineticHUD.hud_values = {
 			OFFSET_X = 0.1,
 			OFFSET_Y = 0.2,
 			OFFSET_Z = 0,
+			RECT_COLOR = Color(0,1,1),
+			RECT_ALPHA = 0.5
+		},
+		{
+			name = "flatscreen panel",
+			is_world_workspace = false,
+			TEXT = "FLATSCREEN PANEL",
 			RECT_COLOR = Color(0,1,1),
 			RECT_ALPHA = 0.5
 		}
@@ -1330,6 +1358,8 @@ KineticHUD.default_layout_settings = {
 	
 	player_vitals_panel_location = 4,
 	player_vitals_panel_scale = 1,
+	player_vitals_health_fill_color = "ff8080",
+	player_vitals_armor_fill_color = "80ff82",
 
 	player_weapons_panel_x = 0,
 	player_weapons_panel_y = 750,
@@ -1387,6 +1417,33 @@ KineticHUD.debug_value_1 = 0.5
 
 --default settings
 KineticHUD.default_settings = {
+	palettes = {
+		"ff0000",
+		"ffff00",
+		"00ff00",
+		"00ffff",
+		"0000ff",
+		"880000",
+		"888800",
+		"008800",
+		"008888",
+		"000088",
+		"ff8800",
+		"88ff00",
+		"00ff88",
+		"0088ff",
+		"8800ff",
+		"884400",
+		"448800",
+		"008844",
+		"004488",
+		"440088",
+		"ffffff",
+		"bbbbbb",
+		"888888",
+		"444444",
+		"000000"
+	}
 }
 
 KineticHUD.layout_settings = table.deep_map_copy(KineticHUD.default_layout_settings)
@@ -1626,6 +1683,80 @@ end
 
 --misc management
 
+function KineticHUD:OnColorPickerCreationCallback(colorpicker_obj)
+	self._colorpicker = colorpicker_obj or self._colorpicker
+end
+
+KineticHUD.colorpicker_setting_keys = {
+	player_vitals_health_fill = {
+		setting_name = "player_vitals_health_fill_color",
+		changed_callback = "LayoutPlayerVitals"
+	},
+	player_vitals_armor_fill = {
+		setting_name = "player_vitals_armor_fill_color",
+		changed_callback = "LayoutPlayerVitals"
+	}
+}
+
+function KineticHUD:ShowColorPickerCustomizeMenu(subtype)
+	if self._colorpicker then 
+		local setting_data = self.colorpicker_setting_keys[subtype]
+		local setting_name = setting_data.setting_name
+		if setting_data then 
+			local to_hex = ColorPicker.color_to_hex or Color.to_hex
+			local done_cb = function(color,palettes,accepted)
+				self.layout_settings[setting_name] = to_hex(color)
+				if setting_data.changed_callback then 
+					self[setting_data.changed_callback](self,color)
+				end
+				if accepted then 
+					self:SaveLayout()
+				end
+				self:SetPalettes(palettes)
+			end
+			
+			local changed_cb = function(color,palettes)
+				self.layout_settings[setting_name] = to_hex(color)
+				if setting_data.changed_callback then 
+					self[setting_data.changed_callback](self,color)
+				end
+			end
+			self._colorpicker:Show({
+				color = Color(self.layout_settings[setting_name]),
+				done_callback = done_cb,
+				changed_callback = changed_cb,
+				palettes = self:GetPalettes()
+			})
+		else
+			self:c_log("ERROR: ShowColorPickerCustomizeMenu(" .. tostring(subtype) .. ")")
+		end
+	elseif not ColorPicker then
+		QuickMenu:new(managers.localization:text("khud_prompt_missing_colorpicker_title"),managers.localization:text("khud_prompt_missing_colorpicker_desc"),
+			{
+				{
+					text = managers.localization:text("menu_ok"),
+					is_cancel_button = true
+				}
+			},
+		true)
+	end
+end
+
+function KineticHUD:SetPalettes(palette)
+	local to_hex = ColorPicker.color_to_hex or Color.to_hex
+	for i,j in ipairs(palette) do 
+		self.settings.palettes[i] = to_hex(j)
+	end
+	self:SaveSettings()
+end
+
+function KineticHUD:GetPalettes()
+	local palettes = {}
+	for i,j in ipairs(self.settings.palettes) do 
+		palettes[i] = Color(j)
+	end
+	return palettes
+end
 
 --Writes information for debugging to the appropriate output. Calls global function Log() with all arguments passed if defined (namely, by the Developer Console mod), else uses log() (from BLT)
 --Arguments: any (content agnostic)
@@ -1706,6 +1837,7 @@ function KineticHUD.animate_weapon_panels_switch(o,t,dt,start_t,duration,start_x
 	if progress >= 1 then 
 		return true
 	end
+	return false
 end
 
 function KineticHUD.animate_move_pow(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power)

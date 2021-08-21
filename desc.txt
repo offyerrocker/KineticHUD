@@ -10,10 +10,13 @@ You can think of this as the full version of KineticHUD (that was one long beta,
 [spoiler]
 	vr compatibility:
 		yes (may not look the best, but it's stable)
+		please report compatibility issues with VR to me
 	hud customizability:
 		each element should have a changeable scale
 		each element should have a changeable position
 		hud movable by mouse dragging?
+	Linux compatibility:
+		The Linux version(s) of sBLT are known to have issues with loading custom fonts and textures. As this mod is heavily dependent on several included custom fonts with KineticHUD, Linux compatibility is not tested or confirmed.
 	compatibility/modularity:
 		do not break other mods if at all possible
 		do not be broken by other mods if at all possible
@@ -43,8 +46,18 @@ h-hey, b-baka! quit looking at my previews, pervert!
 ## Installation:
 Unzip the mod called "KineticHUD" into the "mods" folder.
 
+## Recommended companion mods and compatibility:
+KineticHUD was written with specific compatibility code for a few mods. I personally recommend that you try some of these out, to your taste:
+- Better Assault Indicators, by Dom
+- Compass HUD Standalone, by me
+- Down Counter Standalone, by me
+- GameInfoManager, by pjal3urb https://bitbucket.org/pjal3urb/gameinfomanager - this is what powers the buff indicator in KineticHUD.
+
+Attempt to use with other main HUD mods (VanillaHUD Plus, WolfHUD, PocoHUD, etc) at your own risk
+
 ## F.A.Q.:
 
 ## Troubleshooting:
+
 If you encounter issues, please contact me here or via Discord. 
 You can report bugs on this mod page, or on the GitHub issues page.

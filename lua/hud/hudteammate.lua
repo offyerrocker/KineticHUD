@@ -105,6 +105,31 @@ Hooks:PostHook(HUDTeammate,"set_grenades_amount","khud_set_grenades_amount",func
 	end
 end)
 
+Hooks:PostHook(HUDTeammate,"set_grenade_cooldown","khud_set_grenade_cooldown",function(self,data)
+	if self._main_player then
+		if not PlayerBase.USE_GRENADES then
+			return
+		end
+		
+		if data then 
+			local end_time = data.end_time
+			local total_duration = data.duration
+			
+			local t = managers.game_play_central:get_heist_timer()
+			
+			local duration_left = total_duration
+			local from = 0
+			local to = 1
+			if end_time then 
+				duration_left = end_time - t
+				from = 1 - (duration_left / total_duration)
+			end
+			
+			KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
+		end
+	end
+end)
+
 --weapon
 Hooks:PostHook(HUDTeammate,"set_weapon_firemode","khud_hudteammate_set_weapon_firemode",function(self,id,firemode)
 	if self._main_player then 
@@ -1507,94 +1532,6 @@ function HUDTeammate:_animate_update_absorb(o, radial_absorb_shield_name, radial
 	end
 end
 
-Hooks:PostHook(HUDTeammate,"set_grenade_cooldown","khud_set_grenade_cooldown",function(self,data)
---sicario uses this instead of activate_ability
---also, this is called once at the start on use for things like stoic
-	if self._main_player then
-		if not PlayerBase.USE_GRENADES then
-			return
-		end
-
-		local end_time = data and data.end_time
-		local duration = data and data.duration	
-		
-		if not (end_time and duration) then 
-			return
-		end
-
-		local complete_duration = 0.75
-		local complete_time = end_time + complete_duration
-		
-		
-		local grenades_panel = self._khud_grenades_panel:child("grenades_bg")
-		local grenades_border = grenades_panel:child("panel_borders")
-		local grenades_recharge = grenades_panel:child("grenades_recharge")
-		grenades_recharge:set_visible(true)
-				
-		local max_w = grenades_panel:w()
-		local max_h = grenades_panel:h()
-		
-		local function animate_recharge(o)
-			repeat
-				local now = managers.game_play_central:get_heist_timer()
-				local time_left = end_time - now
-				local progress = time_left / duration
-				
-	--			local streak = math.tan(now * -250)
-	--			local streak_color = Color.red:with_alpha(streak > 1 and (0.5 * (1 - math.sin((now - 2) * -500))) or 1)
-	--			local streak_color = Color.red:with_alpha(streak > 1 and (math.sin(now) + 0.5) or 0) 
-	--			math.clamp(streak,0,1)
-	--			local streak = math.clamp(math.tan(now * 100),0,1)
-					
-	--			local here = 1 + (progress - math.sin((100 * now) % 60))
-				local here = 1 - (math.sin((60 * now) % 60) * (1 - progress))
-							
-				
-				o:set_gradient_points({
-					0,
-					Color.black,
-					here,
-					Color.red,
-					progress + 0.01,
-					Color.white,
-					progress,
-					Color.black,
-					1,
-					Color.black
-				})
-				
-	--			o:set_w(grenades_panel:w() * progress)
-				
-				coroutine.yield()
-			until time_left <= 0
-			grenades_recharge:set_visible(false)
-
-			repeat
-				local nao = managers.game_play_central:get_heist_timer()
-				local thyme_left = complete_time - nao
-				local pawgress = thyme_left / complete_duration
-
-				panel_border(grenades_border,{
-					thickness = 2,
-					alpha = 0.7,
-					layer = 3,
-					margin = thyme_left * max_w
-				})
-			
-				coroutine.yield()
-			until thyme_left <= 0
-		end
-						
-		panel_border(grenades_border,{
-			thickness = 2,
-			alpha = 0.7,
-			layer = 3,
-			margin = 0
-		})
-		grenades_recharge:stop()
-		grenades_recharge:animate(animate_recharge)
-	end
-end)
 
 Hooks:PostHook(HUDTeammate,"activate_ability_radial","khud_activate_ability_radial",function(self,time_left,time_total)
 --on activation i guess

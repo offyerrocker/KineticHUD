@@ -2,12 +2,168 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		killcounter
-			fire burn deaths count as 2 kills
 	
+******* BEFORE RELEASE: ********
+			GENERAL:
+				
+			INTERFACE:
+				functional customization menus
+				Down Counter compat
+				
+				* allow intuitive menu enabling/disabling of buffs
+					* see khud organization
+
+			HUD:
+				PLAYER:
+					- Health Lost chunking animation
+					- Stamina indicator
+					* ExPres
+					* Maniac
+					- Revives bg?
+				TEAMMATE:
+					- implement team mission equipments
+					- speaking indicator
+				TABSCREEN:
+					- kills with primary, secondary, throwable, melee, sentry
+					- jokers w/ killcounts- "guiding lines" to their onscreen positions
+				BUFFS:
+					- Add missing buffs, test all (compare with noblehud buff list)
+				CARTOGRAPHER:
+					- design + implement
+				COMPASS/WAYPOINTS:
+					- design + implement
+				DROP-IN/WAITING
+					- design + implement
+					- trade timer
+				TIMER:
+					- size/placement/align
+					- format (eg. MMHHSS)
+				HIT DIRECTION:
+					- design + implement
+					
+			BUGS:
+				resize mission equipments after menu settings change (AnimateLayoutPlayerMissionEquipment(true))
+				fire burn deaths count as 2 kills on killcounter
+				non-focused weapon icon is not properly resized on setting the icon image
+				player equipment alignment code centers improperly
+				objective amount does not update on completion
+			
+=========== MENU STRUCTURING: hoo boy this is indeed rough ===========
+				* HUD Layout
+					* Player
+						* Enabled/vanilla/hidden
+						* Vitals
+							* Health Bar
+								* Parent/Scale/Position/Align
+								* Fill/Outline/Text Color
+							* Armor Bar
+								* Parent/Scale/Position/Align
+								* Fill/Outline/Text Color
+							* Revives
+								* Enabled/Disabled
+								* Parent/Scale/Position/Align
+								* Color
+						* Player Weapons
+							* Parent/Scale/Position/Align
+							* Magazine/Reserves/Kills/Kills Icon/Weapon Icon/Firemode/Box Color
+					* Teammates
+						* Parent/Scale/Position/Align
+						* Toggle: Color by peer id
+					* Compass
+						* Parent/Scale/Position/Align
+						* Color
+					* Assault
+						* ???
+						* BAI Compatibility
+					* Objectives
+						* Enabled/vanilla/hidden
+						* Parent/Scale/Position/Align
+						* Color
+					* Hints
+						* Enabled/disabled
+						* Parent/Scale/Position
+						* Color
+					* Presenter
+						* Enabled/disabled
+						* Parent/Scale/Position
+						* Color
+					* Buffs
+						* Enabled/disabled
+						* Parent/Align
+						* Max per Row/Max per Column
+						* Color
+					* Heist name popup
+						* Enabled/disabled
+						* Parent/Scale/Position/Align
+						* Color
+				* Buffs Tracker
+					* Applicable Buffs
+				* Objectives
+					* Popup enabled/disabled
+
+=========== LOW PRIORITY/POST-RELEASE: ===========
+			Player underbarrel weapon
+			Teammate Revives/BPM in tabscreen
+			
+			Heist Name popup on heist start
+				- Top right?
+				- location popup at mission start? eg. WASHINGTON DC a la Destiny 2
+
+
+			- Waypoints in compass (customizable):
+				players
+				objectives
+				sentries
+			
+			Camera overlay
+			Driving HUD
+			
+			EXTRA BUFFS:
+				Aggregated buffs (dodge, crit, damage resist, regen)
+			PLAYER TITLES:
+				Design UI
+				Hook achievement proc
+					- use Custom Achievement module
+				Sync to other players by index
+					- clientside verification?
+				List:
+					Assassin
+						Complete the mission on DSOD after killing the boss of: {list}
+							Hotline Miami (Day 2)
+							Scarface Mansion
+							Biker Heist (Day 2)
+							Hoxton Revenge
+							Commissioner Garrett (?)
+					Watcher
+						Complete the PD2 secret on DSOD
+					Goldtaker
+						Complete the entirety of Overdrill in less having secured all bags and not letting any cops grab any
+						
+					Shadow
+						Complete {list} heists without killing anyone, alerting any Guards or Cameras, or using any ECMs or Pocket ECMs on DSOD:
+							Shadow Raid
+							Murky Station
+							Breakin' Feds
+							
+					Locksmith
+						?
+					Codebreaker
+						?
+					Plunderer
+						?
+					Supervillain
+			QOL:
+				Dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
+				button prompts next to HUD (eg. switch equipment button, weapon selector)
+				Player concealment indicator
+
+		RESEARCH:
+			updater should work when paused?
+			substitute for world_to_screen on world panels
+		
+		
+		
 		buffs
-			aligns/sizing for buffs panel
-			aggregated buffs (dodge, crit, damage resist, regen)
 			misc buffs (winters)
 			remaining perk deck buffs (throwables, etc)
 			player state buffs (tased, downed, electrocuted, flashbanged etc)
@@ -27,110 +183,11 @@ DEVELOPMENT:
 			
 			buff visual sorting/animation
 		
-		
-		reposition with fov (solves ADS and vehicle issues)
-		
-		resize equipments after menu change (AnimateLayoutPlayerMissionEquipment(true))
-		main color scheme
-		misc category- eg. heist timer scale
-	
-		hud tabscreen
-	
 		preview image for any given menu
-		write player equipment
-		revives bg
-		write alignment code for:
-			player vitals
-			player equipment
 		event hooks for player join/leave to reset values like hud, hp, etc.
-		add player cartographer hud element
-		add player compass hud element
-			waypoints on the compass bar
-		implement team mission equipments
-		dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
 		
 		--flashing assault light during assaults; different colors based on assault phase (bai compat)
 		
-		
-		underbarrel weapon support for main player
-		substitute for world_to_screen on world panels
-		non-focused weapon icon is not properly resized on setting the icon image
-			
-		updater should work when paused?
-		
-	DESIRED FEATURES:
-		button prompts next to hud icons?
-
-		april fool's: when shot, there is a 1% chance your hud will fall off of your face and to the ground, and you will need to pick it up or wait x minutes for it to regrow
-
-		teammates:
-		option to show data on their waypoint, or data on the hud, or both (or neither)
-
-		"titles" (dredgen etc)
-			-write tweakdata
-			-sync data
-		grenade charge meter animation
-
-	SYSTEMS:
-		* down counter compat
-		* get/set color through settings
-		* buff tracker
-			* allow intuitive menu enabling/disabling of buffs
-				* see khud organization
-
-	MENU STRUCTURING: hoo boy this is indeed rough
-		* HUD Layout
-			* Player
-				* Enabled/vanilla/hidden
-				* Vitals
-					* Health Bar
-						* Parent/Scale/Position/Align
-						* Fill/Outline/Text Color
-					* Armor Bar
-						* Parent/Scale/Position/Align
-						* Fill/Outline/Text Color
-					* Revives
-						* Enabled/Disabled
-						* Parent/Scale/Position/Align
-						* Color
-				* Player Weapons
-					* Parent/Scale/Position/Align
-					* Magazine/Reserves/Kills/Kills Icon/Weapon Icon/Firemode/Box Color
-			* Teammates
-				* Parent/Scale/Position/Align
-				* Toggle: Color by peer id
-			* Compass
-				* Parent/Scale/Position/Align
-				* Color
-			* Assault
-				* ???
-				* BAI Compatibility
-			* Objectives
-				* Enabled/vanilla/hidden
-				* Parent/Scale/Position/Align
-				* Color
-			* Hints
-				* Enabled/disabled
-				* Parent/Scale/Position
-				* Color
-			* Presenter
-				* Enabled/disabled
-				* Parent/Scale/Position
-				* Color
-			* Buffs
-				* Enabled/disabled
-				* Parent/Align
-				* Max per Row/Max per Column
-				* Color
-			* Heist name popup
-				* Enabled/disabled
-				* Parent/Scale/Position/Align
-				* Color
-		* Buffs Tracker
-			* Applicable Buffs
-		* Objectives
-			* Popup enabled/disabled
-			
 ----
 
 
@@ -153,13 +210,6 @@ ASSETS
 			* must be distinct from the "revives" icon since it cannot, by default, indicate actual revives counter
 		* progressively become more damaged with more revives?
 		* show significant difference when user is on predicted/synced last down? eg. bw
-	* bpm states
-		(add one more of these?)
-		* generally okay (75 < x < 100% hp)
-		* kinda hecked up (50 < x < 75% hp)
-		* woah where's your blood (33 < x < 50% hp)
-		* you are going to die (0 < x < 33%)
-		* omae wa mou shindeiru (0 / downed)
 	
 	faction icons:
 		payday gang, swat, fbi, gensec, murkywater, zeal, mexican federals, 
@@ -169,17 +219,10 @@ ASSETS
 		SFPD faction?
 	
 HUD SEGMENTS
-	SPEAKING INDICATOR:
-		See: The Division's voice waveform analysis animation
-	
 	COMPASS:
 		- Top
 		* Linear style?
 		* Circular icon style?
-	
-	HEIST NAME
-		- Top right
-		- region popup at mission start? eg. WASHINGTON DC a la Destiny 2
 	
 	OBJECTIVE
 		- Top right
@@ -209,52 +252,6 @@ HUD SEGMENTS
 			* Deployables
 			* Throwables
 			
-			
-			
-		- Player (1)
-			* General Status
-				Vitals animation?
-					* that'll be fun to make
-				
-			* Name
-				* Name Color
-				* Title (Dredgen etc)
-			* Concealment?
-				- Stealth Only
-			* Weapons 
-				* Underbarrel
-				
-			* Melee
-				* Icon?
-				* Kills?
-				
-			* Mission Equipment
-				- Theoretically, many possible
-			* Deployables
-				* Optional Icons?
-				- Primary 
-				- Secondary
-				- Top left? With unified Loadout?
-			* Throwables
-				* Icon?
-				* Name?
-				* Counter
-				* Cooldown meter
-			* Vitals
-				* Health
-					* Health Lost chunking animation?
-					* low health screen effect?
-						* division red screen border style?
-						* cod blood spatter style?
-				* Revives
-					- Label?
-					- Icon?
-				* ExPres
-				* Maniac
-				* Stamina
-					- Meter?
-					- Name?
-					- Icon?
 	
 	HINT:
 		* Top right, below assault/objective
@@ -276,25 +273,6 @@ HUD SEGMENTS
 			* Counter
 			* Icon?
 			* Name?
-
-	HIT DIRECTION:
-		* Yes
-		
-	WAYPOINTS:
-		* waypoints on compass??????
-		* teammate health
-		* sentries
-	
-	MISC:
-		* Trade Timer
-		* Drop-in Waiting
-		* Camera Overlay
-		* Driving
-
-	
-	HEIST TIMER: (DONE)
-		* seven-segment number display?
-	
 
 CORE TENETS:
 	hud customizability:
@@ -528,11 +506,17 @@ function KineticHUD:CreateWorldPanels()
 	for i,panel_data in pairs(self.hud_values.world_panels) do 
 		local panel_w = panel_data.GUI_W
 		local panel_h = panel_data.GUI_H
-		local panel_name = panel_data.name
+		local panel_name = tostring(panel_data.name)
 		local panel_text = panel_data.TEXT
 		local rect_color = panel_data.RECT_COLOR
 		
-		local ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
+		local ws
+		if panel_data.is_world_workspace then 
+			ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
+		else
+			ws = managers.hud._workspace
+--			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
+		end
 	
 		local panel = ws:panel():panel({
 			name = panel_name,
@@ -575,24 +559,22 @@ function KineticHUD:LinkWS(link_target_object)
 	local camera = managers.player:local_player():camera()._camera_object
 	for i,panel in ipairs(self._world_panels) do 
 		local hv = self.hud_values.world_panels[i]
-		local workspace = self._workspaces[i]
-		
-		
-		local w_scale = hv.W_SCALAR
-		local h_scale = hv.H_SCALAR
-		
-		local panel_w = hv.GUI_W
-		local panel_h = hv.GUI_H
-		local offset_yaw = hv.OFFSET_YAW or 0
-		local offset_pitch = hv.OFFSET_PITCH or 0
-		local offset_roll = hv.OFFSET_ROLL or 0
-		local distance = hv.DISTANCE or 0
-		
-		local offset_x = hv.OFFSET_X or 0
-		local offset_y = hv.OFFSET_Y or 0
-		local offset_z = hv.OFFSET_Z or 0
-		
-		if true then 
+		if hv.is_world_workspace then 
+			local workspace = self._workspaces[i]
+			
+			local w_scale = hv.W_SCALAR
+			local h_scale = hv.H_SCALAR
+			
+			local panel_w = hv.GUI_W
+			local panel_h = hv.GUI_H
+			local offset_yaw = hv.OFFSET_YAW or 0
+			local offset_pitch = hv.OFFSET_PITCH or 0
+			local offset_roll = hv.OFFSET_ROLL or 0
+			local distance = hv.DISTANCE or 0
+			
+			local offset_x = hv.OFFSET_X or 0
+			local offset_y = hv.OFFSET_Y or 0
+			local offset_z = hv.OFFSET_Z or 0
 			
 	--		local _topleft = ws_flat:screen_to_world(camera,Vector3(0,0,distance))
 	--		local _bottomright = ws_flat:screen_to_world(camera,Vector3(ws_flat_panel:w(),ws_flat_panel:h(),distance))
@@ -703,97 +685,12 @@ function KineticHUD:LinkWS(link_target_object)
 				done_any = true
 			end
 			
-		else
-			--old orientation/alignment method
-			local world_w = hv.WORLD_W 
-			local world_h = hv.WORLD_H
-			
-			local ra = link_target_object:rotation()
-			
-			local rb = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
-			
-			local rot = Rotation(ra:yaw() + rb:yaw(),ra:pitch() + rb:pitch(),ra:roll() + rb:roll())
-			
-			local x_axis = Vector3(world_w,0,0)
-			
-			mvector3.rotate_with(x_axis,rot)
-			
-			local y_axis = Vector3(0,-world_h,0)
-			
-			mvector3.rotate_with(y_axis,rot)
-			
-			local center = Vector3(world_w / 2,-world_h / 2)
-			
-			mvector3.rotate_with(center,rot)
-			
-			local offset = Vector3(hv.OFFSET_X,hv.OFFSET_Y,hv.OFFSET_Z)
-				--x+ is distance right
-				--y+ is distance upward
-				--z+ is distance backward
-				
-			mvector3.rotate_with(offset,rot)
-			
-			local position = link_target_object:position()
-			workspace:set_linked(panel_w,panel_h,link_target_object,position - center + offset,x_axis,y_axis)
-		
-			done_any = true
+
 		end
 	end
 	return done_any
 end
 
-function KineticHUD:LayoutWorldPanels(m)
-	m = m or 1
-	local player = managers.player:local_player()
-	local link_target_object
-	if alive(player) then 
-		link_target_object = player:camera()._camera_object
-	end
-	if not alive(link_target_object) then 
-		self:c_log("ERROR: LayoutWorldPanels(): no link target object")
-		return
-	end
-	
-	for i,panel in ipairs(self._world_panels) do 
-		local hv = self.hud_values.world_panels[i]
-		local workspace = self._workspaces[i]
-
-		local world_w = hv.WORLD_W
-		local world_h = hv.WORLD_H
-		local panel_w = hv.GUI_W
-		local panel_h = hv.GUI_H
-		
-		--rotation is already applied relative to the linked object, so we just need the offsets;
-		--hence, no rotation adding unlike in LinkWS()
-		
-		local rot = Rotation(hv.OFFSET_YAW,hv.OFFSET_PITCH,hv.OFFSET_ROLL)
-		
-		local x_axis = Vector3(world_w,0,0)
-		
-		mvector3.rotate_with(x_axis,rot)
-		
-		local y_axis = Vector3(0,-world_h,0)
-		
-		mvector3.rotate_with(y_axis,rot)
-		
-		local center = Vector3(world_w / 2,-world_h / 2, 0)
-		
-		mvector3.rotate_with(center,rot)
-		
-		local offset = Vector3(hv.OFFSET_X / m,hv.OFFSET_Y / m,hv.OFFSET_Z)
-			--x+ is distance right
-			--y+ is distance upward
-			--z+ is distance backward
-			
-		mvector3.rotate_with(offset,rot)
-		
-		local position = link_target_object:position()
-		
-		workspace:set_world(panel_w,panel_h,- center + offset,x_axis,y_axis)
-	end
-	
-	
-end
 
 --Removes the updater from RegisterUpdateCheckPlayer(), which called UpdateCheckPlayer(). This is safe to call multiple times.
 function KineticHUD:UnregisterUpdateCheckPlayer()
@@ -857,6 +754,9 @@ function KineticHUD:RegisterBuffListeners()
 	end
 end
 
+
+
+
 --Creates the main HUD elements, using the in-world HUD panels.
 --Safe to call multiple times, as it removes preexisting duplicate HUD elements.
 --Returns: nil
@@ -916,6 +816,9 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 	local VITALS_H = hv.PLAYER_VITALS_PANEL_H * scale
 	
 	local margin_xsmall = hv.MARGIN_XSMALL * scale
+	
+	local armor_fill_color = Color(layout_settings.player_vitals_armor_fill_color)
+	local health_fill_color = Color(layout_settings.player_vitals_health_fill_color)
 	
 	local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
 	local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
@@ -1091,7 +994,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		h = PLAYER_VITALS_BAR_FILL_H,
 		x = PLAYER_VITALS_BAR_FILL_X,
 		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_ARMOR_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
-		color = self.color_data.light_red,
+		color = armor_fill_color,
 		layer = 4
 	})
 
@@ -1113,7 +1016,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		h = PLAYER_VITALS_BAR_FILL_H,
 		x = -PLAYER_VITALS_BAR_FILL_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W),
 		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
-		color = self.color_data.light_green,
+		color = health_fill_color,
 		layer = 4
 	})
 	
@@ -1459,6 +1362,23 @@ function KineticHUD:CreatePlayerEquipmentBox(player_panel,params)
 		color = self.color_data.black,
 		alpha = 1/3,
 		layer = 2
+	})
+	
+	local charge_gradient_bg = equipment_box:gradient({
+		name = "charge_gradient_bg",
+		w = box_h,
+		h = box_h,
+		x = 0,
+		y = 0,
+		alpha = 1,
+		orientation = "vertical",
+		gradient_points = {
+			0,
+			Color.black,
+			1,
+			Color.white
+		},
+		visible = false
 	})
 	
 	local text = equipment_box:text({
@@ -2008,6 +1928,30 @@ function KineticHUD:CreateChatPanel(skip_layout)
 	end
 end
 
+function KineticHUD:CreateSuspicionPanel(skip_layout)
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.suspicion_panel_location]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	local panel = selected_parent_panel:panel({
+		name = "suspicion_panel",
+		x = 0,
+		y = 0
+	})
+	self._suspicion_panel = panel
+	
+	--[[
+	local suspicion_bitmap = panel:bitmap({
+	
+	})
+	--]]
+	
+	if not skip_layout then 
+		
+	end
+end
+
 function KineticHUD:CreateStatsPanel(skip_layout)
 
 	local layout_settings = self.layout_settings
@@ -2295,6 +2239,9 @@ function KineticHUD:LayoutPlayerVitals(params)
 		
 		local margin_xsmall = hv.MARGIN_XSMALL * scale
 		
+		local armor_fill_color = Color(layout_settings.player_vitals_armor_fill_color)
+		local health_fill_color = Color(layout_settings.player_vitals_health_fill_color)
+		
 		local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
 		local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
 		local counter_medium_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM * scale
@@ -2338,6 +2285,7 @@ function KineticHUD:LayoutPlayerVitals(params)
 			if health_ratio then 
 				local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_xsmall * scale)
 				local DEPLETE_LEFT_TO_RIGHT = true
+				health_fill:set_color(health_fill_color)
 				if DEPLETE_LEFT_TO_RIGHT then 
 					health_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
 					health_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * health_ratio)
@@ -2359,6 +2307,7 @@ function KineticHUD:LayoutPlayerVitals(params)
 			local armor_panel = vitals_panel:child("armor_panel")
 			local armor_fill = armor_panel:child("armor_fill")
 			local armor_ratio = params.armor_ratio
+			armor_fill:set_color(armor_fill_color)
 			if armor_ratio then 
 				local outline_offset = PLAYER_ARMOR_PANEL_W - PLAYER_VITALS_BAR_FILL_W
 				local DEPLETE_LEFT_TO_RIGHT = false
@@ -3264,8 +3213,8 @@ function KineticHUD:AnimateSwitchWeapons(highlighted_index)
 		local swap_time = hud_values.PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION
 		
 		local cb1,cb2
-		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,2,params2)
 		self:animate(w1,"animate_weapon_panels_switch",cb1,swap_time,w1:x(),w1:y(),weapon_primary_x,weapon_primary_y,2,params1)
+		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,2,params2)
 	end
 end
 
@@ -3286,7 +3235,8 @@ function KineticHUD:CheckPlayerDeployableEquipment()
 				index = i,
 				icon = equipment.icon,
 				equipment = equipment.equipment, --(equipment)
-				amount = {}
+				amount = {},
+				selected = i == pm._equipment.selected_index
 			}
 			for j,raw in ipairs(equipment.amount) do 
 				data.amount[j] = Application:digest_value(raw,false)
@@ -3345,6 +3295,11 @@ function KineticHUD:SetPlayerDeployableEquipment(data)
 			icon_bitmap:set_image(texture,unpack(texture_rect))
 			icon_bitmap:set_center(icon_box:center())
 		end
+		if data.selected then
+			deployable:set_alpha(1)
+		else
+			deployable:set_alpha(0.5)
+		end
 		self:LayoutPlayerEquipmentPanel()
 	end
 end
@@ -3380,6 +3335,159 @@ function KineticHUD:SetPlayerGrenadesAmount(amount)
 		if amount then  
 			self.SetDigitalText(throwable:child("text"),amount,2)
 		end
+	end
+end
+
+
+function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
+	local player_equipment_panel = self._player_equipment_panel 
+	if alive(player_equipment_panel) then 
+		local throwable = player_equipment_panel:child("throwable")
+		local charge_gradient_bg = throwable:child("charge_gradient_bg")
+		local function anim_func(o,_from,_to,_duration)
+			o:show()
+			local t = 0
+			local glow_speed = 2
+			
+			repeat 
+				local dt = coroutine.yield()
+				t = t + dt
+				
+				if alive(o) then 
+					local lerp = ((_duration - t) / _duration)
+					local glow = (1 + math.cos(180 * t * glow_speed)) / 4
+					
+					o:set_gradient_points({
+						0,
+						self.color_data.dark_red:with_alpha(0.5 + glow),
+						
+						lerp - 0.01,
+						self.color_data.dark_red:with_alpha(0.5 + glow),
+						
+						lerp,
+						self.color_data.white:with_alpha(1),
+						
+						lerp + 0.05,
+						self.color_data.black:with_alpha(1),
+						
+						1,
+						self.color_data.white:with_alpha(0)
+					})
+				else
+					return
+				end
+			until t >= _duration
+			
+			o:hide()
+--			throwable:child("text") --todo animate green text flash on complete?
+		end
+		
+		charge_gradient_bg:stop()
+		charge_gradient_bg:animate(anim_func,from,to,duration_left)
+		
+	end
+end
+
+function KineticHUD:AsdfnimateGrenadeCooldown(from,to,duration_left)
+	local player_equipment_panel = self._player_equipment_panel 
+	if alive(player_equipment_panel) then 
+		local throwable = player_equipment_panel:child("throwable")
+		local charge_gradient_bg = throwable:child("charge_gradient_bg")
+		local function anim_func(o,_from,_to,_duration)
+			o:show()
+--			log(_duration)
+			local t = 0
+			local wt = 0
+			local delta = _to - _from
+			local speed = 1
+			local rest_time = 0.25
+			local wave_time = 1
+			
+			
+			repeat 
+				local dt = coroutine.yield()
+				t = t + dt
+							
+				local lerp = (_duration - t) / _duration
+				
+				Console:SetTrackerValue("trackerb","lerp " .. tostring(lerp))
+				if alive(o) then 
+
+					wt = wt + dt
+				
+					if wt < 0 then 
+						--nothing
+					else
+						if wt > wave_time then 
+							wt = 0
+						end
+						local wavet = (1 + math.cos((180 * wt * speed) % 180)) / 2
+						local wave_color = Color.green
+						
+						Console:SetTrackerValue("trackera","wt " .. tostring(wt))
+						Console:SetTrackerValue("trackere","wavet " .. tostring(wavet))
+						local a = (1 - lerp) * wavet
+						o:set_gradient_points({
+							0,
+							Color.white:with_alpha(1),
+							
+							a,
+							wave_color,
+							
+--							0.01 + a,
+--							Color.red:with_alpha(1),
+							
+							lerp,
+							Color.blue:with_alpha(1),
+							
+							1,
+							Color.purple:with_alpha(0)
+						})
+						if wt >= wave_time then 
+							wt = -rest_time
+						end
+						
+						--[[
+						
+						
+						local now = t --managers.game_play_central:get_heist_timer()
+						local lerp = (_duration - t) / _duration
+						
+	--					local here = 1 - (math.sin((60 * now) % 60) * (1 - lerp))
+						local wavet = (1 + math.cos((180 * now * speed) % (180 + rest_time))) / 2
+						
+						
+						Console:SetTrackerValue("trackera",tostring(t))
+						Console:SetTrackerValue("trackerd",tostring(lerp))
+						Console:SetTrackerValue("trackere",tostring(wavet))
+						o:set_gradient_points({
+							0,
+							Color.white:with_alpha(0),
+							
+							1 - (0.01 + (wavet * (1 - lerp) * 0.98)),
+							Color.red:with_alpha(1 - wavet),
+							
+							lerp,
+							Color.white:with_alpha(1),
+							
+							1,
+							Color.purple:with_alpha(0)
+						})
+						rest_t = rest_time
+					--]]
+					end
+				else
+					return
+				end
+			until t >= _duration
+			
+			o:hide()
+--			o:set_texture("textures/ui/gradient")
+		end
+		
+		charge_gradient_bg:stop()
+		charge_gradient_bg:animate(anim_func,from,to,duration_left)
+		
 	end
 end
 
@@ -3943,7 +4051,7 @@ function KineticHUD:UpdateHUD(t,dt)
 		self:LinkWS(player:camera()._camera_object)
 	end
 	
-	
+	--[[
 	local hud_values = self.hud_values
 	local ekg_speed = hud_values.EKG_SPEED
 	local ekg_size = hud_values.EKG_SIZE
@@ -4012,6 +4120,7 @@ function KineticHUD:UpdateHUD(t,dt)
 			end
 		end
 	end
+	--]]
 	
 	self:UpdateHUDBuffs(t,dt)
 	
@@ -4644,6 +4753,19 @@ function KineticHUD.add_menu_option_from_data(i,menu_data,parent_menu_id)
 end
 
 Hooks:Add("MenuManagerPopulateCustomMenus", "MenuManagerPopulateCustomMenus_khud", function(menu_manager, nodes)
+	if ColorPicker then 
+		KineticHUD._colorpicker = KineticHUD._colorpicker or ColorPicker:new(
+			"khud_colorpicker",
+			{
+				start_color = nil,
+				done_callback = nil,
+				changed_callback = nil,
+				palettes = nil
+			},
+			callback(KineticHUD,KineticHUD,"OnColorPickerCreationCallback")
+		)
+	end
+
 	--do custom addon loading here
 	--do validate settings here
 	--do populate dynamic menus (like buffs) here
@@ -4710,6 +4832,12 @@ Hooks:Add( "MenuManagerInitialize", "khud_MenuManagerInitialize", function(menu_
 		local value = tonumber(item:value())
 		KineticHUD.layout_settings.player_vitals_panel_location = value
 		KineticHUD:AnimatePanelSelectedFlash(value)
+	end
+	MenuCallbackHandler.callback_khud_player_vitals_panel_customize_health_fill_color = function(self)
+		KineticHUD:ShowColorPickerCustomizeMenu("player_vitals_health_fill")
+	end
+	MenuCallbackHandler.callback_khud_player_vitals_panel_customize_armor_fill_color = function(self)
+		KineticHUD:ShowColorPickerCustomizeMenu("player_vitals_armor_fill")
 	end
 	MenuCallbackHandler.callback_khud_player_weapons_panel_set_location = function(self,item)
 		local value = tonumber(item:value())
