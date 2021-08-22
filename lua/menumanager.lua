@@ -514,8 +514,8 @@ function KineticHUD:CreateWorldPanels()
 		if panel_data.is_world_workspace then 
 			ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
 		else
-			ws = managers.hud._workspace
---			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
+--			ws = managers.hud._workspace
+			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
 		end
 	
 		local panel = ws:panel():panel({
@@ -2466,7 +2466,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 			local kill_counter = weapon_panel:child("kill_counter")
 			if recreate_text_objects then 
 				local magazine_text = magazine:text()
-				self:animate_stop(magazine)
+--				self:animate_stop(magazine)
 				magazine:stop()
 				weapon_panel:remove(magazine)
 				magazine = weapon_panel:text({
@@ -2483,7 +2483,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 				local m_x,m_y,m_w,m_h = magazine:text_rect()
 				
 				local reserve_text = reserve:text()
-				self:animate_stop(reserve)
+--				self:animate_stop(reserve)
 				reserve:stop()
 				weapon_panel:remove(reserve)
 				reserve = weapon_panel:text({
@@ -2499,7 +2499,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 				})
 		
 				local kill_icon_text = kill_icon:text()
-				self:animate_stop(kill_icon)
+--				self:animate_stop(kill_icon)
 				kill_icon:stop()
 				weapon_panel:remove(kill_icon)
 				kill_icon = weapon_panel:text({
@@ -2516,7 +2516,7 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 				})
 				
 				local kill_counter_text = kill_counter:text()
-				self:animate_stop(kill_counter)
+--				self:animate_stop(kill_counter)
 				kill_counter:stop()
 				weapon_panel:remove(kill_counter)
 				kill_counter = weapon_panel:text({
@@ -3211,10 +3211,10 @@ function KineticHUD:AnimateSwitchWeapons(highlighted_index)
 		local weapon_secondary_scale = hud_values.PLAYER_WEAPON_SECONDARY_SCALE * scale
 		
 		local swap_time = hud_values.PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION
-		
+		local power = 2
 		local cb1,cb2
-		self:animate(w1,"animate_weapon_panels_switch",cb1,swap_time,w1:x(),w1:y(),weapon_primary_x,weapon_primary_y,2,params1)
-		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,2,params2)
+		self:animate(w1,"animate_weapon_panels_switch",cb1,swap_time,w1:x(),w1:y(),weapon_primary_x,weapon_primary_y,power,params1)
+		self:animate(w2,"animate_weapon_panels_switch",cb2,swap_time,w2:x(),w2:y(),weapon_secondary_x,weapon_secondary_y,power,params2)
 	end
 end
 
@@ -3338,7 +3338,6 @@ function KineticHUD:SetPlayerGrenadesAmount(amount)
 	end
 end
 
-
 function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
 	local player_equipment_panel = self._player_equipment_panel 
 	if alive(player_equipment_panel) then 
@@ -3380,109 +3379,6 @@ function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
 			
 			o:hide()
 --			throwable:child("text") --todo animate green text flash on complete?
-		end
-		
-		charge_gradient_bg:stop()
-		charge_gradient_bg:animate(anim_func,from,to,duration_left)
-		
-	end
-end
-
-function KineticHUD:AsdfnimateGrenadeCooldown(from,to,duration_left)
-	local player_equipment_panel = self._player_equipment_panel 
-	if alive(player_equipment_panel) then 
-		local throwable = player_equipment_panel:child("throwable")
-		local charge_gradient_bg = throwable:child("charge_gradient_bg")
-		local function anim_func(o,_from,_to,_duration)
-			o:show()
---			log(_duration)
-			local t = 0
-			local wt = 0
-			local delta = _to - _from
-			local speed = 1
-			local rest_time = 0.25
-			local wave_time = 1
-			
-			
-			repeat 
-				local dt = coroutine.yield()
-				t = t + dt
-							
-				local lerp = (_duration - t) / _duration
-				
-				Console:SetTrackerValue("trackerb","lerp " .. tostring(lerp))
-				if alive(o) then 
-
-					wt = wt + dt
-				
-					if wt < 0 then 
-						--nothing
-					else
-						if wt > wave_time then 
-							wt = 0
-						end
-						local wavet = (1 + math.cos((180 * wt * speed) % 180)) / 2
-						local wave_color = Color.green
-						
-						Console:SetTrackerValue("trackera","wt " .. tostring(wt))
-						Console:SetTrackerValue("trackere","wavet " .. tostring(wavet))
-						local a = (1 - lerp) * wavet
-						o:set_gradient_points({
-							0,
-							Color.white:with_alpha(1),
-							
-							a,
-							wave_color,
-							
---							0.01 + a,
---							Color.red:with_alpha(1),
-							
-							lerp,
-							Color.blue:with_alpha(1),
-							
-							1,
-							Color.purple:with_alpha(0)
-						})
-						if wt >= wave_time then 
-							wt = -rest_time
-						end
-						
-						--[[
-						
-						
-						local now = t --managers.game_play_central:get_heist_timer()
-						local lerp = (_duration - t) / _duration
-						
-	--					local here = 1 - (math.sin((60 * now) % 60) * (1 - lerp))
-						local wavet = (1 + math.cos((180 * now * speed) % (180 + rest_time))) / 2
-						
-						
-						Console:SetTrackerValue("trackera",tostring(t))
-						Console:SetTrackerValue("trackerd",tostring(lerp))
-						Console:SetTrackerValue("trackere",tostring(wavet))
-						o:set_gradient_points({
-							0,
-							Color.white:with_alpha(0),
-							
-							1 - (0.01 + (wavet * (1 - lerp) * 0.98)),
-							Color.red:with_alpha(1 - wavet),
-							
-							lerp,
-							Color.white:with_alpha(1),
-							
-							1,
-							Color.purple:with_alpha(0)
-						})
-						rest_t = rest_time
-					--]]
-					end
-				else
-					return
-				end
-			until t >= _duration
-			
-			o:hide()
---			o:set_texture("textures/ui/gradient")
 		end
 		
 		charge_gradient_bg:stop()
@@ -3695,6 +3591,7 @@ function KineticHUD:AddTeammateMissionEquipment(id,amount)
 end
 
 -- teammate
+
 function KineticHUD:SetTeammateName(i,name)
 	local teammate_panel = self._teammate_panels[i]
 	if teammate_panel then 
@@ -3822,6 +3719,37 @@ function KineticHUD:SetTeammateDeployableEquipment(i,index,data)
 	end
 	if queue_layout then 
 		self:LayoutTeammatePanel(i)
+	end
+end
+
+function KineticHUD:SetVoiceActivity(i,state)
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local speaking_icon = teammate:child("speaking_icon")
+		if alive(speaking_icon) then 
+			--voice_indicator:set_visible(state)
+			local pause_duration = 1
+			local fadeout_duration = 0.5
+			speaking_icon:stop()
+			if state then 
+				speaking_icon:set_alpha(1)
+				speaking_icon:show()
+			else
+				speaking_icon:animate(function(o)
+--					wait(pause_duration)
+					
+					local a = o:alpha()
+					local t = 0
+					repeat
+						local dt = coroutine.yield()
+						t = t + dt
+						local lerp = ((fadeout_duration - t) / fadeout_duration)
+						o:set_alpha(lerp * a)
+					until t >= fadeout_duration
+					speaking_icon:hide()
+				end)
+			end
+		end
 	end
 end
 

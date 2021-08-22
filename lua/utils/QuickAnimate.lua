@@ -100,6 +100,7 @@ function QuickAnimate:animate(target,func,done_cb,...)
 		if (type(target) == "number") or alive(target) then
 			self._animate_targets[tostring(target)] = {
 				func = func,
+				func_name = f_s,
 				target = target,
 				start_t = Application:time(),
 				done_cb = done_cb,
@@ -173,14 +174,17 @@ function QuickAnimate.animate_oscillate_alpha(o,t,dt,start_t,offset_percent,freq
 end
 
 function QuickAnimate:UpdateAnimate(t,dt)
+	if self.DEBUG_MODE or QuickAnimate.DEBUG_MODE then 
+		return self:debugUpdateAnimate(t,dt)
+	end
 	for id,data in pairs(self._animate_targets) do 
-		if data and data.target and ((type(data.target) == "number") or alive(data.target)) then 
+		if data and data.target and ((type(data.target) == "number") or alive(data.target)) then
 			local result = data.func(data.target,t,dt,data.start_t,unpack(data.params or {}))
 			if result then 
 				if type(data.done_cb) == "function" then 
 					local done_cb = data.done_cb
 					local target = data.target
-					local params = data.params
+					local params = data.params or {}
 					self._animate_targets[id] = nil
 					done_cb(target,unpack(params))
 				else
@@ -193,3 +197,45 @@ function QuickAnimate:UpdateAnimate(t,dt)
 	end
 end
 
+function QuickAnimate:debugUpdateAnimate(t,dt)
+	local i = 0
+	for id,data in pairs(self._animate_targets) do 
+		i = i + 1
+		if data and data.target and ((type(data.target) == "number") or alive(data.target)) then
+			local result = data.func(data.target,t,dt,data.start_t,unpack(data.params or {}))
+
+			local a,b = pcall(function() return data.func(data.target,t,dt,data.start_t,unpack(data.params or {})) end)
+			if a == false then 
+				self:log("FATAL ERROR: see log for details")
+				log(b)
+				result = nil
+				self._animate_targets[id] = nil
+			elseif a == true then
+				self:log("Done animating " .. tostring(id) .. " with " .. tostring(data.func) .. " " .. tostring(b))
+				result = b
+			end
+
+			if i == 1 then 
+				data.func(data.target,t,dt,data.start_t,unpack(data.params or {}))
+				Console:SetTrackerValue("trackera",tostring(t) .. " " .. tostring(result) .. " " .. tostring(data.func))
+			elseif i == 2 then 
+				data.func(data.target,t,dt,data.start_t,unpack(data.params or {}))
+				Console:SetTrackerValue("trackerb",tostring(t) .. " " .. tostring(result) .. " " .. tostring(data.func))
+			end
+
+			if result then 
+				if type(data.done_cb) == "function" then 
+					local done_cb = data.done_cb
+					local target = data.target
+					local params = data.params or {}
+					self._animate_targets[id] = nil
+					done_cb(target,unpack(params))
+				else
+					self._animate_targets[id] = nil
+				end
+			end
+		else
+			self._animate_targets[id] = nil
+		end
+	end
+end

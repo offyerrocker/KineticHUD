@@ -20,7 +20,7 @@ Hooks:PostHook(HUDManager,"set_enabled","khud_hudmanager_showhud",function(self)
 end)
 
 
-Hooks:PostHook(HUDManager,"_create_heist_timer","khudf_hudmanager_create_heist_timer",function(self,...)
+Hooks:PostHook(HUDManager,"_create_heist_timer","khud_hudmanager_create_heist_timer",function(self,...)
 	if self._hud_heist_timer then 
 		local timer = self._hud_heist_timer._timer_text
 		if alive(timer) then 
@@ -28,6 +28,19 @@ Hooks:PostHook(HUDManager,"_create_heist_timer","khudf_hudmanager_create_heist_t
 			timer:set_font_size(KineticHUD.layout_settings.HEIST_TIMER_FONT_SIZE)
 			timer:set_color(KineticHUD.color_data.white)
 		end
+	end
+end)
+
+Hooks:PostHook(HUDManager,"set_mugshot_voice","khud_set_teammate_speaking",function(self,id, active)
+	local panel_id
+	for _, data in pairs(managers.criminals:characters()) do
+		if data.data.mugshot_id == id then
+			panel_id = data.data.panel_id
+			break
+		end
+	end
+	if panel_id then 
+		KineticHUD:SetVoiceActivity(panel_id,active)
 	end
 end)
 

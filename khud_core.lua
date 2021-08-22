@@ -1011,6 +1011,7 @@ KineticHUD.hud_values = {
 		{
 			name = "flatscreen panel",
 			is_world_workspace = false,
+			unhidable = true,
 			TEXT = "FLATSCREEN PANEL",
 			RECT_COLOR = Color(0,1,1),
 			RECT_ALPHA = 0.5
@@ -1837,7 +1838,6 @@ function KineticHUD.animate_weapon_panels_switch(o,t,dt,start_t,duration,start_x
 	if progress >= 1 then 
 		return true
 	end
-	return false
 end
 
 function KineticHUD.animate_move_pow(o,t,dt,start_t,duration,start_x,start_y,end_x,end_y,power)
