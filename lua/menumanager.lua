@@ -2,7 +2,6 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-	
 ******* BEFORE RELEASE: ********
 			GENERAL:
 				
@@ -11,7 +10,7 @@ DEVELOPMENT:
 				Down Counter compat
 				
 				* allow intuitive menu enabling/disabling of buffs
-					* see khud organization
+					* see old khud organization
 
 			HUD:
 				PLAYER:
@@ -22,16 +21,21 @@ DEVELOPMENT:
 					- Revives bg?
 				TEAMMATE:
 					- implement team mission equipments
-					- speaking indicator
 				TABSCREEN:
 					- kills with primary, secondary, throwable, melee, sentry
 					- jokers w/ killcounts- "guiding lines" to their onscreen positions
+					- Mutators
+					- Tracked Achievements
+					- Jokers
+					- misc polish
 				BUFFS:
 					- Add missing buffs, test all (compare with noblehud buff list)
 				CARTOGRAPHER:
 					- design + implement
-				COMPASS/WAYPOINTS:
-					- design + implement
+				WAYPOINTS:
+					- compass center option
+					
+					- design + implement (in compass panel)
 				DROP-IN/WAITING
 					- design + implement
 					- trade timer
@@ -69,7 +73,7 @@ DEVELOPMENT:
 					* Teammates
 						* Parent/Scale/Position/Align
 						* Toggle: Color by peer id
-					* Compass
+					* Compass/Waypoints
 						* Parent/Scale/Position/Align
 						* Color
 					* Assault
@@ -109,7 +113,8 @@ DEVELOPMENT:
 				- Top right?
 				- location popup at mission start? eg. WASHINGTON DC a la Destiny 2
 
-
+			adjust player equipment placement by secondary amount (eg. tripmines) for more compact alignment
+			
 			- Waypoints in compass (customizable):
 				players
 				objectives
@@ -515,7 +520,8 @@ function KineticHUD:CreateWorldPanels()
 			ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
 		else
 --			ws = managers.hud._workspace
-			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
+			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name)
+--			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
 		end
 	
 		local panel = ws:panel():panel({
@@ -535,13 +541,7 @@ function KineticHUD:CreateWorldPanels()
 			visible = false
 		})
 		
-		local rect = panel:rect({
-			name = "debug",
-			color = rect_color,
-			layer = -1,
-			alpha = 0.2,
-			visible = self.hud_values.DEBUG_PANELS_VISIBLE
-		})
+		self.make_debug_rect(panel,0.2,rect_color):set_layer(-1)
 		
 		self._workspaces[i] = ws
 		self._world_panels[i] = panel
@@ -781,6 +781,8 @@ function KineticHUD:CreateWorldHUD()
 	self:CreateCarryPanel()
 	self:CreateBuffsPanel()
 	self:CreateChatPanel()
+	self:CreateCompassPanel()
+	self:CreateInteractPanel()
 	
 	self:CreateAssaultPanel()
 	self:CreateObjectivePanel()
@@ -852,12 +854,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		h = VITALS_H,
 		y = selected_parent_panel:h() - VITALS_H
 	})
-	local vitals_debug = vitals_panel:rect({
-		name = "debug",
-		color = Color.red,
-		alpha = 0.1,
-		visible = false
-	})
+	self.make_debug_rect(vitals_panel,nil,nil,false)
 	
 	
 --VITALS
@@ -878,19 +875,8 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		y = PLAYER_HEALTH_PANEL_Y,
 		layer = 4
 	})
-	local health_debug = health_panel:rect({
-		name = "health_debug",
-		color = Color.blue,
-		alpha = 0.1,
-		visible = false
-	})
-	local armor_debug = armor_panel:rect({
-		name = "armor_debug",
-		color = Color.red,
-		alpha = 0.1,
-		visible = false
-	})
-	
+	self.make_debug_rect(health_panel,0.1,self.color_data.blue):hide()
+	self.make_debug_rect(armor_panel,0.1,self.color_data.red):hide()
 	
 	local armor_label = armor_panel:text({
 		name = "armor_label",
@@ -1091,13 +1077,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 		y = weapons_panel_y
 	})
 	self._player_weapons_panel = parent_weapons_panel
-	
-	local debug_weapons = parent_weapons_panel:rect({
-		name = "debug_weapons",
-		color=Color.green,
-		alpha=0.2,
-		visible = false
-	})
+	self.make_debug_rect(parent_weapons_panel,0.2,self.color_data.green,false)
 	
 --todo straighten out layers (integers only)
 --todo put vertical offset in weapons_panel as well as in subpanels
@@ -1228,12 +1208,7 @@ function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
 			layer = 4,
 			font_size = font_size_large
 		})
-		local debug_rect = weapon_panel:rect({
-			name = "debug_rect",
-			visible = false,
-			alpha = 0.2,
-			color = Color.red
-		})
+		self.make_debug_rect(weapon_panel,0.2,self.color_data.red,false)
 		
 		return weapon_panel
 	end
@@ -1606,12 +1581,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		x = nametag_panel_x,
 		y = nametag_panel_y
 	})
-	local nametag_debug = nametag_panel:rect({
-		name = "nametag_debug",
-		alpha = 0.1,
-		color = Color.yellow,
-		visible = false
-	})
+	self.make_debug_rect(nametag_panel,0.1,self.color_data.yellow,false)
 	
 	local nametag = nametag_panel:text({
 		name = "nametag",
@@ -1679,18 +1649,8 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		layer = 5
 	})
 	
-	local bpm_debug_1 = bpm_panel:rect({
-		name = "bpm_debug_1",
-		color = Color.green,
-		alpha = 0.4,
-		visible = false
-	})
-	local bpm_debug_2 = bpm_mask:rect({
-		name = "bpm_debug_2",
-		color = Color.blue,
-		alpha = 0.1,
-		visible = false
-	})
+	self.make_debug_rect(bpm_panel,0.4,self.color_data.green,false)
+	self.make_debug_rect(bpm_mask,0.1,self.color_data.blue,false)
 	
 	local speaking_icon_texture,speaking_icon_texture_rect = tweak_data.hud_icons:get_icon_data(hv.TEAMMATE_SPEAKING_ICON_ID)
 
@@ -1766,14 +1726,7 @@ function KineticHUD:CreateAssaultPanel(skip_layout)
 		layer = 2,
 		text = ""
 	})
-	
-	local assault_debug = assault_panel:rect({
-		name = "assault_debug",
-		layer = 1,
-		visible = false,
-		color = Color.blue,
-		alpha = 0.2
-	})
+	self.make_debug_rect(assault_panel,0.2,self.color_data.blue,false)
 	
 	
 	
@@ -1816,7 +1769,7 @@ function KineticHUD:CreateObjectivePanel(skip_layout)
 	local objective_title_text = objective_panel:text({
 		name = "objective_title_text",
 		text = managers.localization:text("khud_hud_objective_title"),
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = hv.OBJECTIVE_TITLE_TEXT_FONT_SIZE,
 		color = hv.OBJECTIVE_TITLE_TEXT_COLOR,
 		align = hv.OBJECTIVE_TITLE_TEXT_HALIGN,
@@ -1852,13 +1805,9 @@ function KineticHUD:CreateObjectivePanel(skip_layout)
 		y = hv.OBJECTIVE_COUNT_TEXT_Y
 	})
 	
-	local objective_debug = objective_panel:rect({
-		name = "objective_debug",
-		color = Color.red,
-		visible = false,
-		layer = 1,
-		alpha = 0.5
-	})
+	
+	local objective_debug = self.make_debug_rect(objective_panel,0.1,self.color_data.red,false)
+	objective_debug:set_layer(1)
 	
 	--todo checkbox bitmap + animation
 	
@@ -1885,23 +1834,17 @@ function KineticHUD:CreateCarryPanel(skip_layout)
 	})
 	self._carry_panel = carry_panel
 	
-	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data(hv.CARRY_ICON_ID)
+	local bag_texture, bag_texture_rect = tweak_data.hud_icons:get_icon_data(hv.CARRY_ICON_ID)
 	
 	local bag_icon = carry_panel:bitmap({
 		name = "bag_icon",
 		texture = bag_texture,
-		texture_rect = bag_rect,
+		texture_rect = bag_texture_rect,
 		layer = 2,
 		color = self.color_data.white,
 		alpha = hv.CARRY_ICON_ALPHA
 	})	
-	
-	local debug_rect = carry_panel:rect({
-		name = "debug_rect",
-		color = Color.green,
-		visible = false,
-		alpha = 0.1
-	})
+	self.make_debug_rect(carry_panel,0.1,self.color_data.green,false)
 	
 	if not skip_layout then 
 		self:LayoutCarryPanel()
@@ -1928,6 +1871,206 @@ function KineticHUD:CreateChatPanel(skip_layout)
 	end
 end
 
+function KineticHUD:CreateCompassPanel()
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[layout_settings.compass_panel_location]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	
+	if alive(self._compass_panel) then 
+		self._compass_panel:parent():remove(self._compass_panel)
+	end
+	
+	local scale = layout_settings.compass_panel_scale
+	local hv = self.hud_values
+	
+	local function get_cardinal(angle) 
+		local cardinal = {
+			[0] = "N",
+			[45] = "NE",
+			[90] = "E",
+			[135] = "SE",
+			[180] = "S",
+			[225] = "SW",
+			[270] = "W",
+			[315] = "NW",
+			[360] = "N"
+		}
+		return cardinal[angle] or tostring(angle)
+	end
+	local function center_text(text,_x)
+		local x,y,w,h = text:text_rect()
+		text:set_x(_x - (w/2))
+	end
+	
+	local compass_x = layout_settings.compass_x
+	local compass_y = layout_settings.compass_y
+	local compass_w = layout_settings.compass_w * scale --should use hud w?
+	local compass_h = layout_settings.compass_h * scale
+	
+	local compass_panel = selected_parent_panel:panel({
+		name = "compass_panel",
+		x = compass_x,
+		y = compass_y,
+		w = compass_w,
+		h = compass_h,
+		layer = -1
+	})
+	self._compass_panel = compass_panel
+	self.make_debug_rect(compass_panel,0.1,Color.green,false):set_layer(-3)
+	
+	--acts as a mask for the compass itself to stay contained within a small panel
+	--this part stays still, and its size can change by settings
+	local compass_window = compass_panel:panel({
+		name = "compass_window"
+		--inherit w from parent
+--		w = 400
+	})
+	
+	local compass_gradient_bg = compass_window:gradient({
+		name = "compass_gradient_bg",
+		gradient_points = {
+			0,
+			self.color_data.black:with_alpha(0),
+			0.9,
+			self.color_data.black:with_alpha(0.2),
+			1,
+			self.color_data.black:with_alpha(0)
+		},
+		layer = 0,
+		orientation = "vertical"
+	})
+	
+	local arrow_font_size = 36
+	local compass_indicator = compass_panel:text({
+		name = "compass_indicator",
+		text = "^",
+		color = self.color_data.white,
+		layer = 2,
+		font = self._fonts.alt_mono_shadow,
+		font_size = arrow_font_size,
+		x = compass_window:x() + (compass_window:w() / 2),
+		y = compass_window:y()
+	})
+	
+	--this panel contains anything on the part of the compass that slides left/right;
+	--this is the moving part
+	local compass_slider_1 = compass_window:panel({
+		name = "compass_slider_1",
+		w = compass_window:w()
+	})
+	local compass_slider_2 = compass_window:panel({
+		name = "compass_slider_2",
+		w = compass_window:w(),
+		x = compass_window:w()
+	})
+	self.make_debug_rect(compass_slider_1,0.2,Color.red,false):set_layer(-2)
+	self.make_debug_rect(compass_slider_2,0.2,Color.blue,false):set_layer(-2)
+	
+	local compass_color = self.color_data.light_blue
+	local w_mul = 2
+	local degrees = 360
+	local dot_h = 2
+	local tick_y = 4
+	local tick_w = 1
+	local tick_h = 16
+	local cardinal_font_size = 24
+	local cardinal_font = self._fonts.alt_mono_shadow
+	local cardinal_y = 1
+	local tick_font_size = 16
+	local function make(i,offset,total,parent)
+		local x = ((i + offset) / total) * parent:w() 
+		if i % 90 == 0 then 
+			local text = parent:text({
+				name = "direction_" .. tostring(i),
+				text = get_cardinal(i % degrees),
+				color = self.color_data.orange,
+				layer = 2,
+				y = cardinal_y,
+				font = cardinal_font,
+				font_size = cardinal_font_size,
+				vertical = "center"
+			})
+			center_text(text,x)
+		elseif i % 15 == 0 then 
+			local text = parent:text({
+				name = "direction_" .. tostring(i),
+				text = string.format("%i",i),
+				color = compass_color,
+				layer = 2,
+				font = self._fonts.alt_mono,
+				font_size = tick_font_size,
+				vertical = "bottom"
+			})
+			center_text(text,x)
+			
+			parent:bitmap({
+				name = "direction_" .. tostring(i),
+				texture = "textures/ui/firemode_dots_1",
+				texture_rect = {
+					0,0,16,16
+				},
+				color = compass_color,
+				x = x - (dot_h / 2),
+				y = (parent:h() - dot_h) / 2,
+				w = dot_h,
+				h = dot_h,
+				layer = 1
+			})
+		elseif i % 5 == 0 then 
+			parent:rect({
+				name = "direction_" .. tostring(i),
+				color = compass_color,
+				x = x - (tick_w / 2),
+				y = tick_y,
+				w = tick_w,
+				h = tick_h,
+				visible = false, --disabled cause it doesn't actually look good
+				layer = 1
+			})
+		end
+	end
+	
+	--intentionally duplicate compass ticks at i=0, i=360, and i=degrees/2 as a workaround for cutting the text in half
+	for i = 0,degrees / 2 do
+		make(i,0,degrees/2,compass_slider_1)
+	end
+	for i = degrees / 2,degrees do 
+		make(i,-degrees/2,degrees/2,compass_slider_2)
+	end
+	
+	
+	
+	--[[
+	local compass_body = compass_sub:panel({
+		name = "compass_body",
+		w = compass_sub:w() * 2,
+		x = -compass_sub:w()
+	})
+	self.make_debug_rect(compass_body,0.2,Color.blue,true):set_layer(-2)
+	for i=1,compass_body:w(),5 do 
+		local new_text = compass_body:text({
+			name = i,
+			text = tostring(i),
+			x = i,
+			font = self._fonts.syke,
+			font_size = 24
+		})
+		compass_body:rect({
+			name = tostring(i),
+			x = i - 1,
+			w = 4,
+			h = 4,
+			layer = i,
+			color = Color(i/compass_body:w(),1,1),
+			alpha = 0.5
+		})
+	end
+	
+	--]]
+end
+
 function KineticHUD:CreateSuspicionPanel(skip_layout)
 	local layout_settings = self.layout_settings
 	local selected_parent_panel = self._world_panels[layout_settings.suspicion_panel_location]
@@ -1952,7 +2095,7 @@ function KineticHUD:CreateSuspicionPanel(skip_layout)
 	end
 end
 
-function KineticHUD:CreateStatsPanel(skip_layout)
+function KineticHUD:CreateStatsPanel()
 
 	local layout_settings = self.layout_settings
 	local selected_parent_panel = self._world_panels[5]
@@ -1960,6 +2103,7 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		return
 	end
 	
+	local is_ghostable = managers.job:is_level_ghostable(managers.job:current_level_id())
 	local is_whisper_mode = managers.groupai and managers.groupai:state():whisper_mode()	
 	local job_data = managers.job:current_job_data()
 	local stage_data = managers.job:current_stage_data()
@@ -1970,10 +2114,19 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 	local days_text = ""
 	local difficulty_string = ""
 	local od_indicator_text
+	local bags_value_string = ""
+	local bags_secured_count_string = ""
+	local bags_secured_label_string = managers.localization:text("hud_stats_bags_secured")
 	local payout_text = "> " .. managers.localization:text("hud_day_payout", {
 		MONEY = managers.experience:cash_string(managers.money:get_potential_payout_from_current_stage())
 	})
-	local pagers_text = ""
+	local instant_cash_label_string = managers.localization:to_upper_text("hud_instant_cash")
+	
+	
+	local pagers_used_label_string = managers.localization:text("hud_stats_pagers_used")
+	local pagers_used_amount_string = ""
+	local pagers_texture, pagers_rect = tweak_data.hud_icons:get_icon_data("pagers_used")
+	local bodybags_amount_string = tostring(managers.player:get_body_bags_amount()) 
 	--todo ghostable icon
 	
 	if managers.crime_spree:is_active() then 
@@ -2013,7 +2166,7 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 	end
 	
 	
-	if managers.job:is_level_ghostable(managers.job:current_level_id()) then
+	if is_ghostable then
 		if is_whisper_mode then 
 			local pagers_used = managers.groupai:state():get_nr_successful_alarm_pager_bluffs()
 			local max_pagers_data = managers.player:has_category_upgrade("player", "corpse_alarm_pager_bluff") and tweak_data.player.alarm_pager.bluff_success_chance_w_skill or tweak_data.player.alarm_pager.bluff_success_chance
@@ -2026,33 +2179,25 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 					break
 				end
 			end
-			pagers_text = string.format("%i / %i",pagers_used,max_num_pagers)
-			--managers.localization:text("hud_stats_pagers_used")
-			--local pagers_texture, pagers_rect = tweak_data.hud_icons:get_icon_data("pagers_used")
-			
+			pagers_used_amount_string = string.format("%i / %i",pagers_used,max_num_pagers)
 		end
-		
-		
-		
 	end
 	
 	local mandatory_bags_data = managers.loot:get_mandatory_bags_data()
 	local mandatory_amount = mandatory_bags_data and mandatory_bags_data.amount
 	local secured_amount = managers.loot:get_secured_mandatory_bags_amount()
 	local bonus_amount = managers.loot:get_secured_bonus_bags_amount()
-	--managers.localization:text("hud_stats_bags_secured")
-	local bag_texture, bag_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
-		
-	--	if mandatory_amount and mandatory_amount > 0 then
---		local str = bonus_amount > 0 and string.format("%d/%d+%d", secured_amount, mandatory_amount, bonus_amount) or string.format("%d/%d", secured_amount, mandatory_amount)
---		end
-
-	--managers.localization:to_upper_text("hud_body_bags")
-	--	local body_texture, body_rect = tweak_data.hud_icons:get_icon_data("equipment_body_bag")
 	
---	local secured_bags_money = managers.experience:cash_string(managers.money:get_secured_mandatory_bags_money() + managers.money:get_secured_bonus_bags_money())
---	local instant_cash = managers.experience:cash_string(managers.loot:get_real_total_small_loot_value())
---managers.localization:to_upper_text("hud_instant_cash")
+	local bag_texture, bag_texture_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
+	if mandatory_amount and mandatory_amount > 0 then
+		bags_secured_count_string = bonus_amount > 0 and string.format("%d/%d+%d", secured_amount, mandatory_amount, bonus_amount) or string.format("%d/%d", secured_amount, mandatory_amount)
+	end
+
+	local bodybags_texture, bodybags_texture_rect = tweak_data.hud_icons:get_icon_data("equipment_body_bag")
+	local bodybags_label_string = managers.localization:to_upper_text("hud_body_bags")
+	
+	local bags_value_string = managers.experience:cash_string(managers.money:get_secured_mandatory_bags_money() + managers.money:get_secured_bonus_bags_money())
+	local instant_cash_string = managers.experience:cash_string(managers.loot:get_real_total_small_loot_value())
 	
 	if alive(self._stats_panel) then 
 		selected_parent_panel:remove(self._stats_panel)
@@ -2069,6 +2214,8 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 	local mission_info_panel = panel:panel({
 		name = "mission_info_panel"
 	})
+	self.make_debug_rect(mission_info_panel)
+	
 	local mission_name = mission_info_panel:text({ --from cs or from normal
 		name = "mission_name",
 		text = mission_level_text,
@@ -2091,6 +2238,15 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		font = self._fonts.syke,
 		font_size = 32
 	})
+	local ghostable_icon = mission_info_panel:bitmap({
+		name = "ghostable_icon",
+		texture = "guis/textures/pd2/cn_minighost",
+		w = 16,
+		h = 16,
+		x = 50,
+		y = 0
+	})
+	
 	
 	local difficulty_string_len
 	if od_indicator_text then 
@@ -2118,32 +2274,144 @@ function KineticHUD:CreateStatsPanel(skip_layout)
 		font_size = 32
 	})
 	
-	---ghost icon here
-	local pagers_indicator = mission_info_panel:text({
-		name = "pagers_indicator",
-		text = pagers_text,
+	local stealth_info = panel:panel({
+		name = "stealth_info",
+		w = 200,
+		h = 200,
+		x = 400,
+		y = 0
+	})
+	self.make_debug_rect(stealth_info)
+	
+	local bodybags_icon = stealth_info:bitmap({
+		name = "bodybags_icon",
+		w = 16,
+		h = 16,
 		y = 0,
+		texture = bodybags_texture,
+		texture_rect = bodybags_texture_rect
+	})
+	local bodybags_label = stealth_info:text({
+		name = "bodybags_label",
+		text = bodybags_label_string,
+		x = 16,
+		y = 0,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local bodybags_amount = stealth_info:text({
+		name = "bodybags_amount",
+		text = bodybags_amount_string,
+		x = 0,
+		y = 32,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	local pagers_used_icon = stealth_info:bitmap({
+		name = "pagers_used_icon",
+		texture = pagers_texture,
+		texture_rect = pagers_rect,
+		y = 64,
+		w = 16,
+		h = 16
+	})
+	local pagers_used_label = stealth_info:text({
+		name = "pagers_used_label",
+		text = pagers_used_label_string,
+		x = pagers_used_icon:right(),
+		y = 64,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	
+	local pagers_used_amount = stealth_info:text({
+		name = "pagers_used_amount",
+		text = pagers_used_amount_string,
+		y = 96,
+		X = 32 + 4,
 		font = self._fonts.syke,
 		font_size = 32
 	})
 	
 	local objectives_panel = panel:panel({
 		name = "objectives_panel",
+		w = 100,
+		h = 50,
 		y = 120
 	})
+	self.make_debug_rect(objectives_panel)
 	--objectives are generated
 	
 	local converts_panel = panel:panel({
-		name = "converts_panel"
+		name = "converts_panel",
+		w = 100,
+		h = 50
 	})
+	self.make_debug_rect(converts_panel)
 	--converts are generated
 	
-	if not skip_layout then 
---		layout here
-	end
+	local bags_panel = panel:panel({
+		name = "bags_panel",
+		x = 0,
+		y = 200,
+		w = 200,
+		h = 100
+	})
+	self.make_debug_rect(bags_panel)
+	
+	local bags_secured_icon = bags_panel:bitmap({
+		name = "bags_secured_icon",
+		w = 16,
+		h = 16,
+		texture = bag_texture,
+		texture_rect = bag_texture_rect
+	})
+	local bags_secured_label = bags_panel:text({
+		name = "bags_secured_label",
+		text = bags_secured_label_string,
+		x = bags_secured_icon:right() + 4,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local bags_secured_count = bags_panel:text({
+		name = "bags_secured_count",
+		text = bags_secured_count_string,
+		x = 0,
+		y = 40,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local bags_value_label = bags_panel:text({
+		name = "bags_value_label",
+		text = bags_value_string,
+		x = bags_secured_icon:right() + 4,
+		y = 40,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local instant_cash_label = bags_panel:text({
+		name = "instant_cash_label",
+		text = instant_cash_label_string,
+		x = 0,
+		y = 60,
+		font = self._fonts.syke,
+		font_size = 32
+	})
+	local instant_cash_value = bags_panel:text({
+		name = "instant_cash_value",
+		text = instant_cash_string,
+		x = 0,
+		y = 100,
+		font = self._fonts.syke,
+		font_size = 32
+	})
 end
 
 function KineticHUD:RefreshStatsObjectives()
+	if alive(self._stats_panel) then 
+	
+	end
 	
 	--[[
 	for i, data in pairs(managers.objectives:get_active_objectives()) do
@@ -2171,11 +2439,17 @@ function KineticHUD:RefreshStatsObjectives()
 end
 
 function KineticHUD:RefreshStatsLoot()
-
+	if alive(self._stats_panel) then 
+		local bags_panel = self._stats_panel:child("bags_panel")
+		
+	end
 end
 
 function KineticHUD:RefreshStatsInventory()
-
+	if alive(self._stats_panel) then 
+		
+	end
+	
 end
 
 function KineticHUD:RefreshStatsMutators()
@@ -2203,6 +2477,353 @@ function KineticHUD:RefreshHUDStats()
 	self:RefreshStatsConverts()
 end
 
+function KineticHUD:CreateInteractPanel()
+	local layout_settings = self.layout_settings
+	local selected_parent_panel = self._world_panels[6]
+	if not alive(selected_parent_panel) then 
+		return
+	end
+	
+	local show_timer = true
+	local text_font_size = 32
+	local timer_font_size = 24
+	
+	local panel_h = 100
+	local circle_size = 64
+	
+	local interaction_panel = selected_parent_panel:panel({
+		name = "interaction_panel",
+		x = 500,
+		y = 450,
+		w = 600,
+		h = panel_h
+	})
+	self._interaction_panel = interaction_panel
+
+	local interaction_text = interaction_panel:text({
+		name = "interaction_text",
+		text = "",
+		font = self._fonts.alt_mono,
+		font_size = text_font_size,
+		x = 70,
+--		y = 64,
+		vertical = "center",
+		color = self.color_data.white
+	})
+	local interaction_text_invalid = interaction_panel:text({
+		name = "interaction_text_invalid",
+		text = "",
+		font = self._fonts.alt_mono,
+		font_size = text_font_size,
+		x = 70,
+--		y = 64,
+		vertical = "center",
+		color = self.color_data.red,
+		visible = false
+	})
+--	self.make_debug_rect(interaction_panel):show()
+	
+	
+	local interaction_circle = interaction_panel:bitmap({
+		name = "interaction_circle",
+		texture = "guis/textures/pd2/hud_progress_active",
+		w = circle_size,
+		h = circle_size,
+		y = (interaction_panel:h() - circle_size) / 2,
+		render_template = "VertexColorTexturedRadial",
+		visible = false
+	})
+	
+	local interaction_line = interaction_panel:rect({
+		name = "interaction_line",
+		color = self.color_data.white,
+		visible = false,
+		w = 1,
+		h = 16,
+		rotation = 1
+	})
+	
+	local interaction_sep = interaction_panel:rect({
+		name = "interaction_sep",
+		w = 2,
+		h = circle_size,
+		color = self.color_data.white,
+		alpha = 0.75,
+		x = circle_size + 2,
+		y = interaction_circle:y(),
+		visible = false
+	})
+	
+	local interaction_timer = interaction_panel:text({
+		name = "interaction_timer",
+		text = "",
+		color = self.color_data.white,
+		visible = show_timer,
+		x = 70,
+--		align = "right",
+		vertical = "bottom",
+		font = self._fonts.syke,
+		font_size = timer_font_size
+	})
+	local interaction_target_dot = interaction_panel:bitmap({
+		name = "interaction_target_dot",
+		texture = "textures/ui/firemode_dots_1",
+		texture_rect = {
+			0,0,16,16
+		},
+		w = 8,
+		h = 8,
+		visible = false
+	})
+	
+end
+
+function KineticHUD:ShowInteract(data)
+	if alive(self._interaction_panel) then 
+--		self._interaction_panel:show()
+		local text = data.text or "Press $INTERACT to interact"
+		local interaction_text = self._interaction_panel:child("interaction_text")
+		interaction_text:set_text(utf8.to_upper(text))
+		interaction_text:show()
+		self._interaction_panel:child("interaction_text_invalid"):hide()
+	end
+end
+
+function KineticHUD:HideInteract()
+	if alive(self._interaction_panel) then
+		self._interaction_panel:child("interaction_text"):hide()
+		self._interaction_panel:child("interaction_text_invalid"):hide()
+--		self._interaction_panel:hide()
+	end
+end
+
+function KineticHUD:ShowInteractBar(current,total)
+	local timer_enabled = true
+	if alive(self._interaction_panel) then
+	
+		local interaction_timer = self._interaction_panel:child("interaction_timer")
+		local interaction_line = self._interaction_panel:child("interaction_line")
+		local interaction_circle = self._interaction_panel:child("interaction_circle")
+		local interaction_target_dot = self._interaction_panel:child("interaction_target_dot")
+		local interaction_sep = self._interaction_panel:child("interaction_sep")
+		
+		interaction_timer:set_visible(timer_enabled)
+		interaction_circle:show()
+
+	--todo check for active interaction unit
+--		interaction_line:show()
+--		interaction_target_dot:show()
+
+--		interaction_sep:hide()
+		
+		self:SetInteractProgress(current,total)
+	end
+end
+
+function KineticHUD:SetInteractProgress(current,total)
+	local timer_enabled = true
+	local show_total_time = true
+	if alive(self._interaction_panel) then 
+		local interaction_timer = self._interaction_panel:child("interaction_timer")
+		local interaction_line = self._interaction_panel:child("interaction_line")
+		local interaction_circle = self._interaction_panel:child("interaction_circle")
+		local interaction_target_dot = self._interaction_panel:child("interaction_target_dot")
+		local interaction_sep = self._interaction_panel:child("interaction_sep")
+		
+		--update guiding lines to state._interact_params.object
+		local player = managers.player:local_player()
+		local state = player:movement():current_state()
+		
+		local active_unit = state._interaction and state._interaction:active_unit()
+		if active_unit and not state:is_deploying() then 
+		
+			local pos
+			
+			local interaction_ext = active_unit:interaction() 
+			if interaction_ext then 
+				local obj
+				
+				if interaction_ext._interact_obj then 
+					obj = interaction_ext._interact_obj
+				else
+				--[[
+					local interaction_id = interaction_ext.tweak_data
+					local find_default_objects = true
+					if interaction_id then 
+						local lookup_table = {
+							corpse_dispose = {
+								interact_body_name = "Spine"
+							},
+							intimidate = {
+								interact_body_name = "RightForeArm"
+							},
+							corpse_alarm_pager = {
+								interact_body_name = "Waist"
+							},
+							hostage_convert = {
+								interact_body_name = "Spine"
+							},
+							hold_born_untie = {
+								interact_body_name = "RightForeArm"
+							},
+							hold_hand_over_chrome_skull = {
+								interact_body_name = "RightForeArm"
+							},
+							hold_hand_over_tool = {
+								interact_body_name = "RightForeArm"
+							},
+							born_give_item = {
+								interact_body_name = "RightForeArm"
+							}
+						}
+						local int_d = lookup_table[interaction_id]
+						if int_d then 
+							obj = active_unit:get_object(Idstring(int_d.interact_body_name))
+							find_default_objects = not int_d.require_object
+						end
+						--todo interaction local vector offset 
+					end
+					--]]
+					if not obj and not find_default_objects then 
+						obj = active_unit:get_object(Idstring("Spine")) or active_unit:get_object(Idstring("Head"))
+					end
+				
+				end
+				--[[
+				if interaction_ext._tweak_data.interaction_obj then 
+					obj = active_unit:get_object(Idstring(interaction_ext._tweak_data.interaction_obj))
+				elseif interaction_ext._interact_object then
+					obj = active_unit:get_object(Idstring(interaction_ext._interact_object))
+				end
+				--]]
+				
+				if obj then 
+					if obj.oobb and obj:oobb() then 
+						pos = obj:oobb():center()
+					else
+						pos = obj:position()
+					end
+				end
+			end
+			pos = pos or (active_unit:oobb() and active_unit:oobb():center()) or active_unit:position()
+			
+			local ws = self._workspaces[6]
+			local topos = ws:world_to_screen(managers.viewport:get_current_camera(),pos)
+			
+			local to_x,to_y = topos.x,topos.y
+			local from_x,from_y = interaction_circle:world_center()
+			
+			local d_x = to_x - from_x
+			local d_y = to_y - from_y
+			
+			local hyp = math.sqrt((d_x * d_x) + (d_y * d_y))
+			
+			local angle = math.atan(d_y / d_x) + 90
+			
+			interaction_line:set_h(hyp)
+			
+			interaction_line:set_rotation(angle)
+			
+			local ix,iy = interaction_circle:center()
+			ix = ix + (d_x/2)
+			iy = iy + (d_y/2) - (hyp / 2)
+			
+			interaction_line:set_position(ix,iy)
+			interaction_line:show()
+			
+			interaction_target_dot:set_rotation(angle)
+			interaction_target_dot:set_world_center(to_x,to_y)
+			interaction_target_dot:show()
+		else
+			interaction_line:hide()
+			interaction_target_dot:hide()
+		end
+		interaction_circle:set_color(Color(current/total,1,1))
+--		interaction_circle:show()
+		
+		if timer_enabled then --timer enabled
+			local timer_text = ""
+			--todo leading zeroes/decimal place accuracy
+				--lookup table to chars by setting index
+				--store in cache for retrieval vs generation
+				--rebuild on setting change
+			local ca = "f"
+			if accuracy == "float" then 
+				ca = "f"
+			elseif accuracy == "int" then 
+				ca = "i"
+			end
+			
+			local show_seconds_abb = true
+			local cs = "s"
+			if show_seconds_abb then 
+				cs = "s"
+			else
+				cs = ""
+			end
+			
+			if show_total_time then 
+				timer_text = string.format("%0.1" .. ca .. cs .. "/%0.1" .. ca .. cs,current,total)
+			else
+				timer_text = string.format("%0.2" .. ca .. cs,current)
+			end
+
+			interaction_timer:set_text(timer_text)
+		end
+	end
+end
+
+function KineticHUD:HideInteractBar(complete)
+	if alive(self._interaction_panel) then 
+		--remove old interaction bar
+		
+		self._interaction_panel:child("interaction_circle"):set_image("guis/textures/pd2/hud_progress_active")
+		self._interaction_panel:child("interaction_circle"):set_color(Color(0,0,0))
+		self._interaction_panel:child("interaction_circle"):hide()
+		
+		self._interaction_panel:child("interaction_line"):set_h(0)
+		self._interaction_panel:child("interaction_line"):hide()
+		
+		self._interaction_panel:child("interaction_text"):set_text("")
+		
+		self._interaction_panel:child("interaction_timer"):set_text("")
+		self._interaction_panel:child("interaction_timer"):hide()
+		
+		self._interaction_panel:child("interaction_target_dot"):set_world_position(-1000,-1000)
+		self._interaction_panel:child("interaction_target_dot"):hide()
+		
+		self._interaction_panel:child("interaction_sep"):hide()
+		
+		if complete then 
+			--hud animation for interaction complete
+		end
+	end
+end
+
+function KineticHUD:SetInteractValid(valid,text_id)
+	--set invalid text visible
+	
+	if alive(self._interaction_panel) then 
+		self._interaction_panel:child("interaction_text"):set_visible(valid)
+		self._interaction_panel:child("interaction_circle"):set_image(valid and "guis/textures/pd2/hud_progress_active" or "guis/textures/pd2/hud_progress_invalid")
+		
+		local interaction_text_invalid = self._interaction_panel:child("interaction_text_invalid")
+		if text_id then 
+			interaction_text_invalid:set_text(managers.localization:to_upper_text(text_id))
+		end
+		interaction_text_invalid:set_visible(not valid)
+	end
+end
+
+function KineticHUD:UpdateInteractTarget(t,dt,player)
+	local state = player:movement():current_state()
+	local is_interacting = state:_interacting() or true
+	local is_deploying = state:is_deploying()
+	if not (is_interacting or is_deploying) then 
+		
+		
+	end
+end
 
 function KineticHUD:LayoutChatPanel()
 --	self._chat_panel:set_position(0,0)
@@ -2296,11 +2917,6 @@ function KineticHUD:LayoutPlayerVitals(params)
 					health_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
 				end
 			end
-			
-			
-			
-			
-			health_panel:child("health_debug"):set_size(health_panel:size())
 		end
 		
 		if layout_armor then 
@@ -2328,8 +2944,6 @@ function KineticHUD:LayoutPlayerVitals(params)
 			end
 			
 --			armor_panel:child("armor_label"):set_font_size(label_font_size)
-			
-			armor_panel:child("armor_debug"):set_size(armor_panel:size())
 		end
 		
 	end
@@ -2546,10 +3160,6 @@ function KineticHUD:LayoutPlayerWeaponsPanel(params)
 				kill_counter:set_font_size(font_size_large)
 				kill_counter:set_position(-margin_small + - (weapon_panel:w() -icon_box:x()),ammo_text_bottom)
 			end
-			
-			local debug_rect = weapon_panel:child("debug_rect")
-			debug_rect:set_size(weapon_panel:size())
-			debug_rect:set_position(0,0)
 			
 		end
 		
@@ -3977,7 +4587,12 @@ function KineticHUD:UpdateHUD(t,dt)
 	local player = managers.player:local_player()
 	if player then
 		self:LinkWS(player:camera()._camera_object)
+		
+		self:UpdateCompass(t,dt,player)
+		
+		self:UpdateInteractTarget(t,dt,player)
 	end
+	
 	
 	--[[
 	local hud_values = self.hud_values
@@ -4054,6 +4669,83 @@ function KineticHUD:UpdateHUD(t,dt)
 	
 end
 
+local mvector3_angle = mvector3.angle
+--includes waypoints
+function KineticHUD:UpdateCompass(t,dt,player)
+	local camera = player:camera()
+	local compass_panel = self._compass_panel
+	if camera and alive(compass_panel) then
+		local offset = 90
+		local rot = camera:rotation()
+		local yaw = (offset + rot:yaw()) % 360
+		local angle = ((180 + yaw) % 360) - 180
+		
+		
+--		Console:SetTrackerValue("trackera",string.format("yaw %i / angle %i",yaw,angle))
+		
+		local compass_window = compass_panel:child("compass_window")
+		local compass_slider_1 = compass_window:child("compass_slider_1")
+		local compass_slider_2 = compass_window:child("compass_slider_2")
+		local x = compass_window:w() * (yaw / 180)
+		if angle > 0 then 
+			compass_slider_1:set_x(x)
+			compass_slider_2:set_right(compass_slider_1:left()) 
+		else
+			x = x - compass_window:w()
+			compass_slider_2:set_x(x)
+			compass_slider_1:set_right(compass_slider_2:left())
+		end
+--		Console:SetTrackerValue("trackerb",string.format("x %i / w %i",x,compass_window:w()))
+		
+		--[[
+		local function get_center_x_from_angle(angle)
+			local p = (yaw % 360) - 180
+			return p/180
+		end
+		
+		local cam_pos = camera:position()
+		
+		local ws = self._workspaces[6]
+--		local flatscreen = self._world_panels[6]
+		
+		
+--		local screen_w = flatscreen:w()
+		local compass_window = compass:child("compass_window")
+		local compass_slider = compass_window:child("compass_slider")
+		
+		local p = get_center_x_from_angle(yaw)
+		
+		local cc = compass_window:w() / 2
+		local cx = cc + (cc * p)
+		
+		compass_slider:set_x(cx)
+--		Console:SetTrackerValue("trackera",string.format("%i/%i",compass_slider:x(),compass_window:w()))
+		--]]
+		--[[
+		for i,tick_data in pairs(compass_targets) do
+			if alive(tick_data.unit) and alive(tick_data.panel) then
+				local oobb = unit:oobb()
+				local unit_pos = tick_data.unit:position()
+				if tick_data.no_center then
+					unit_pos = oobb and oobb:center() or unit_pos
+				end
+				--local target_x,target_y = unpack(ws:world_to_screen(camera,j.unit) or {})
+				local unitpos_leveled = Vector3(unit_pos:x(),unit_pos:y(),cam_pos:z())
+				local angle_to_target = mvector3_angle(cam_pos,unitpos_leveled)
+				local centerx = get_center_x_from_angle(angle_to_target)
+				tick_data.panel:set_center(centerx,0)
+				
+				
+				
+			else
+				compass_targets[i] = nil
+			end
+		end
+		
+		--]]
+	end
+end
+
 function KineticHUD:AnimatePanelSelectedFlash(id)
 	local world_panel = id and self._world_panels[id]
 	if alive(world_panel) then 
@@ -4119,14 +4811,6 @@ function KineticHUD:CreateBuffsPanel(skip_layout)
 		x = 0,
 		y = 0
 	})
-	--[[
-	local debug_rect = parent_buffs_panel:rect({
-		name = "debug_rect",
-		alpha = 0.1,
-		visible = false,
-		color = Color.red
-	})
-	--]]
 	self._buffs_panel = parent_buffs_panel
 	if not skip_layout then 
 		self:LayoutBuffsPanel()
@@ -4518,17 +5202,6 @@ function KineticHUD:AddBuffItem(id,data,buff_info)
 		alpha = 0.5,
 		color = self.color_data.black
 	})
-	
-	--[[
-	local r = math.random()
-	local debug_rect = panel:rect({
-		name = "debug_rect",
-		color = Color(r,1 - r,1),
-		visible = true,
-		layer = -2,
-		alpha = 0.1
-	})
-	--]]
 	
 --	self:AnimateLayoutBuffs()
 	--todo insert by priority

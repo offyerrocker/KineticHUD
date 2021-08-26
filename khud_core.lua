@@ -44,7 +44,11 @@ KineticHUD.color_data = {
 
 KineticHUD._fonts = {
 	tommy_bold = "fonts/made_tommy_xb", --custom; 48
-	syke = "fonts/syke", --custom; 24(?)
+	syke = "fonts/syke_64", --custom; 24(?)
+--	syke = "fonts/syke", --custom; 24(?)
+	alt_mono = "fonts/alt_mono", --custom; 24(?)
+--	syke = "fonts/alt_mono", --custom; 24(?)
+	alt_mono_shadow = "fonts/alt_mono_shadow", --custom; 24(?)
 	digital = "fonts/font_digital", --vanilla
 	large = "fonts/font_large_mf", --vanilla
 }
@@ -1011,7 +1015,6 @@ KineticHUD.hud_values = {
 		{
 			name = "flatscreen panel",
 			is_world_workspace = false,
-			unhidable = true,
 			TEXT = "FLATSCREEN PANEL",
 			RECT_COLOR = Color(0,1,1),
 			RECT_ALPHA = 0.5
@@ -1088,6 +1091,9 @@ KineticHUD.hud_values = {
 	PLAYER_MISSION_EQUIPMENT_H = 100,
 	PLAYER_MISSION_EQUIPMENT_ICON_SIZE = 32,
 	PLAYER_MISSION_EQUIPMENT_FONT_SIZE = 24,
+	
+	PLAYER_COMPASS_W = 100,
+	PLAYER_COMPASS_H = 100,
 	
 	PLAYER_WEAPON_HUD_ANIMATION_SWAP_DURATION = 1/3,
 	
@@ -1385,9 +1391,16 @@ KineticHUD.default_layout_settings = {
 	presenter_panel_location = 3,
 	interaction_panel_location = 4, --5, after i make that
 	chat_panel_location = 1,
+	
+	compass_panel_scale = 1,
+	compass_panel_location = 3,
+	compass_x = 100,
+	compass_y = 100,
+	compass_w = 1000,
+	compass_h = 20,
+	
 	hitdirection_panel_location = 4,
 	suspicion_panel_location = 3,
-	compass_panel_location = 3,
 	hints_panel_location = 2,
 	
 	buffs_panel_location = 4,
@@ -1645,6 +1658,17 @@ function KineticHUD.CloneGuiObject(source,new_parent,params)
 	end
 end
 
+function KineticHUD.make_debug_rect(panel,alpha,color,visible)
+	if visible == nil then 
+		visible = KineticHUD.hud_values.DEBUG_PANELS_VISIBLE
+	end
+	return panel:rect({
+		name = panel:name() .. "_debug",
+		color = color or KineticHUD.color_data.red,
+		alpha = alpha or 0.1,
+		visible = visible
+	})
+end
 
 function KineticHUD.format_seconds(raw)
 	return string.format("%i:%02d",math.floor(raw / 60),math.floor(raw % 60))

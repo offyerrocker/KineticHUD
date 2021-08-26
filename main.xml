@@ -5,8 +5,14 @@
 	<!-- Fonts -->
 		<font path="fonts/syke" load="true" unload="false" />
 		<texture path="fonts/syke" />
+		<font path="fonts/syke_64" load="true" unload="false" />
+		<texture path="fonts/syke_64" />
 		<font path="fonts/made_tommy_xb" load="true" unload="false" />
 		<texture path="fonts/made_tommy_xb" />
+		<font path="fonts/alt_mono_shadow" load="true" unload="false" />
+		<texture path="fonts/alt_mono_shadow" />
+		<font path="fonts/alt_mono" load="true" unload="false" />
+		<texture path="fonts/alt_mono" />
 
 	<!-- Textures -->
 		<texture path="textures/ui/health_bar_outline"/>
