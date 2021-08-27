@@ -879,6 +879,60 @@ KineticHUD._cache = {
 
 KineticHUD._teammate_panels = {}
 
+KineticHUD.cartographer_level_data_template = {
+	"{\n\t\"compass_offset\" : 0,\n\t\"version\" : 2,\n\t\"stage_id\" : \"PLACEHOLDER_LEVEL_ID\",\n\t\"nav_segments\" : {\n",
+	"\t\t\"PLACEHOLDER_ID\" : \"PLACEHOLDER_LOCATION\"",
+	"\t}\n}"
+}
+function KineticHUD:GenerateCartographerData(level_id,segments)
+	local rewrite_location_names = false
+	local path = self._cartographer_path .. level_id .. ".json"
+	local file = io.open(path,"w+")
+	if file then
+		local s1 = string.gsub(self.cartographer_level_data_template[1],"PLACEHOLDER_LEVEL_ID",tostring(level_id))
+		local sf = s1
+		local s2 = ""
+		local s3 = self.cartographer_level_data_template[3]
+		local done_any = false
+		if segments then 
+			local indices = {}
+			for i,data in pairs(segments) do 
+				table.insert(indices,tonumber(i))
+			end
+			table.sort(indices)
+			for k=#indices,1,-1 do 
+				local v = indices[k]
+				local data = segments[v]
+				if data then 
+					local s2
+					if data.location_id == "location_unknown" then
+						s2 = string.gsub(self.cartographer_level_data_template[2],"PLACEHOLDER_ID",tostring(v))
+					elseif rewrite_location_names then 
+						s2 = string.gsub(self.cartographer_level_data_template[2],"PLACEHOLDER_ID",tostring(v))
+						s2 = string.gsub(s2,"PLACEHOLDER_LOCATION","PLACEHOLDER_LOCATION",data.location_id)
+					end
+					if s2 then 
+						indices[k] = s2
+					else
+						table.remove(indices,k)
+					end
+				end
+			end
+			for i,str in ipairs(indices) do 
+				if str then 
+					sf = sf .. str
+					if i ~= #indices then 
+						sf = sf .. ","
+					end
+					sf = sf .. "\n"
+				end
+			end
+		end
+		sf = sf .. s3
+		file:write(sf)
+		file:close()
+	end
+end
 
 KineticHUD.valign_values = {
 	"top",

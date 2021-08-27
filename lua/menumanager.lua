@@ -204,7 +204,94 @@ DEVELOPMENT:
 		--flashing assault light during assaults; different colors based on assault phase (bai compat)
 		
 ----
-
+CARTOGRAPHER CHECKLIST
+	DONE:
+		Undercover
+		Panic Room
+	NOT DONE:
+		Aftershock
+		Alaskan Deal
+		Art Gallery (check variants)
+		Bank Heist (check variants)
+		Beneath the Mountain
+		Big Oil (2)
+		Birth of Sky
+		Boiling Point
+		Border Crossing (2)
+		Border Crystals
+		Breakfast in Tijuana (1?)
+		Breakin' Feds
+		Brooklyn 10-10
+		Brooklyn Bank
+		Buluc's Mansion
+		Car Shop
+		Cook Off (check variants)
+		Counterfeit
+		Cursed Kill Room
+		Diamond Heist
+		Diamond Store
+		Election Day (3)
+		Escape (Cafe)
+		Escape (Garage)
+		Escape (Overpass)
+		Escape (Park)
+		Escape (Street)
+		Firestarter (3)
+		First World Bank
+		Four Stores
+		Framing Frame (3)
+		GO Bank
+		Goat Simulator (2)
+		Golden Grin Casino
+		Green Bridge
+		Heat Street
+		Hell's Island
+		Henry's Rock
+		Hotline Miami (2)
+		Hoxton Breakout (2)
+		Hoxton Revenge
+		Jewelry Store
+		Lab Rats
+		Mallcrasher
+		Meltdown
+		Murky Station
+		Nightclub
+		No Mercy
+		Prison Nightmare
+		Rats (3)
+		Reservoir Dogs Heist (2)
+		Safe House Nightmare
+		Safe House
+		Safe House Raid
+		San Martín Bank
+		Santa's Workshop
+		Scarface Mansion
+		Shacklethorne Auction
+		Shadow Raid
+		Slaughterhouse
+		Stealing Xmas
+		The Alesso Heist
+		The Big Bank
+		The Biker Heist (2)
+		The Bomb: Dockyard
+		The Bomb: Forest
+		The Diamond
+		The Ukrainian Prisoner
+		The White House
+		The Yacht Heist
+		Transport: Crossroads
+		Transport: Harbor
+		Transport: Downtown
+		Transport: Underpass
+			Am I missing a transport heist?
+		Transport: Train
+		Ukrainian Job
+		Watchdogs (2)
+		White Xmas
+		
+	+SKIRMISH VARIANTS
+		
+----
 
 AESTHETICS
 	* Digital-retro?
@@ -4973,7 +5060,7 @@ function KineticHUD:ChangeCompassWaypointTexture(id,icon)
 end
 
 function KineticHUD:UpdateCartographer(t,dt,player)
-	local allow_nav_location_names = false
+	local allow_nav_location_names = true
 		
 	local cartographer_data = self._cache.cartographer_data
 	if cartographer_data then 

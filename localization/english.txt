@@ -108,7 +108,11 @@
 	"khud_prompt_missing_colorpicker_title" : "Missing ColorPicker Dependency",
 	"khud_prompt_missing_colorpicker_desc" : "You must have the mod \"ColorPicker\" installed in order to customize colors!\nYou can get it here: https://modwork.shop/29641 ",
 	
+	
+	
+	
 	"khud_cartographer_location_generic_out_of_bounds" : "Out of Bounds",
+	
 	"khud_cartographer_location_man_4" : "Building Exit South",
 	"khud_cartographer_location_man_5" : "S Stairwell 1F",
 	"khud_cartographer_location_man_7" : "S Stairwell 1F",
@@ -165,5 +169,22 @@
 	"khud_cartographer_location_man_74" : "is bad at parkour",
 	"khud_cartographer_location_man_78" : "Roof",
 	"khud_cartographer_location_man_148" : "S Basement",
-	"khud_cartographer_location_man_165" : "Roof"
+	"khud_cartographer_location_man_165" : "Roof",
+	
+	"khud_cartographer_location_flat_40" : "Roof",
+	"khud_cartographer_location_flat_250" : "Meth Lab",
+	"khud_cartographer_location_flat_274" : "4F",
+	"khud_cartographer_location_flat_275" : "4F",
+	"khud_cartographer_location_flat_276" : "1F",
+	"khud_cartographer_location_flat_277" : "4F",
+	"khud_cartographer_location_flat_297" : "4F Balcony",
+	"khud_cartographer_location_flat_301" : "Roof",
+	"khud_cartographer_location_flat_307" : "Alley",
+	"khud_cartographer_location_flat_308" : "Alley",
+	"khud_cartographer_location_flat_310" : "2F"
+	
+	
+	
+	
+	
 }

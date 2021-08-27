@@ -19,7 +19,7 @@ end
 if hooked_class then 
 	Hooks:PostHook(hooked_class,hook_func_id,hook_id,function(self,unit,t,dt)
 		unit = unit or self._unit
-		local allow_nav_location_names = false
+		local allow_nav_location_names = true
 		local cartographer_data = KineticHUD._cache.cartographer_data
 		if cartographer_data then 
 			local char_data
