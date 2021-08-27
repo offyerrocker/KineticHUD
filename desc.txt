@@ -55,6 +55,11 @@ KineticHUD was written with specific compatibility code for a few mods. I person
 
 Attempt to use with other main HUD mods (VanillaHUD Plus, WolfHUD, PocoHUD, etc) at your own risk
 
+## Known Issues:
+- Parts of the HUD may become blurred when viewed in front of the skybox. This is an engine bug that I cannot fix.
+- Parts of the HUD may have significant amounts of bloom (glow) when on certain maps, such as the Yacht Heist. This is an engine bug that I cannot fix.
+
+
 ## F.A.Q.:
 
 ## Troubleshooting:

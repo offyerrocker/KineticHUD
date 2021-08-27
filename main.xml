@@ -3,8 +3,6 @@
 	<AddFiles directory="assets">
 	
 	<!-- Fonts -->
-		<font path="fonts/syke" load="true" unload="false" />
-		<texture path="fonts/syke" />
 		<font path="fonts/syke_64" load="true" unload="false" />
 		<texture path="fonts/syke_64" />
 		<font path="fonts/made_tommy_xb" load="true" unload="false" />

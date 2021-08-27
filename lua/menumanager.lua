@@ -20,11 +20,13 @@ DEVELOPMENT:
 					* Maniac
 					- Revives bg?
 				TEAMMATE:
+					- numerical health/armor?
 					- implement team mission equipments
 				TABSCREEN:
 					- kills with primary, secondary, throwable, melee, sentry
 					- accuracy
 					- jokers w/ killcounts- "guiding lines" to their onscreen positions
+					- Lobby Player Info compatibility
 					- Mutators
 					- Tracked Achievements
 					- Jokers
@@ -42,12 +44,24 @@ DEVELOPMENT:
 					- design + implement
 					
 			BUGS:
+				crash from teammate interaction
+					05:16:33 AM FATAL ERROR:  (C:\projects\payday2-superblt\src\InitiateState.cpp:248) [string "lib/managers/hudmanager.lua"]:1798: attempt to index field '_interact_circle' (a nil value)
+				stack traceback:
+						[string "lib/managers/hudmanager.lua"]:1798: in function 'pd_start_progress'
+						[string "lib/units/beings/player/playerdamage.lua"]:1866: in function 'pause_downed_timer'
+						[string "lib/network/handlers/unitnetworkhandler.lua"]:1343: in function <[string "lib/network/handlers/unitnetworkhandler.lua"]:1335>
+		
 				resize mission equipments after menu settings change (AnimateLayoutPlayerMissionEquipment(true))
 				fire burn deaths count as 2 kills on killcounter
 				non-focused weapon icon is not properly resized on setting the icon image
-				player equipment alignment code centers improperly
+				player equipment alignment code centers improperly (spacing for secondary amounts eg tripmines)
 				objective amount does not update on completion
-			
+				flatscreen workspace is not hidden:
+					compass remains visible in custody/preplanning screen
+					interaction text (eg "press f to view camera" remains visible in camera view
+					- fix this by using a vanilla panel instead of creating a new workspace
+				"put on mask" prompt is still visible and may clip
+				
 =========== MENU STRUCTURING: hoo boy this is indeed rough ===========
 				* HUD Layout
 					* Player
@@ -496,10 +510,33 @@ function KineticHUD:Setup()
 	
 	self:RegisterBuffListeners()
 	
-	
 	self:RegisterUpdateCheckPlayer()
-end
+	
+	if managers.job then 
+		local stage_data = managers.job:current_stage_data()
+		local stage_id = stage_data and stage_data.level_id --moon
+	--[[
+		local job_data = managers.job:current_job_data()
+		local job_id = job_data.name_id --heist_moon
+		
+		
+		local stage_data = managers.job:current_stage_data()
+		local stage_id = stage_data.id --moon
+		
+		
+		local level_data = managers.job:current_level_data()
+		local level_id = level_data.name_id --heist_moon_hl
+		
+--		local s = managers.localization:text(tweak_data.levels[mission.level.level_id].name_id)
+--		local s = managers.localization:to_upper_text(level_data.name_id)
 
+		--]]
+		if stage_id then 
+			self:LoadCartographerData(stage_id)
+		end
+	end
+	
+end
 
 --Create world panels to be linked later, and stores them in a table. 
 --Returns: nil
@@ -1590,6 +1627,65 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 		layer = 6
 	})
 	
+	
+	local vitals_panel = teammate:panel({
+		name = "vitals_panel",
+		w = 100,
+		h = 100,
+		x = 100,
+		y = 0
+	})
+	self.make_debug_rect(vitals_panel,0.1,Color.red,false):set_layer(-1)
+	local armor_icon = vitals_panel:bitmap({
+		name = "armor_icon",
+		texture = "textures/ui/firemode_dots_1",
+		texture_rect = {
+			0,0,32,32
+		},
+		w = 32,
+		h = 32,
+		color = Color.blue,
+		visible = false,
+		x = 0,
+		y = 0,
+		layer = 1
+	})
+	local health_icon = vitals_panel:bitmap({
+		name = "health_icon",
+		texture = "textures/ui/firemode_dots_1",
+		texture_rect = {
+			0,0,32,32
+		},
+		w = 32,
+		h = 32,
+		color = Color.red,
+		visible = false,
+		x = 64,
+		y = 0,
+		layer = 1
+	})
+	
+	local armor_text = vitals_panel:text({
+		name = "armor_text",
+		text = "999",
+		font = self._fonts.syke,
+		font_size = 32,
+		vertical = "top",
+		align = "left",
+		layer = 2
+	})
+	
+	local health_text = vitals_panel:text({
+		name = "health_text",
+		text = "888",
+		font = self._fonts.syke,
+		font_size = 32,
+		x = 56,
+		vertical = "top",
+		align = "left",
+		layer = 2
+	})
+	
 	local bpm_panel = teammate:panel({
 		name = "bpm_panel",
 		w = bpm_panel_w,
@@ -1664,7 +1760,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 	
 	local location_text = teammate:text({
 		name = "location_text",
-		text = "" or "In Lobby abcdefghij",
+		text = "",
 		font = self._fonts.syke,
 		font_size = nametag_font_size,
 		align = "left",
@@ -2115,7 +2211,7 @@ function KineticHUD:CreateStatsPanel()
 	end
 	
 	local is_ghostable = managers.job:is_level_ghostable(managers.job:current_level_id())
-	local is_whisper_mode = managers.groupai and managers.groupai:state():whisper_mode()	
+	local is_whisper_mode = managers.groupai and managers.groupai:state():whisper_mode()
 	local job_data = managers.job:current_job_data()
 	local stage_data = managers.job:current_stage_data()
 	local level_data = managers.job:current_level_data()
@@ -4252,16 +4348,22 @@ function KineticHUD:SetTeammatePeerId(i,id)
 end
 
 function KineticHUD:SetTeammateArmor(i,current,total)
-
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local vitals_panel = teammate:child("vitals_panel")
+		vitals_panel:child("armor_text"):set_text(string.format("%i",current))
+		vitals_panel:show()
+	end
 end
 
 function KineticHUD:SetTeammateHealth(i,current,total)
 	self._cache.teammate_health[i] = current/total
 	local teammate = self._teammate_panels[i]
-	if alive(teammate) and not teammate:child("bpm_panel"):visible() then 
-		teammate:child("bpm_panel"):show()
+	if alive(teammate) then 
+		local vitals_panel = teammate:child("vitals_panel")
+		vitals_panel:child("health_text"):set_text(string.format("%i",current))
+		vitals_panel:show()
 	end
-	
 end
 
 function KineticHUD:SetTeammateRevives(i,current)
@@ -4621,6 +4723,8 @@ function KineticHUD:UpdateHUD(t,dt)
 		
 		self:UpdateCompass(t,dt,player)
 		
+		self:UpdateCartographer(t,dt,player)
+		
 		self:UpdateInteractTarget(t,dt,player)
 	end
 	
@@ -4865,6 +4969,43 @@ function KineticHUD:ChangeCompassWaypointTexture(id,icon)
 			waypoint:child("bitmap"):set_image(texture,unpack(texture_rect or {}))
 --			icon:set_size(texture_rect[3],texture_rect[4])
 		end
+	end
+end
+
+function KineticHUD:UpdateCartographer(t,dt,player)
+	local allow_nav_location_names = false
+		
+	local cartographer_data = self._cache.cartographer_data
+	if cartographer_data then 
+		local cartographer_navs = cartographer_data.nav_segments
+		local nav_tracker = player:movement()._nav_tracker
+		if nav_tracker then 
+			local nav_segment = nav_tracker:nav_segment()
+			if nav_segment then 
+				local nav_metadata = managers.navigation:get_nav_seg_metadata(nav_segment)
+				local location_id = nav_metadata.location_id 
+				if location_id and location_id ~= "location_unknown" and allow_nav_location_names then 
+					KineticHUD:SetPlayerLocationText(HUDManager.PLAYER_PANEL,managers.localization:text(location_id))
+				else
+					location_id = cartographer_navs[tostring(nav_segment)] 
+					if location_id then 
+						KineticHUD:SetPlayerLocationText(HUDManager.PLAYER_PANEL,managers.localization:text(location_id))
+					end
+				end
+			end
+		end
+	end
+end
+
+function KineticHUD:SetPlayerLocationText(location_id)
+--	Console:SetTrackerValue("trackere",string.format(tostring(location_id) .. "%0.1f",Application:time()))
+end
+
+function KineticHUD:SetTeammateLocationText(i,location_id)
+	local teammate_panel = self._teammate_panels[i]
+	if teammate_panel then 
+		local location_text = teammate_panel:child("location_text")
+		location_text:set_text(location_id)
 	end
 end
 

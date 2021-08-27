@@ -5,6 +5,7 @@ KineticHUD._mod_path = KineticHUD:GetPath()
 KineticHUD._settings_save_path = SavePath .. "KineticHUD_2_settings.txt"
 KineticHUD._layout_save_path = SavePath .. "KineticHUD_2_layout.txt"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
+KineticHUD._cartographer_path = KineticHUD._mod_path .. "cartographer/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
 
 KineticHUD.MOUSE_ID = "khud_mouse_chat"
@@ -2061,6 +2062,21 @@ end
 
 
 --io
+
+function KineticHUD:LoadCartographerData(level_id)
+	local path = self._cartographer_path .. tostring(level_id) .. ".json"
+	if SystemFS:exists( Application:nice_path( path, true )) then 
+		local file = io.open(path, "r")
+		if file then
+			self:c_log("Loading cartographer data for level " .. tostring(level_id))
+			self._cache.cartographer_data = json.decode(file:read("*all"))
+			file:close()
+			file = nil
+		end
+	else
+		self:c_log("No cartographer data found for level " .. tostring(level_id))
+	end
+end
 
 function KineticHUD:LoadLayout()
 	local file = io.open(self._layout_save_path, "r")

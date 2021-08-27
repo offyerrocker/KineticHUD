@@ -46,7 +46,8 @@ end)
 
 do return end
 
-HUDManager.orig_add_name_label = HUDManager._add_name_label
+local orig_add_name_label = HUDManager._add_name_label
+HUDManager.orig_add_name_label = orig_add_name_label
 function HUDManager:_add_name_label(data,...)
 	local id = self:orig_add_name_label(data,...)
 	local hud = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_FULLSCREEN_PD2)
