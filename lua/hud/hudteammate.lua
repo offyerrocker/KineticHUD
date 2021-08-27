@@ -125,7 +125,7 @@ Hooks:PostHook(HUDTeammate,"set_grenade_cooldown","khud_set_grenade_cooldown",fu
 				from = 1 - (duration_left / total_duration)
 			end
 			
-			KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
+			KineticHUD:AnimateGrenadeCooldown(from,to,duration_left,total_duration)
 		end
 	end
 end)

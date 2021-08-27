@@ -23,6 +23,7 @@ DEVELOPMENT:
 					- implement team mission equipments
 				TABSCREEN:
 					- kills with primary, secondary, throwable, melee, sentry
+					- accuracy
 					- jokers w/ killcounts- "guiding lines" to their onscreen positions
 					- Mutators
 					- Tracked Achievements
@@ -32,15 +33,10 @@ DEVELOPMENT:
 					- Add missing buffs, test all (compare with noblehud buff list)
 				CARTOGRAPHER:
 					- design + implement
-				WAYPOINTS:
-					- compass center option
-					
-					- design + implement (in compass panel)
 				DROP-IN/WAITING
 					- design + implement
 					- trade timer
 				TIMER:
-					- size/placement/align
 					- format (eg. MMHHSS)
 				HIT DIRECTION:
 					- design + implement
@@ -1885,6 +1881,8 @@ function KineticHUD:CreateCompassPanel()
 	local scale = layout_settings.compass_panel_scale
 	local hv = self.hud_values
 	
+	local halign = "center"
+	
 	local function get_cardinal(angle) 
 		local cardinal = {
 			[0] = "N",
@@ -1903,11 +1901,18 @@ function KineticHUD:CreateCompassPanel()
 		local x,y,w,h = text:text_rect()
 		text:set_x(_x - (w/2))
 	end
-	
 	local compass_x = layout_settings.compass_x
 	local compass_y = layout_settings.compass_y
 	local compass_w = layout_settings.compass_w * scale --should use hud w?
 	local compass_h = layout_settings.compass_h * scale
+	
+	if halign == "center" then 
+		compass_x = (selected_parent_panel:w() - compass_w) / 2
+	elseif halign == "right" then 
+		compass_x = (selected_parent_panel:w() - compass_w) - compass_x
+	elseif halign == "left" then
+		--nothing (default)
+	end
 	
 	local compass_panel = selected_parent_panel:panel({
 		name = "compass_panel",
@@ -1919,6 +1924,11 @@ function KineticHUD:CreateCompassPanel()
 	})
 	self._compass_panel = compass_panel
 	self.make_debug_rect(compass_panel,0.1,Color.green,false):set_layer(-3)
+	
+	local compass_waypoints = compass_panel:panel({
+		name = "compass_waypoints",
+		layer = 2
+	})
 	
 	--acts as a mask for the compass itself to stay contained within a small panel
 	--this part stays still, and its size can change by settings
@@ -1950,9 +1960,10 @@ function KineticHUD:CreateCompassPanel()
 		layer = 2,
 		font = self._fonts.alt_mono_shadow,
 		font_size = arrow_font_size,
-		x = compass_window:x() + (compass_window:w() / 2),
+--		x = compass_window:x() + (compass_window:w() / 2),
 		y = compass_window:y()
 	})
+	center_text(compass_indicator,compass_window:x() + (compass_window:w() / 2))
 	
 	--this panel contains anything on the part of the compass that slides left/right;
 	--this is the moving part
@@ -2394,7 +2405,7 @@ function KineticHUD:CreateStatsPanel()
 		name = "instant_cash_label",
 		text = instant_cash_label_string,
 		x = 0,
-		y = 60,
+		y = 80,
 		font = self._fonts.syke,
 		font_size = 32
 	})
@@ -2402,7 +2413,7 @@ function KineticHUD:CreateStatsPanel()
 		name = "instant_cash_value",
 		text = instant_cash_string,
 		x = 0,
-		y = 100,
+		y = 128,
 		font = self._fonts.syke,
 		font_size = 32
 	})
@@ -2493,7 +2504,7 @@ function KineticHUD:CreateInteractPanel()
 	
 	local interaction_panel = selected_parent_panel:panel({
 		name = "interaction_panel",
-		x = 500,
+		x = 400,
 		y = 450,
 		w = 600,
 		h = panel_h
@@ -2784,7 +2795,7 @@ function KineticHUD:HideInteractBar(complete)
 		self._interaction_panel:child("interaction_line"):set_h(0)
 		self._interaction_panel:child("interaction_line"):hide()
 		
-		self._interaction_panel:child("interaction_text"):set_text("")
+--		self._interaction_panel:child("interaction_text"):set_text("")
 		
 		self._interaction_panel:child("interaction_timer"):set_text("")
 		self._interaction_panel:child("interaction_timer"):hide()
@@ -3948,7 +3959,7 @@ function KineticHUD:SetPlayerGrenadesAmount(amount)
 	end
 end
 
-function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
+function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left,total_duration)
 	local player_equipment_panel = self._player_equipment_panel 
 	if alive(player_equipment_panel) then 
 		local throwable = player_equipment_panel:child("throwable")
@@ -3963,7 +3974,8 @@ function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
 				t = t + dt
 				
 				if alive(o) then 
-					local lerp = ((_duration - t) / _duration)
+					local lerp = (_duration - t) / total_duration
+					
 					local glow = (1 + math.cos(180 * t * glow_speed)) / 4
 					
 					o:set_gradient_points({
@@ -3992,7 +4004,7 @@ function KineticHUD:AnimateGrenadeCooldown(from,to,duration_left)
 		end
 		
 		charge_gradient_bg:stop()
-		charge_gradient_bg:animate(anim_func,from,to,duration_left)
+		charge_gradient_bg:animate(anim_func,from,to,duration_left + from)
 		
 	end
 end
@@ -4669,19 +4681,23 @@ function KineticHUD:UpdateHUD(t,dt)
 	
 end
 
-local mvector3_angle = mvector3.angle
+local mvector3_distance = mvector3.distance
+--local mvector3_angle = mvector3.angle
 --includes waypoints
 function KineticHUD:UpdateCompass(t,dt,player)
+	
+	local waypoints_enabled = true
+	
 	local camera = player:camera()
 	local compass_panel = self._compass_panel
 	if camera and alive(compass_panel) then
-		local offset = 90
 		local rot = camera:rotation()
+		local offset = 90
 		local yaw = (offset + rot:yaw()) % 360
+		
 		local angle = ((180 + yaw) % 360) - 180
 		
 		
---		Console:SetTrackerValue("trackera",string.format("yaw %i / angle %i",yaw,angle))
 		
 		local compass_window = compass_panel:child("compass_window")
 		local compass_slider_1 = compass_window:child("compass_slider_1")
@@ -4695,54 +4711,141 @@ function KineticHUD:UpdateCompass(t,dt,player)
 			compass_slider_2:set_x(x)
 			compass_slider_1:set_right(compass_slider_2:left())
 		end
---		Console:SetTrackerValue("trackerb",string.format("x %i / w %i",x,compass_window:w()))
-		
-		--[[
-		local function get_center_x_from_angle(angle)
-			local p = (yaw % 360) - 180
-			return p/180
-		end
-		
-		local cam_pos = camera:position()
-		
-		local ws = self._workspaces[6]
---		local flatscreen = self._world_panels[6]
 		
 		
---		local screen_w = flatscreen:w()
-		local compass_window = compass:child("compass_window")
-		local compass_slider = compass_window:child("compass_slider")
-		
-		local p = get_center_x_from_angle(yaw)
-		
-		local cc = compass_window:w() / 2
-		local cx = cc + (cc * p)
-		
-		compass_slider:set_x(cx)
---		Console:SetTrackerValue("trackera",string.format("%i/%i",compass_slider:x(),compass_window:w()))
-		--]]
-		--[[
-		for i,tick_data in pairs(compass_targets) do
-			if alive(tick_data.unit) and alive(tick_data.panel) then
-				local oobb = unit:oobb()
-				local unit_pos = tick_data.unit:position()
-				if tick_data.no_center then
-					unit_pos = oobb and oobb:center() or unit_pos
+		if waypoints_enabled then 
+			local player_pos = player:movement():m_pos()
+			local waypoint_panel_w = 100
+			local waypoint_panel_h = 100
+			local waypoint_font_size = 32
+			local waypoint_font = self._fonts.syke
+			local waypoint_icon_size = 32
+			local waypoint_alpha = 0.75
+			local waypoint_shrink_distance = 1000
+			local min_waypoint_size = 0.5
+			local compass_waypoints = compass_panel:child("compass_waypoints")
+			
+			
+			for id,data in pairs(managers.hud._hud.waypoints) do 
+				local waypoint_panel = compass_waypoints:child(tostring(id))
+				if alive(waypoint_panel) then
+					local data_pos = data.position or data.unit:position()
+					local pos = Vector3(data_pos.x,data_pos.y,player_pos.z)
+	--				local _yaw = mvector3_angle(pos,player_pos)
+					local angle_from = KineticHUD.angle_from(pos,player_pos)
+					local _yaw = 2 * (offset + yaw - angle_from) % 720
+	--				local _yaw = 2 * (offset + yaw -  mvector3_angle(pos,player_pos)) % 360
+					
+					local size_scale = 1
+					local distance = mvector3_distance(data_pos,player_pos)
+					if distance > waypoint_shrink_distance then 
+						size_scale = min_waypoint_size + (waypoint_shrink_distance / (distance + waypoint_shrink_distance))
+					end
+					waypoint_panel:child("bitmap"):set_size(waypoint_icon_size * size_scale,waypoint_icon_size * size_scale)
+					
+					if data.timer then 
+						waypoint_panel:child("text"):set_text(string.format("%i",data.timer))
+					end
+					
+					local _x = compass_window:w() * (_yaw / 360)
+					waypoint_panel:set_x(_x - (waypoint_panel:w() / 2))
+
 				end
-				--local target_x,target_y = unpack(ws:world_to_screen(camera,j.unit) or {})
-				local unitpos_leveled = Vector3(unit_pos:x(),unit_pos:y(),cam_pos:z())
-				local angle_to_target = mvector3_angle(cam_pos,unitpos_leveled)
-				local centerx = get_center_x_from_angle(angle_to_target)
-				tick_data.panel:set_center(centerx,0)
-				
-				
-				
-			else
-				compass_targets[i] = nil
 			end
+			
 		end
+	end
+end
+
+function KineticHUD:AddCompassWaypoint(id,data)
+	local _id = tostring(id)
+	local compass_panel = self._compass_panel
+	if alive(compass_panel) then 
+		local waypoint_panel_w = 100
+		local waypoint_panel_h = 32
+		local waypoint_font_size = 24
+		local waypoint_font_color = data.color or self.color_data.orange
+		local waypoint_font_blend_mode = data.blend_mode
+		local waypoint_font = self._fonts.alt_mono_shadow--"fonts/font_medium_shadow_mf"
+		local waypoint_icon_size = 32
+		local waypoint_alpha = data.alpha or 0.75
+		local compass_waypoints = compass_panel:child("compass_waypoints")
+		local waypoint_panel = compass_waypoints:child(_id)
+		if alive(waypoint_panel) then 
+			
+		else
+			waypoint_panel = compass_waypoints:panel({
+				name = _id,
+				w = waypoint_panel_w,
+				h = waypoint_panel_h
+			})
+			local texture,texture_rect = tweak_data.hud_icons:get_icon_data(data.icon,{
+				0,0,32,32
+			})
+			
+			local bitmap = waypoint_panel:bitmap({
+				name = "bitmap",
+				texture = texture,
+				texture_rect = texture_rect,
+				w = waypoint_icon_size,
+				h = waypoint_icon_size,
+				color = self.color_data.white,
+				layer = 2
+			})
+			bitmap:set_x((waypoint_panel:w() - waypoint_icon_size)/2)
+			local text = waypoint_panel:text({
+				name = "text",
+				text = "",
+				font = waypoint_font,
+				font_size = waypoint_font_size,
+				color = waypoint_font_color,
+				blend_mode = waypoint_font_blend_mode,
+				align = "center",
+				vertical = "center",
+				layer = 3
+			})
+		end
+	end
+end
+
+function KineticHUD:RemoveCompassWaypoint(id,data)
+	local compass_panel = self._compass_panel
+	if alive(compass_panel) then 
+		local compass_waypoints = compass_panel:child("compass_waypoints")
+		local waypoint = compass_waypoints:child(tostring(id))
+		if alive(waypoint) then 
+			compass_waypoints:remove(waypoint)
+		end
+	end
+end
+
+function KineticHUD:ChangeCompassWaypointAlpha(id,alpha)
+	local compass_panel = self._compass_panel
+	if alive(compass_panel) then 
+		local compass_waypoints = compass_panel:child("compass_waypoints")
+		local waypoint = compass_waypoints:child(tostring(id))
+		if alive(waypoint) then 
+			waypoint:child("bitmap"):set_alpha(alpha)
+		end
+	end
+end
+
+function KineticHUD:ChangeCompassWaypointTexture(id,icon)
+	local compass_panel = self._compass_panel
+	if alive(compass_panel) then 
+		local compass_waypoints = compass_panel:child("compass_waypoints")
+		local waypoint = compass_waypoints:child(tostring(id))
+		local texture, texture_rect = tweak_data.hud_icons:get_icon_data(icon, {
+			0,
+			0,
+			32,
+			32
+		})
 		
-		--]]
+		if alive(waypoint) then 
+			waypoint:child("bitmap"):set_image(texture,unpack(texture_rect or {}))
+--			icon:set_size(texture_rect[3],texture_rect[4])
+		end
 	end
 end
 

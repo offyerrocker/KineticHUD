@@ -1674,6 +1674,47 @@ function KineticHUD.format_seconds(raw)
 	return string.format("%i:%02d",math.floor(raw / 60),math.floor(raw % 60))
 end
 
+function KineticHUD._angle_from(x1,y1,x2,y2)
+	local angle = 0
+	local dx = x2 - x1
+	local dy = y2 - y1
+	if dx ~= 0 then 
+		angle = math.atan(dy / dx) % 180
+		if dy == 0 then 
+			if dx > 0 then 
+				angle = 180 --right
+			else
+				angle = 0 --left 
+			end
+		elseif dy > 0 then 
+			angle = angle - 180
+		end
+	else
+		if dy > 0 then
+			angle = 270 --up
+		else
+			angle = 90 --down
+		end
+	end
+	
+	return angle
+end
+function KineticHUD.angle_from(a,b,c,d) -- converts to angle with ranges (-180 , 180); for result range 0-360, do +180 to result
+--mvector3.angle() is a big fat meanie zucchini;
+	a = a or "nil"
+	b = b or "nil"
+	c = c or "nil"
+	d = d or "nil"
+	local vectype = type(Vector3())
+	if (type(a) == vectype) and (type(b) == vectype) then  --vector pos diff
+		return KineticHUD._angle_from(a.x,a.y,b.x,b.y)
+	elseif (type(a) == "number") and (type(b) == "number") and (type(c) == "number") and (type(d) == "number") then --manual x/y pos diff
+		return KineticHUD._angle_from(a,b,c,d)
+	else
+		KineticHUD:c_log("ERROR: angle_from(" .. table.concat({a,b,c,d},",") .. ") failed - bad/mismatched arg types")
+		return
+	end
+end
 
 --i had to write this because get_specialization_icon_data() always picks the top tier. booooo
 function KineticHUD.get_specialization_icon_data_by_tier(spec,tier,no_fallback)
