@@ -2495,6 +2495,12 @@ function KineticHUD:CreateInteractPanel()
 		return
 	end
 	
+	local align_circle_to_target = true
+	local circle_rotation = nil
+	if align_circle_to_target then 
+		circle_rotation = 0.01
+	end
+	
 	local show_timer = true
 	local text_font_size = 32
 	local timer_font_size = 24
@@ -2541,6 +2547,7 @@ function KineticHUD:CreateInteractPanel()
 		w = circle_size,
 		h = circle_size,
 		y = (interaction_panel:h() - circle_size) / 2,
+		rotation = circle_rotation,
 		render_template = "VertexColorTexturedRadial",
 		visible = false
 	})
@@ -2634,6 +2641,7 @@ end
 function KineticHUD:SetInteractProgress(current,total)
 	local timer_enabled = true
 	local show_total_time = true
+	local align_circle_to_target = true
 	if alive(self._interaction_panel) then 
 		local interaction_timer = self._interaction_panel:child("interaction_timer")
 		local interaction_line = self._interaction_panel:child("interaction_line")
@@ -2721,8 +2729,16 @@ function KineticHUD:SetInteractProgress(current,total)
 			local ws = self._workspaces[6]
 			local topos = ws:world_to_screen(managers.viewport:get_current_camera(),pos)
 			
+			local guiding_line_target
+			if align_circle_to_target then 
+				guiding_line_target = interaction_sep
+			else
+				guiding_line_target = interaction_circle
+			end
+			
 			local to_x,to_y = topos.x,topos.y
-			local from_x,from_y = interaction_circle:world_center()
+			local from_x,from_y = guiding_line_target:world_center()
+			
 			
 			local d_x = to_x - from_x
 			local d_y = to_y - from_y
@@ -2735,7 +2751,7 @@ function KineticHUD:SetInteractProgress(current,total)
 			
 			interaction_line:set_rotation(angle)
 			
-			local ix,iy = interaction_circle:center()
+			local ix,iy = guiding_line_target:center()
 			ix = ix + (d_x/2)
 			iy = iy + (d_y/2) - (hyp / 2)
 			
@@ -2744,6 +2760,9 @@ function KineticHUD:SetInteractProgress(current,total)
 			
 			interaction_target_dot:set_rotation(angle)
 			interaction_target_dot:set_world_center(to_x,to_y)
+			if align_circle_to_target then 
+				interaction_circle:set_world_center(to_x,to_y)
+			end
 			interaction_target_dot:show()
 		else
 			interaction_line:hide()
