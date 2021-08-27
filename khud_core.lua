@@ -44,11 +44,9 @@ KineticHUD.color_data = {
 
 KineticHUD._fonts = {
 	tommy_bold = "fonts/made_tommy_xb", --custom; 48
-	syke = "fonts/syke_64", --custom; 24(?)
---	syke = "fonts/syke", --custom; 24(?)
-	alt_mono = "fonts/alt_mono", --custom; 24(?)
---	syke = "fonts/alt_mono", --custom; 24(?)
-	alt_mono_shadow = "fonts/alt_mono_shadow", --custom; 24(?)
+	syke = "fonts/syke_64", --custom; 64
+	alt_mono = "fonts/alt_mono", --custom- do not use below size 16
+	alt_mono_shadow = "fonts/alt_mono_shadow", --custom- do not use below size 16
 	digital = "fonts/font_digital", --vanilla
 	large = "fonts/font_large_mf", --vanilla
 }

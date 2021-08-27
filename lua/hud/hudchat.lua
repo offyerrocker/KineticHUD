@@ -15,12 +15,21 @@ function HUDChat:init(ws, hud, ...)
 end
 
 
-
+local mwup = Idstring("mouse wheel up")
+local mwdown = Idstring("mouse wheel down")
 function HUDChat:clbk_khud_mouse_pressed(o,button,x,y)
-	if button == Idstring("mouse wheel up") then 
-		self._panel:child("output_panel"):move(0,-HUDChat.line_height)
-	elseif button == Idstring("mouse wheel down") then
-		self._panel:child("output_panel"):move(0,HUDChat.line_height)
+	local dy
+	if button == mwup then 
+		dy = -HUDChat.line_height
+	elseif button == mwdown then
+		dy = HUDChat.line_height
+	end
+	if dy then 
+		for _,child in pairs(self._panel:child("output_panel"):children()) do 
+			if child:name() ~= "output_bg" then
+				child:move(0,dy)
+			end
+		end
 	end
 end
 
