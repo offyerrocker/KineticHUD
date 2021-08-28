@@ -1,0 +1,26 @@
+{
+	"compass_offset" : 0,
+	"version" : 2,
+	"id" : "haunted",
+	"nav_segments" : {
+		"1" : "khud_cartographer_location_haunted_kitchen",
+		"12" : "khud_cartographer_location_generic_out_of_bounds",
+		"13" : "khud_cartographer_location_haunted_laundromat",
+		"14" : "khud_cartographer_location_haunted_laundromat_exit",
+		"15" : "khud_cartographer_location_haunted_safehouse_main",
+		"16" : "khud_cartographer_location_haunted_garage_outside",
+		"17" : "khud_cartographer_location_generic_out_of_bounds",
+		"42" : "khud_cartographer_location_haunted_basement_entrance",
+		"43" : "khud_cartographer_location_haunted_basement_main",
+		"44" : "khud_cartographer_location_haunted_basement_west",
+		"45" : "khud_cartographer_location_haunted_doors_room",
+		"46" : "khud_cartographer_location_haunted_basement_east",
+		"47" : "khud_cartographer_location_haunted_mask_workshop",
+		"48" : "khud_cartographer_location_haunted_shooting_range",
+		"49" : "khud_cartographer_location_haunted_lockpicking_practice",
+		"50" : "khud_cartographer_location_haunted_garage_inside",
+		"51" : "khud_cartographer_location_haunted_storage_room_1",
+		"52" : "khud_cartographer_location_haunted_storage_room_2",
+		"53" : "khud_cartographer_location_haunted_vault"
+	}
+}

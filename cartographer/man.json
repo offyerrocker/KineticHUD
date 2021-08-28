@@ -1,6 +1,7 @@
 {
 	"compass_offset" : 0,
 	"version" : 2,
+	"id" : "flat",
 	"nav_segments" : {
 		"0" : "khud_cartographer_location_generic_out_of_bounds",
 		"1" : "khud_cartographer_location_generic_out_of_bounds",

@@ -1,7 +1,7 @@
 {
 	"compass_offset" : 0,
 	"version" : 2,
-	"stage_id" : "flat",
+	"id" : "heist_flat",
 	"nav_segments" : {
 		"15" : "khud_cartographer_location_generic_out_of_bounds",
 		"23" : "khud_cartographer_location_generic_out_of_bounds",

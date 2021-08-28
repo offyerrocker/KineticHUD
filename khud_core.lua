@@ -2,8 +2,8 @@
 
 KineticHUD = KineticHUD or {}
 KineticHUD._mod_path = KineticHUD:GetPath()
-KineticHUD._settings_save_path = SavePath .. "KineticHUD_2_settings.txt"
-KineticHUD._layout_save_path = SavePath .. "KineticHUD_2_layout.txt"
+KineticHUD._settings_save_path = SavePath .. "KineticHUD_2_settings.json"
+KineticHUD._layout_save_path = SavePath .. "KineticHUD_2_layout.json"
 KineticHUD._menu_path = KineticHUD._mod_path .. "menu/"
 KineticHUD._cartographer_path = KineticHUD._mod_path .. "cartographer/"
 KineticHUD._updater_id_check_player = "khud_update_check_player"
@@ -880,7 +880,7 @@ KineticHUD._cache = {
 KineticHUD._teammate_panels = {}
 
 KineticHUD.cartographer_level_data_template = {
-	"{\n\t\"compass_offset\" : 0,\n\t\"version\" : 2,\n\t\"stage_id\" : \"PLACEHOLDER_LEVEL_ID\",\n\t\"nav_segments\" : {\n",
+	"{\n\t\"compass_offset\" : 0,\n\t\"version\" : 2,\n\t\"id\" : \"PLACEHOLDER_LEVEL_ID\",\n\t\"nav_segments\" : {\n",
 	"\t\t\"PLACEHOLDER_ID\" : \"PLACEHOLDER_LOCATION\"",
 	"\t}\n}"
 }
@@ -907,9 +907,10 @@ function KineticHUD:GenerateCartographerData(level_id,segments)
 					local s2
 					if data.location_id == "location_unknown" then
 						s2 = string.gsub(self.cartographer_level_data_template[2],"PLACEHOLDER_ID",tostring(v))
+						s2 = string.gsub(s2,"PLACEHOLDER_LOCATION","khud_cartographer_location_" .. level_id .. "_" .. tostring(v))
 					elseif rewrite_location_names then 
 						s2 = string.gsub(self.cartographer_level_data_template[2],"PLACEHOLDER_ID",tostring(v))
-						s2 = string.gsub(s2,"PLACEHOLDER_LOCATION","PLACEHOLDER_LOCATION",data.location_id)
+						s2 = string.gsub(s2,"PLACEHOLDER_LOCATION",tostring(data.location_id))
 					end
 					if s2 then 
 						indices[k] = s2
@@ -2117,18 +2118,20 @@ end
 
 --io
 
-function KineticHUD:LoadCartographerData(level_id)
-	local path = self._cartographer_path .. tostring(level_id) .. ".json"
+function KineticHUD:LoadCartographerData(id)
+	local path = self._cartographer_path .. tostring(id) .. ".json"
 	if SystemFS:exists( Application:nice_path( path, true )) then 
 		local file = io.open(path, "r")
 		if file then
-			self:c_log("Loading cartographer data for level " .. tostring(level_id))
+			self:c_log("Loading cartographer data for: " .. tostring(id))
 			self._cache.cartographer_data = json.decode(file:read("*all"))
 			file:close()
 			file = nil
+		else
+			self:c_log("No file for path " .. path)
 		end
 	else
-		self:c_log("No cartographer data found for level " .. tostring(level_id))
+		self:c_log("No cartographer data found for: " .. tostring(id))
 	end
 end
 

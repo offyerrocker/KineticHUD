@@ -14,7 +14,6 @@ DEVELOPMENT:
 
 			HUD:
 				PLAYER:
-					- Health Lost chunking animation
 					- Stamina indicator
 					* ExPres
 					* Maniac
@@ -33,8 +32,6 @@ DEVELOPMENT:
 					- misc polish
 				BUFFS:
 					- Add missing buffs, test all (compare with noblehud buff list)
-				CARTOGRAPHER:
-					- design + implement
 				DROP-IN/WAITING
 					- design + implement
 					- trade timer
@@ -117,8 +114,11 @@ DEVELOPMENT:
 
 =========== LOW PRIORITY/POST-RELEASE: ===========
 			Player underbarrel weapon
+			Player Health Lost chunking animation
 			Teammate Revives/BPM in tabscreen
 			
+			Cartographer:
+				- do compass offsets
 			Heist Name popup on heist start
 				- Top right?
 				- location popup at mission start? eg. WASHINGTON DC a la Destiny 2
@@ -207,17 +207,25 @@ DEVELOPMENT:
 CARTOGRAPHER CHECKLIST
 	DONE:
 		Undercover
+		First World Bank
 		Panic Room
+		
+		Jewelry Store
+		Shadow Raid
+		Election Day (1,2,3)
+		Framing Frame (1,2,3)
+		Safe House Nightmare
+		
 	NOT DONE:
 		Aftershock
 		Alaskan Deal
 		Art Gallery (check variants)
 		Bank Heist (check variants)
 		Beneath the Mountain
-		Big Oil (2)
+		Big Oil (1,2)
 		Birth of Sky
 		Boiling Point
-		Border Crossing (2)
+		Border Crossing (1.5)
 		Border Crystals
 		Breakfast in Tijuana (1?)
 		Breakin' Feds
@@ -230,27 +238,23 @@ CARTOGRAPHER CHECKLIST
 		Cursed Kill Room
 		Diamond Heist
 		Diamond Store
-		Election Day (3)
 		Escape (Cafe)
 		Escape (Garage)
 		Escape (Overpass)
 		Escape (Park)
 		Escape (Street)
-		Firestarter (3)
-		First World Bank
+		Firestarter (1,2) (check day3 variant)
 		Four Stores
-		Framing Frame (3)
 		GO Bank
-		Goat Simulator (2)
+		Goat Simulator (1,2)
 		Golden Grin Casino
 		Green Bridge
 		Heat Street
 		Hell's Island
 		Henry's Rock
-		Hotline Miami (2)
-		Hoxton Breakout (2)
+		Hotline Miami (1,2)
+		Hoxton Breakout (1,2)
 		Hoxton Revenge
-		Jewelry Store
 		Lab Rats
 		Mallcrasher
 		Meltdown
@@ -258,9 +262,8 @@ CARTOGRAPHER CHECKLIST
 		Nightclub
 		No Mercy
 		Prison Nightmare
-		Rats (3)
-		Reservoir Dogs Heist (2)
-		Safe House Nightmare
+		Rats (1,2,3)
+		Reservoir Dogs Heist (1,2)
 		Safe House
 		Safe House Raid
 		San Martín Bank
@@ -272,7 +275,7 @@ CARTOGRAPHER CHECKLIST
 		Stealing Xmas
 		The Alesso Heist
 		The Big Bank
-		The Biker Heist (2)
+		The Biker Heist (1,2)
 		The Bomb: Dockyard
 		The Bomb: Forest
 		The Diamond
@@ -286,7 +289,7 @@ CARTOGRAPHER CHECKLIST
 			Am I missing a transport heist?
 		Transport: Train
 		Ukrainian Job
-		Watchdogs (2)
+		Watchdogs (1,2)
 		White Xmas
 		
 	+SKIRMISH VARIANTS
@@ -601,25 +604,23 @@ function KineticHUD:Setup()
 	
 	if managers.job then 
 		local stage_data = managers.job:current_stage_data()
-		local stage_id = stage_data and stage_data.level_id --moon
+		local id = stage_data and stage_data.level_id --eg moon
 	--[[
-		local job_data = managers.job:current_job_data()
-		local job_id = job_data.name_id --heist_moon
 		
 		
 		local stage_data = managers.job:current_stage_data()
-		local stage_id = stage_data.id --moon
+		local stage_id = stage_data.id --eg moon
 		
 		
 		local level_data = managers.job:current_level_data()
-		local level_id = level_data.name_id --heist_moon_hl
+		local level_id = level_data.name_id --eg heist_moon_hl
 		
 --		local s = managers.localization:text(tweak_data.levels[mission.level.level_id].name_id)
 --		local s = managers.localization:to_upper_text(level_data.name_id)
 
 		--]]
-		if stage_id then 
-			self:LoadCartographerData(stage_id)
+		if id then 
+			self:LoadCartographerData(id)
 		end
 	end
 	
@@ -2111,6 +2112,17 @@ function KineticHUD:CreateCompassPanel()
 	local compass_waypoints = compass_panel:panel({
 		name = "compass_waypoints",
 		layer = 2
+	})
+	
+	
+	local location_text = compass_panel:text({
+		name = "location_text",
+		text = "",
+		color = self.color_data.white,
+		font_size = 32,
+		font = self._fonts.syke,
+		align = "center",
+		vertical = "top"
 	})
 	
 	--acts as a mask for the compass itself to stay contained within a small panel
@@ -5071,12 +5083,14 @@ function KineticHUD:UpdateCartographer(t,dt,player)
 			if nav_segment then 
 				local nav_metadata = managers.navigation:get_nav_seg_metadata(nav_segment)
 				local location_id = nav_metadata.location_id 
-				if location_id and location_id ~= "location_unknown" and allow_nav_location_names then 
-					KineticHUD:SetPlayerLocationText(HUDManager.PLAYER_PANEL,managers.localization:text(location_id))
+				if location_id and (location_id ~= "location_unknown") and allow_nav_location_names then 
+					KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
+--					Console:SetTrackerValue("trackerd",tostring(location_id) .. " " .. tostring(nav_segment))
 				else
 					location_id = cartographer_navs[tostring(nav_segment)] 
+--					Console:SetTrackerValue("trackerc",tostring(location_id) .. " " .. tostring(nav_segment))
 					if location_id then 
-						KineticHUD:SetPlayerLocationText(HUDManager.PLAYER_PANEL,managers.localization:text(location_id))
+						KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
 					end
 				end
 			end
@@ -5085,7 +5099,13 @@ function KineticHUD:UpdateCartographer(t,dt,player)
 end
 
 function KineticHUD:SetPlayerLocationText(location_id)
---	Console:SetTrackerValue("trackere",string.format(tostring(location_id) .. "%0.1f",Application:time()))
+	if alive(self._compass_panel) then 
+		local location_text = self._compass_panel:child("location_text")
+		if alive(location_text) then 
+			location_text:set_text(location_id)
+		end
+	end
+--	Console:SetTrackerValue("trackere",tostring(location_id) .. " " .. string.format("%0.1f",Application:time()))
 end
 
 function KineticHUD:SetTeammateLocationText(i,location_id)

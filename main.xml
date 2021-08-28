@@ -25,7 +25,7 @@
 		<texture path="textures/ui/ekg_atlas"/>
 
 	</AddFiles>
-	<Localization directory="localization" default="english.txt">
-		<loc file="english.txt" language="english" />
+	<Localization directory="localization" default="english.json">
+		<loc file="english.json" language="english" />
 	</Localization>
 </mod>

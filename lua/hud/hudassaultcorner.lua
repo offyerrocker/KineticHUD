@@ -77,7 +77,7 @@ end
 
 HUDAssaultCorner.orig_show_casing = HUDAssaultCorner.show_casing
 function HUDAssaultCorner:show_casing(mode)
-	KineticHUD:c_log("show casing " .. tostring(mode))
+--	KineticHUD:c_log("show casing " .. tostring(mode))
 --	KineticHUD:SetAssaultMode(true,mode or "stealth")
 end
 
