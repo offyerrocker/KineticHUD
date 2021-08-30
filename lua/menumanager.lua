@@ -17,6 +17,9 @@ DEVELOPMENT:
 					- Stamina indicator
 					* ExPres
 					* Maniac
+					* activate_ability_radial
+					* set_ability_radial
+
 					- Revives bg?
 				TEAMMATE:
 					- numerical health/armor?
@@ -41,13 +44,6 @@ DEVELOPMENT:
 					- design + implement
 					
 			BUGS:
-				crash from teammate interaction
-					05:16:33 AM FATAL ERROR:  (C:\projects\payday2-superblt\src\InitiateState.cpp:248) [string "lib/managers/hudmanager.lua"]:1798: attempt to index field '_interact_circle' (a nil value)
-				stack traceback:
-						[string "lib/managers/hudmanager.lua"]:1798: in function 'pd_start_progress'
-						[string "lib/units/beings/player/playerdamage.lua"]:1866: in function 'pause_downed_timer'
-						[string "lib/network/handlers/unitnetworkhandler.lua"]:1343: in function <[string "lib/network/handlers/unitnetworkhandler.lua"]:1335>
-		
 				resize mission equipments after menu settings change (AnimateLayoutPlayerMissionEquipment(true))
 				fire burn deaths count as 2 kills on killcounter
 				non-focused weapon icon is not properly resized on setting the icon image
@@ -209,17 +205,23 @@ CARTOGRAPHER CHECKLIST
 		Undercover
 		First World Bank
 		Panic Room
+		Diamond Heist
+		Counterfeit
+		No Mercy
 		
 		Jewelry Store
 		Shadow Raid
 		Election Day (1,2,3)
 		Framing Frame (1,2,3)
+		Art Gallery
 		Safe House Nightmare
 		
 	NOT DONE:
+		Green Bridge
+		Heat Street
+		
 		Aftershock
 		Alaskan Deal
-		Art Gallery (check variants)
 		Bank Heist (check variants)
 		Beneath the Mountain
 		Big Oil (1,2)
@@ -234,9 +236,7 @@ CARTOGRAPHER CHECKLIST
 		Buluc's Mansion
 		Car Shop
 		Cook Off (check variants)
-		Counterfeit
 		Cursed Kill Room
-		Diamond Heist
 		Diamond Store
 		Escape (Cafe)
 		Escape (Garage)
@@ -248,8 +248,6 @@ CARTOGRAPHER CHECKLIST
 		GO Bank
 		Goat Simulator (1,2)
 		Golden Grin Casino
-		Green Bridge
-		Heat Street
 		Hell's Island
 		Henry's Rock
 		Hotline Miami (1,2)
@@ -260,7 +258,6 @@ CARTOGRAPHER CHECKLIST
 		Meltdown
 		Murky Station
 		Nightclub
-		No Mercy
 		Prison Nightmare
 		Rats (1,2,3)
 		Reservoir Dogs Heist (1,2)
@@ -942,7 +939,9 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 	
 	local armor_fill_color = Color(layout_settings.player_vitals_armor_fill_color)
 	local health_fill_color = Color(layout_settings.player_vitals_health_fill_color)
-	
+	local health_stoic_fill_color = self.color_data.red
+	local armor_stoic_fill_color = self.color_data.red
+	local health_stored_fill_color = self.color_data.blue
 	local label_font_size = hv.PLAYER_VITALS_LABEL_FONT_SIZE * scale
 	local counter_large_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_LARGE * scale
 	local counter_medium_font_size = hv.PLAYER_VITALS_COUNTER_FONT_SIZE_MEDIUM * scale
@@ -1083,7 +1082,6 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		font_size = counter_medium_font_size
 	})
 
-	
 	local armor_outline = armor_panel:bitmap({
 		name = "armor_outline",
 		texture = "textures/ui/armor_bar_outline",
@@ -1093,6 +1091,17 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		y = PLAYER_VITALS_BAR_OUTLINE_Y + (PLAYER_ARMOR_PANEL_H - PLAYER_VITALS_BAR_OUTLINE_H),
 		visible = true,
 		layer = 5
+	})
+	local armor_stoic_fill = armor_panel:bitmap({
+		name = "armor_stoic_fill",
+		texture = "textures/ui/armor_bar_fill",
+		w = PLAYER_VITALS_BAR_FILL_W,
+		h = PLAYER_VITALS_BAR_FILL_H,
+		x = PLAYER_VITALS_BAR_FILL_X,
+		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_ARMOR_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
+		color = armor_stoic_fill_color,
+		visible = false,
+		layer = 6
 	})
 	local armor_fill = armor_panel:bitmap({
 		name = "armor_fill",
@@ -1104,7 +1113,7 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		color = armor_fill_color,
 		layer = 4
 	})
-
+	
 	local health_outline = health_panel:bitmap({
 		name = "health_outline",
 		texture = "textures/ui/health_bar_outline",
@@ -1113,6 +1122,18 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		x = -PLAYER_VITALS_BAR_OUTLINE_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_OUTLINE_W),
 		y = PLAYER_VITALS_BAR_OUTLINE_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_OUTLINE_H),
 		visible = true,
+		layer = 5
+	})
+	
+	local health_stored_fill = health_panel:bitmap({
+		name = "health_stored_fill",
+		texture = "textures/ui/health_bar_outline",
+		w = PLAYER_VITALS_BAR_OUTLINE_W,
+		h = PLAYER_VITALS_BAR_OUTLINE_H,
+		x = -PLAYER_VITALS_BAR_OUTLINE_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_OUTLINE_W),
+		y = PLAYER_VITALS_BAR_OUTLINE_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_OUTLINE_H),
+		color = health_stored_fill_color,
+		visible = false,
 		layer = 5
 	})
 	
@@ -1125,6 +1146,17 @@ function KineticHUD:CreatePlayerVitalsPanel(skip_layout)
 		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
 		color = health_fill_color,
 		layer = 4
+	})
+	local health_stoic_fill = health_panel:bitmap({
+		name = "health_stoic_fill",
+		texture = "textures/ui/health_bar_fill",
+		w = PLAYER_VITALS_BAR_FILL_W,
+		h = PLAYER_VITALS_BAR_FILL_H,
+		x = -PLAYER_VITALS_BAR_FILL_X + (PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W),
+		y = PLAYER_VITALS_BAR_FILL_Y + (PLAYER_HEALTH_PANEL_H - PLAYER_VITALS_BAR_FILL_H),
+		color = health_stoic_fill_color,
+		visible = false,
+		layer = 6
 	})
 	
 	local revives_text = vitals_panel:text({
@@ -3125,21 +3157,55 @@ function KineticHUD:LayoutPlayerVitals(params)
 		if layout_health then 
 			local health_panel = vitals_panel:child("health_panel")
 			local health_fill = health_panel:child("health_fill")
+			local health_stored_fill = health_panel:child("health_stored_fill")
+			local health_stoic_fill = health_panel:child("health_stored_fill")
+			
 			
 			local health_ratio = params.health_ratio
-			
-			if health_ratio then 
-				local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_xsmall * scale)
-				local DEPLETE_LEFT_TO_RIGHT = true
-				health_fill:set_color(health_fill_color)
-				if DEPLETE_LEFT_TO_RIGHT then 
+			local stored_health_ratio = params.stored_health_ratio
+			local delayed_damage_ratio = params.delayed_damage_ratio
+		
+			local outline_offset = PLAYER_HEALTH_PANEL_W - PLAYER_VITALS_BAR_FILL_W - (margin_xsmall * scale)
+			local DEPLETE_LEFT_TO_RIGHT = true
+			health_fill:set_color(health_fill_color)
+			if DEPLETE_LEFT_TO_RIGHT then
+				--normal
+				if health_ratio then
 					health_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
 					health_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * health_ratio)
 					health_fill:set_x(PLAYER_VITALS_BAR_FILL_W + outline_offset)
-				else
+				end
+				if stored_health_ratio then
+					--expres
+					health_stored_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * stored_health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_stored_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * stored_health_ratio)
+					health_stored_fill:set_x(PLAYER_VITALS_BAR_FILL_W + outline_offset)
+				end
+				if delayed_damage_ratio then
+					--stoic
+					health_stoic_fill:set_texture_rect(PLAYER_HEALTH_FILL_TEXTURE_W,0,-PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_stoic_fill:set_w(-PLAYER_VITALS_BAR_FILL_W * delayed_damage_ratio)
+					health_stoic_fill:set_x(PLAYER_VITALS_BAR_FILL_W + outline_offset)
+				end
+			else
+				if health_ratio then
+					--normal
 					health_fill:set_texture_rect(0,0,PLAYER_HEALTH_FILL_TEXTURE_W * health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
 					health_fill:set_w(PLAYER_VITALS_BAR_FILL_W * health_ratio * scale)
 					health_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
+					
+				end
+				if stored_health_ratio then
+					--expres
+					health_stored_fill:set_texture_rect(0,0,PLAYER_HEALTH_FILL_TEXTURE_W * stored_health_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_stored_fill:set_w(PLAYER_VITALS_BAR_FILL_W * stored_health_ratio * scale)
+					health_stored_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
+					end
+				if delayed_damage_ratio then					
+					--stoic
+					health_stoic_fill:set_texture_rect(0,0,PLAYER_HEALTH_FILL_TEXTURE_W * delayed_damage_ratio,PLAYER_HEALTH_FILL_TEXTURE_H)
+					health_stoic_fill:set_w(PLAYER_VITALS_BAR_FILL_W * delayed_damage_ratio * scale)
+					health_stoic_fill:set_x(-PLAYER_VITALS_BAR_FILL_X + outline_offset)
 				end
 			end
 		end
@@ -4250,6 +4316,32 @@ function KineticHUD:SetPlayerArmor(current,total)
 	end
 end
 
+function KineticHUD:SetPlayerDelayedDamage(data)
+	--not yet implemented
+	if alive(self._player_vitals_panel) then 
+		local armor_panel = self._player_vitals_panel:child("armor_panel")
+		local health_panel = self._player_vitals_panel:child("health_panel")
+		
+	end
+end
+
+function KineticHUD:SetPlayerMaxStoredHealth(max_stored_health)
+	self._cache.player_health.max_stored_health = max_stored_health
+end
+
+function KineticHUD:SetPlayerStoredHealth(stored_health_ratio)
+	if alive(self._player_vitals_panel) then 
+		local health_panel = self._player_vitals_panel:child("health_panel")
+		self:LayoutPlayerVitals({layout_health = true,stored_health_ratio = stored_health_ratio})
+	end
+end
+
+function KineticHUD:SetPlayerDamageAbsorption(absorb_amount)
+	if alive(self._player_vitals_panel) then 
+		local health_panel = self._player_vitals_panel:child("health_panel")
+	end
+end
+
 Hooks:Add("dcs_standalone_on_revives_changed","khud_downcounterstandalone_onreviveschanged",function(peer_id,revives,prev_revives)
 	if peer_id == LuaNetworking:LocalPeerID() then 
 		KineticHUD:SetPlayerRevives(revives)
@@ -4462,6 +4554,34 @@ function KineticHUD:SetTeammateHealth(i,current,total)
 		local vitals_panel = teammate:child("vitals_panel")
 		vitals_panel:child("health_text"):set_text(string.format("%i",current))
 		vitals_panel:show()
+	end
+end
+
+function KineticHUD:SetTeammateDelayedDamage(i,ratio)
+	--not used
+end
+
+function KineticHUD:SetTeammateDamageAbsorption(i,absorb_amount)
+	do return end
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local vitals_panel = teammate:child("vitals_panel")
+	end
+end
+
+function KineticHUD:SetTeammateStoredHealth(i,data)
+	do return end
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local vitals_panel = teammate:child("vitals_panel")
+	end
+end
+
+function KineticHUD:SetTeammateMaxStoredHealth(i,stored_health_ratio)
+	do return end
+	local teammate = self._teammate_panels[i]
+	if alive(teammate) then 
+		local vitals_panel = teammate:child("vitals_panel")
 	end
 end
 
@@ -5073,26 +5193,31 @@ end
 
 function KineticHUD:UpdateCartographer(t,dt,player)
 	local allow_nav_location_names = true
-		
-	local cartographer_data = self._cache.cartographer_data
-	if cartographer_data then 
-		local cartographer_navs = cartographer_data.nav_segments
-		local nav_tracker = player:movement()._nav_tracker
-		if nav_tracker then 
-			local nav_segment = nav_tracker:nav_segment()
-			if nav_segment then 
-				local nav_metadata = managers.navigation:get_nav_seg_metadata(nav_segment)
-				local location_id = nav_metadata.location_id 
-				if location_id and (location_id ~= "location_unknown") and allow_nav_location_names then 
-					KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
+	
+	
+	local nav_tracker = player:movement()._nav_tracker
+	if nav_tracker then 
+		local nav_segment = nav_tracker:nav_segment()
+		if nav_segment then 
+			local nav_metadata = managers.navigation:get_nav_seg_metadata(nav_segment)
+			local location_id = nav_metadata.location_id 
+			
+			local cartographer_data = self._cache.cartographer_data
+			local cartographer_navs = cartographer_data and cartographer_data.nav_segments
+			if location_id and (location_id ~= "location_unknown") and allow_nav_location_names then 
+				KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
 --					Console:SetTrackerValue("trackerd",tostring(location_id) .. " " .. tostring(nav_segment))
-				else
-					location_id = cartographer_navs[tostring(nav_segment)] 
+			elseif cartographer_navs then
+				location_id = cartographer_navs[tostring(nav_segment)] 
 --					Console:SetTrackerValue("trackerc",tostring(location_id) .. " " .. tostring(nav_segment))
-					if location_id then 
-						KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
-					end
+				if location_id then 
+					KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
+				else
+					Console:SetTrackerValue("trackerc",tostring(nav_segment))
 				end
+			else
+				Console:SetTrackerValue("trackerc",tostring(nav_segment))
+
 			end
 		end
 	end

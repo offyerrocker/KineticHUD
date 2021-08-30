@@ -73,6 +73,10 @@
 			"script_path" : "lua/husk_teammate_cartographer.lua"
 		},
 		{
+			"hook_id" : "lib/units/player_team/teamaidamage",
+			"script_path" : "lua/teamaidamage.lua"
+		},
+		{
 			"hook_id": "lib/managers/statisticsmanager",
 			"script_path" : "lua/statisticsmanager.lua"
 		},
