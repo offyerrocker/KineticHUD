@@ -202,92 +202,113 @@ DEVELOPMENT:
 ----
 CARTOGRAPHER CHECKLIST
 	DONE:
-		Undercover
 		First World Bank
+		Undercover
+		Heat Street
 		Panic Room
 		Diamond Heist
+		Green Bridge
+		Slaughterhouse
 		Counterfeit
 		No Mercy
 		
-		Jewelry Store
-		Shadow Raid
+		Art Gallery
 		Election Day (1,2,3)
 		Framing Frame (1,2,3)
-		Art Gallery
+		Jewelry Store
 		Safe House Nightmare
+		Shadow Raid
 		
 	NOT DONE:
-		Green Bridge
-		Heat Street
-		
-		Aftershock
-		Alaskan Deal
+	-bain:
 		Bank Heist (check variants)
-		Beneath the Mountain
-		Big Oil (1,2)
-		Birth of Sky
-		Boiling Point
-		Border Crossing (1.5)
-		Border Crystals
-		Breakfast in Tijuana (1?)
-		Breakin' Feds
-		Brooklyn 10-10
-		Brooklyn Bank
-		Buluc's Mansion
 		Car Shop
 		Cook Off (check variants)
-		Cursed Kill Room
 		Diamond Store
+		GO Bank
+		Reservoir Dogs Heist (1,2)
+		The Alesso Heist
+		Transport: Crossroads
+		Transport: Downtown
+		Transport: Harbor
+		Transport: Underpass
+		Transport: Park (yes, I was missing one)
+		Transport: Train
+	
+	-events:
+		Cursed Kill Room
+		Lab Rats
+		Prison Nightmare
+	
+	-hector:
+		Firestarter (1,2) (check day3 variant)
+		Rats (1,2,3)
+		Watchdogs (1,2)
+	
+	-jimmy:
+		Boiling Point
+		Murky Station
+		
+	-jiu feng:
+		Dragon Heist
+		The Ukrainian Prisoner
+	
+	locke:
+		Alaskan Deal
+		Beneath the Mountain
+		Birth of Sky
+		Border Crossing (1.5)
+		Border Crystals
+		Breakfast in Tijuana
+		Breakin' Feds
+		Brooklyn Bank
+		Hell's Island
+		Henry's Rock
+		Shacklethorne Auction
+		The White House
+	
+	-butcher:
+		Scarface Mansion
+		The Bomb: Dockyard
+		The Bomb: Forest
+	
+	-continental:
+		Brooklyn 10-10
+		The Yacht Heist
+	
+	-dentist:
+		Golden Grin Casino
+		Hotline Miami (1,2)
+		Hoxton Breakout (1,2)
+		Hoxton Revenge
+		The Big Bank
+		The Diamond
+	
+	-elephant:
+		Big Oil (1,2)
+		The Biker Heist (1,2)
+		
+	-vlad:
+		Aftershock
+		Buluc's Mansion
+		Four Stores
+		Goat Simulator (1,2)
+		Mallcrasher
+		Meltdown
+		Nightclub
+		San Martín Bank
+		Santa's Workshop
+		Stealing Xmas
+		Ukrainian Job (check variant)
+		White Xmas
+	--misc:
+		Safe House
+		Safe House Raid
 		Escape (Cafe)
 		Escape (Garage)
 		Escape (Overpass)
 		Escape (Park)
 		Escape (Street)
-		Firestarter (1,2) (check day3 variant)
-		Four Stores
-		GO Bank
-		Goat Simulator (1,2)
-		Golden Grin Casino
-		Hell's Island
-		Henry's Rock
-		Hotline Miami (1,2)
-		Hoxton Breakout (1,2)
-		Hoxton Revenge
-		Lab Rats
-		Mallcrasher
-		Meltdown
-		Murky Station
-		Nightclub
-		Prison Nightmare
-		Rats (1,2,3)
-		Reservoir Dogs Heist (1,2)
-		Safe House
-		Safe House Raid
-		San Martín Bank
-		Santa's Workshop
-		Scarface Mansion
-		Shacklethorne Auction
-		Shadow Raid
-		Slaughterhouse
-		Stealing Xmas
-		The Alesso Heist
-		The Big Bank
-		The Biker Heist (1,2)
-		The Bomb: Dockyard
-		The Bomb: Forest
-		The Diamond
-		The Ukrainian Prisoner
-		The White House
-		The Yacht Heist
-		Transport: Crossroads
-		Transport: Harbor
-		Transport: Downtown
-		Transport: Underpass
-			Am I missing a transport heist?
-		Transport: Train
-		Ukrainian Job
-		Watchdogs (1,2)
-		White Xmas
 		
 	+SKIRMISH VARIANTS
 		
@@ -5204,19 +5225,14 @@ function KineticHUD:UpdateCartographer(t,dt,player)
 			
 			local cartographer_data = self._cache.cartographer_data
 			local cartographer_navs = cartographer_data and cartographer_data.nav_segments
+--			Console:SetTrackerValue("trackerc",tostring(nav_segment))
 			if location_id and (location_id ~= "location_unknown") and allow_nav_location_names then 
 				KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
---					Console:SetTrackerValue("trackerd",tostring(location_id) .. " " .. tostring(nav_segment))
 			elseif cartographer_navs then
 				location_id = cartographer_navs[tostring(nav_segment)] 
---					Console:SetTrackerValue("trackerc",tostring(location_id) .. " " .. tostring(nav_segment))
 				if location_id then 
 					KineticHUD:SetPlayerLocationText(managers.localization:text(location_id))
-				else
-					Console:SetTrackerValue("trackerc",tostring(nav_segment))
 				end
-			else
-				Console:SetTrackerValue("trackerc",tostring(nav_segment))
 
 			end
 		end
