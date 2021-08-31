@@ -5,7 +5,7 @@ Hooks:PostHook(HUDStatsScreen,"init","khud_hudstatsscreen_init",function(self)
 	self._right:hide()
 	self._bottom:hide()
 	
-	KineticHUD:CreateStatsPanel()
+	KineticHUD:CreateStatsPanel(parent_panel)
 	--[[
 		-mission data
 			crimespree:

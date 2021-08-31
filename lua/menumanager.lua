@@ -213,11 +213,14 @@ CARTOGRAPHER CHECKLIST
 		No Mercy
 		
 		Art Gallery
+		Breakin' Feds
 		Election Day (1,2,3)
+		Firestarter (1,2,3)
 		Framing Frame (1,2,3)
 		Jewelry Store
 		Safe House Nightmare
 		Shadow Raid
+		The Yacht Heist
 		
 	NOT DONE:
 	-bain:
@@ -241,7 +244,6 @@ CARTOGRAPHER CHECKLIST
 		Prison Nightmare
 	
 	-hector:
-		Firestarter (1,2) (check day3 variant)
 		Rats (1,2,3)
 		Watchdogs (1,2)
 	
@@ -260,7 +262,6 @@ CARTOGRAPHER CHECKLIST
 		Border Crossing (1.5)
 		Border Crystals
 		Breakfast in Tijuana
-		Breakin' Feds
 		Brooklyn Bank
 		Hell's Island
 		Henry's Rock
@@ -274,7 +275,6 @@ CARTOGRAPHER CHECKLIST
 	
 	-continental:
 		Brooklyn 10-10
-		The Yacht Heist
 	
 	-dentist:
 		Golden Grin Casino
@@ -654,36 +654,58 @@ function KineticHUD:CreateWorldPanels()
 		local panel_text = panel_data.TEXT
 		local rect_color = panel_data.RECT_COLOR
 		
-		local ws
+		local ws,panel
 		if panel_data.is_world_workspace then 
 			ws = self._gui:create_world_workspace(panel_w,panel_h,Vector3(),Vector3(),Vector3())
+		
+			panel = ws:panel():panel({
+				name = panel_name,
+				layer = 1
+			})
 		else
---			ws = managers.hud._workspace
-			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name)
---			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
-		end
+			if panel_data.existing_parent then 
+				if managers.hud._workspaces and managers.hud._workspaces.overlay and managers.hud._workspaces.overlay[panel_data.existing_parent] then
+					ws = managers.hud._workspaces.overlay[panel_data.existing_parent]
+				else
+					self:c_log("ERROR: No existing parent ws id found by name " .. tostring(panel_data.existing_parent))
+				end
+			else
+				ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name)
+	--			ws = managers.gui_data:create_fullscreen_workspace("ws_" .. panel_name,self._gui)
 	
-		local panel = ws:panel():panel({
-			name = panel_name,
-			layer = 1
-		})
-		
-		local text = panel:text({
-			name = "text",
-			color = Color.white,
-			font = self._fonts.syke,
-			text = panel_text,
-			vertical = "center",
-			align = "center",
-			layer = 2,
-			font_size = 32,
-			visible = false
-		})
-		
-		self.make_debug_rect(panel,0.2,rect_color):set_layer(-1)
-		
-		self._workspaces[i] = ws
-		self._world_panels[i] = panel
+			end
+			if ws then 
+				panel = ws:panel():panel({
+					name = panel_name,
+					layer = panel_data.GUI_LAYER or 1,
+					w = panel_data.GUI_W,
+					h = panel_data.GUI_H
+				})
+			else
+				self:c_log("ERROR: No workspace for world panel with id " .. tostring(i))
+			end
+		end
+		if ws and panel then 
+			local text = panel:text({
+				name = "text",
+				color = Color.white,
+				font = self._fonts.syke,
+				text = panel_text,
+				vertical = "center",
+				align = "center",
+				layer = 2,
+				font_size = 32,
+				visible = false
+			})
+			
+			self.make_debug_rect(panel,0.2,rect_color):set_layer(-1)
+			
+			self._workspaces[i] = ws
+			self._world_panels[i] = panel
+		else
+			self._workspaces[i] = false
+			self._world_panels[i] = false
+		end
 	end
 end
 
@@ -2354,13 +2376,19 @@ function KineticHUD:CreateSuspicionPanel(skip_layout)
 	end
 end
 
-function KineticHUD:CreateStatsPanel()
+function KineticHUD:CreateStatsPanel(selected_parent_panel)
 
 	local layout_settings = self.layout_settings
 	local selected_parent_panel = self._world_panels[5]
 	if not alive(selected_parent_panel) then 
 		return
 	end
+	
+	
+	managers.mission:add_global_event_listener("khud_add_global_event_listener_pager_answered", {
+			"player_answer_pager"
+		}, callback(self,self,"RefreshStatsInventory")
+	)
 	
 	local is_ghostable = managers.job:is_level_ghostable(managers.job:current_level_id())
 	local is_whisper_mode = managers.groupai and managers.groupai:state():whisper_mode()
@@ -2385,7 +2413,7 @@ function KineticHUD:CreateStatsPanel()
 	local pagers_used_label_string = managers.localization:text("hud_stats_pagers_used")
 	local pagers_used_amount_string = ""
 	local pagers_texture, pagers_rect = tweak_data.hud_icons:get_icon_data("pagers_used")
-	local bodybags_amount_string = tostring(managers.player:get_body_bags_amount()) 
+	local bodybags_amount_string = string.format("%i",managers.player:get_body_bags_amount())
 	--todo ghostable icon
 	
 	if managers.crime_spree:is_active() then 
@@ -2540,7 +2568,7 @@ function KineticHUD:CreateStatsPanel()
 		x = 400,
 		y = 0
 	})
-	self.make_debug_rect(stealth_info)
+	self.make_debug_rect(stealth_info):show()
 	
 	local bodybags_icon = stealth_info:bitmap({
 		name = "bodybags_icon",
@@ -2607,7 +2635,7 @@ function KineticHUD:CreateStatsPanel()
 		w = 100,
 		h = 50
 	})
-	self.make_debug_rect(converts_panel)
+	self.make_debug_rect(converts_panel):show()
 	--converts are generated
 	
 	local bags_panel = panel:panel({
@@ -2615,9 +2643,9 @@ function KineticHUD:CreateStatsPanel()
 		x = 0,
 		y = 200,
 		w = 200,
-		h = 100
+		h = 200
 	})
-	self.make_debug_rect(bags_panel)
+	self.make_debug_rect(bags_panel):show()
 	
 	local bags_secured_icon = bags_panel:bitmap({
 		name = "bags_secured_icon",
@@ -2705,10 +2733,40 @@ function KineticHUD:RefreshStatsLoot()
 end
 
 function KineticHUD:RefreshStatsInventory()
-	if alive(self._stats_panel) then 
-		
-	end
+	local stats_panel = self._stats_panel
+	if alive(stats_panel) then 
+		local bags_panel = stats_panel:child("bags_panel")
+		local mandatory_bags_data = managers.loot:get_mandatory_bags_data()
+		local mandatory_amount = mandatory_bags_data and mandatory_bags_data.amount
+		local secured_amount = managers.loot:get_secured_mandatory_bags_amount()
+		local bonus_amount = managers.loot:get_secured_bonus_bags_amount()
+		local bags_value_string = managers.experience:cash_string(managers.money:get_secured_mandatory_bags_money() + managers.money:get_secured_bonus_bags_money())
+		local instant_cash_string = managers.experience:cash_string(managers.loot:get_real_total_small_loot_value())
 	
+		local bag_texture, bag_texture_rect = tweak_data.hud_icons:get_icon_data("bag_icon")
+		if mandatory_amount and mandatory_amount > 0 then
+			bags_panel:child("bags_secured_count"):set_text(bonus_amount > 0 and string.format("%d/%d+%d", secured_amount, mandatory_amount, bonus_amount) or string.format("%d/%d", secured_amount, mandatory_amount))
+		end
+		bags_panel:child("bags_value_label"):set_text(bags_value_string)
+		bags_panel:child("instant_cash_value"):set_text(instant_cash_string)
+		
+		local stealth_info = stats_panel:child("stealth_info")
+		
+		stealth_info:child("bodybags_amount"):set_text(string.format("%i",managers.player:get_body_bags_amount()) )
+		
+		local pagers_used = managers.groupai:state():get_nr_successful_alarm_pager_bluffs()
+		local max_pagers_data = managers.player:has_category_upgrade("player", "corpse_alarm_pager_bluff") and tweak_data.player.alarm_pager.bluff_success_chance_w_skill or tweak_data.player.alarm_pager.bluff_success_chance
+		local max_num_pagers = #max_pagers_data
+		
+		for i, chance in ipairs(max_pagers_data) do
+			if chance == 0 then
+				max_num_pagers = i - 1
+
+				break
+			end
+		end
+		stealth_info:child("pagers_used_amount"):set_text(string.format("%i / %i",pagers_used,max_num_pagers))
+	end
 end
 
 function KineticHUD:RefreshStatsMutators()
@@ -2725,7 +2783,7 @@ end
 
 function KineticHUD:RefreshHUDStats()
 	if not alive(self._stats_panel) then 
-		self:CreateStatsPanel()
+		self:CreateStatsPanel(managers.hud:script(managers.hud.STATS_SCREEN_FULLSCREEN).panel)
 	end
 	self:RefreshStatsLoot()
 	self:RefreshStatsInventory()
