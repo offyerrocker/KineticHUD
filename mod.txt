@@ -53,6 +53,10 @@
 			"script_path" : "lua/hud/hudtemp.lua"
 		},
 		{
+			"hook_id" : "lib/managers/group_ai_states/groupaistatebase",
+			"script_path" : "lua/groupaistatebase.lua"
+		},
+		{
 			"hook_id" : "lib/units/beings/player/playerdamage",
 			"script_path" : "lua/playerdamage.lua"
 		},

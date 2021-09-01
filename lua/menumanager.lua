@@ -2,6 +2,7 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
+		track joker data in cache
 ******* BEFORE RELEASE: ********
 			GENERAL:
 				
@@ -31,7 +32,6 @@ DEVELOPMENT:
 					- Lobby Player Info compatibility
 					- Mutators
 					- Tracked Achievements
-					- Jokers
 					- misc polish
 				BUFFS:
 					- Add missing buffs, test all (compare with noblehud buff list)
@@ -636,6 +636,27 @@ function KineticHUD:Setup()
 			self:LoadCartographerData(id)
 		end
 	end
+
+	CopDamage.register_listener("khud_oncopdeath",{
+		"on_damage"
+	},
+	function(attack_data)
+--		KineticHUD:RefreshStatsConverts()
+		if attack_data.result and attack_data.result.type == "death" then 
+			local attacker_unit = attack_data.attacker_unit
+			if attacker_unit then 
+				local minion_data = self._cache.player_converts[tostring(attacker_unit:key())]
+				if minion_data then 
+					minion_data.kills = minion_data.kills + 1
+					local minion_panel = minion_data.panel
+					local kills_string = string.format("%i",minion_data.kills)
+					if alive(minion_panel) then 
+						minion_panel:child("kills"):set_text(kills_string)
+					end
+				end
+			end
+		end
+	end)
 	
 end
 
@@ -1825,7 +1846,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 	
 	local armor_text = vitals_panel:text({
 		name = "armor_text",
-		text = "999",
+		text = "",
 		font = self._fonts.syke,
 		font_size = 32,
 		vertical = "top",
@@ -1835,7 +1856,7 @@ function KineticHUD:CreateTeammatePanel(i,skip_layout)
 	
 	local health_text = vitals_panel:text({
 		name = "health_text",
-		text = "888",
+		text = "",
 		font = self._fonts.syke,
 		font_size = 32,
 		x = 56,
@@ -2379,7 +2400,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		return
 	end
 	
-	local debug_rect_visible = false
+	local debug_rect_visible = true
 	local function make_blur(parent)
 		return parent:bitmap({
 			name = parent:name() .. "_blur",
@@ -2654,13 +2675,27 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 	local converts_panel = panel:panel({
 		name = "converts_panel",
 		w = 100,
-		h = 50,
-		x = 200,
-		y = 400
+		h = 300,
+		x = 220,
+		y = 420
 	})
 	self.make_debug_rect(converts_panel,Color.yellow,debug_rect_visible)
 	local converts_blur = make_blur(converts_panel)
 	--converts are generated
+	local converts_count = converts_panel:text({
+		name = "converts_count",
+		text = "0",
+		font = self._fonts.alt_mono,
+		font_size = 16,
+		color = self.color_data.white
+	})
+	local converts_subpanel = converts_panel:panel({
+		name = "converts_subpanel",
+		y = 20,
+		w = converts_panel:w(),
+		h = converts_panel:h() - 20
+	})
+	
 	
 	local bags_panel = panel:panel({
 		name = "bags_panel",
@@ -2802,8 +2837,143 @@ function KineticHUD:RefreshStatsAchievements()
 
 end
 
+function KineticHUD:RegisterPlayerConvert(u_key,unit,owner_unit)
+	local stats_panel = self._stats_panel 
+	if alive(stats_panel) then 
+		local converts_panel = stats_panel:child("converts_panel")
+		local converts_subpanel = converts_panel:child("converts_subpanel")
+		local u_key_str = tostring(u_key)
+		local minion_panel = converts_subpanel:child(u_key_str)
+		if not alive(minion_panel) then 
+			local u_base = unit:base()
+			if not u_base then 
+				return
+			end
+			
+			local u_chardmg = unit:character_damage()
+			
+			local health_string = string.format("%i / %i",10 * u_chardmg._health,10 * u_chardmg._HEALTH_INIT)
+			local tweak_table = u_base._tweak_table
+			local name = tweak_table
+			if HopLib then 
+				local name_provider = HopLib:name_provider()
+				name = name_provider:name_by_id(tweak_table)
+			end
+			
+			
+			local kills_string = "0"
+			
+			local minion_panel = converts_subpanel:panel({
+				name = u_key_str,
+				h = 20
+			})
+			
+			self._cache.player_converts[u_key_str] = {
+				name = name,
+				panel = minion_panel,
+				kills = 0,
+				tweak_table = tweak_table,
+				unit = unit,
+				dead = false
+			}
+			
+			local minion_nametag = minion_panel:text({
+				name = "nametag",
+				text = name,
+				align = "left",
+				font = self._fonts.syke,
+				font_size = 16
+			})
+			
+			local minion_health = minion_panel:text({
+				name = "health",
+				text = health_string,
+				align = "right",
+				font = self._fonts.syke,
+				font_size = 16
+			})
+			
+			local minion_kills = minion_panel:text({
+				name = "kills",
+				text = kills_string,
+				align = "center",
+				font = self._fonts.syke,
+				font_size = 16
+			})
+			
+			
+			local dmg_clbk_key = "khud_on_convert_damaged_" .. u_key_str
+			local death_clbk_key = "khud_on_convert_death" .. u_key_str
+			u_chardmg:add_listener(dmg_clbk_key,
+				{
+					"dmg_rcv",
+					"hurt",
+					"light_hurt",
+					"heavy_hurt",
+					"hurt_sick",
+					"shield_knock",
+					"counter_tased",
+					"taser_tased",
+					"concussion"
+				},
+				function(_unit)
+					if alive(minion_health) then 
+						local _u_chardmg = _unit:character_damage()
+						local _health_string = string.format("%i / %i",10 * _u_chardmg._health,10 * _u_chardmg._HEALTH_INIT)
+						minion_health:set_text(_health_string)
+					end
+				end
+			)
+			u_chardmg:add_listener(death_clbk_key,
+				{
+					"death"
+				},
+				function()
+					u_chardmg:remove_listener(dmg_clbk_key) 
+					u_chardmg:remove_listener(death_clbk_key) 
+				end
+			)
+			
+			self.make_debug_rect(minion_panel,0.1,Color.blue,true)
+		end
+	end
+end
+
+function KineticHUD:UnregisterPlayerConvert(minion_key,player_key)
+	if self._cache.player_converts[minion_key] then
+		self._cache.player_converts[minion_key].dead = true
+	end
+		
+	local stats_panel = self._stats_panel 
+	if alive(stats_panel) then 
+		local converts_panel = stats_panel:child("converts_panel")
+		local converts_subpanel = converts_panel:child("converts_subpanel")
+		local minion_panel = converts_subpanel:child(tostring(minion_key))
+		if alive(minion_panel) then 
+			converts_subpanel:remove(minion_panel)
+		end
+	end
+end
+
 function KineticHUD:RefreshStatsConverts()
-	
+	local stats_panel = self._stats_panel
+	if alive(stats_panel) then 
+		local converts_panel = stats_panel:child("converts_panel")
+		local converts_subpanel = converts_panel:child("converts_subpanel")
+		converts_panel:child("converts_count"):set_text(string.format("%i",managers.player:num_local_minions()))
+		
+		local children = table.sort(converts_subpanel:children(),function(a,b) return a:name() > b:name() end) or {}
+		local y = 0
+		for _,minion_panel in ipairs(children) do 
+			local minion_name = minion_panel:name()
+			if self._cache.player_converts[minion_key] then
+				local kills_string = string.format("%i",self._cache.player_converts[minion_key].kills)
+				minion_panel:child("kills"):set_text(kills_string)
+			end
+			minion_panel:set_y(y)
+			y = y + 20
+		end
+	end
 end
 
 function KineticHUD:RefreshHUDStats()
@@ -4643,21 +4813,25 @@ function KineticHUD:SetTeammatePeerId(i,id)
 end
 
 function KineticHUD:SetTeammateArmor(i,current,total)
-	local teammate = self._teammate_panels[i]
-	if alive(teammate) then 
-		local vitals_panel = teammate:child("vitals_panel")
-		vitals_panel:child("armor_text"):set_text(string.format("%i",current))
-		vitals_panel:show()
+	if total ~= 0 then 
+		local teammate = self._teammate_panels[i]
+		if alive(teammate) then 
+			local vitals_panel = teammate:child("vitals_panel")
+			vitals_panel:child("armor_text"):set_text(string.format("%i%%",math.round(10 * current/total)/10))
+			vitals_panel:show()
+		end
 	end
 end
 
 function KineticHUD:SetTeammateHealth(i,current,total)
-	self._cache.teammate_health[i] = current/total
-	local teammate = self._teammate_panels[i]
-	if alive(teammate) then 
-		local vitals_panel = teammate:child("vitals_panel")
-		vitals_panel:child("health_text"):set_text(string.format("%i",current))
-		vitals_panel:show()
+	if total ~= 0 then 
+		self._cache.teammate_health[i] = current/total
+		local teammate = self._teammate_panels[i]
+		if alive(teammate) then 
+			local vitals_panel = teammate:child("vitals_panel")
+			vitals_panel:child("health_text"):set_text(string.format("%i%%",math.round(10 * current/total)/10))
+			vitals_panel:show()
+		end
 	end
 end
 
