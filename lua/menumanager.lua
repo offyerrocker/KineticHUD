@@ -25,7 +25,7 @@ DEVELOPMENT:
 					- numerical health/armor?
 					- implement team mission equipments
 				TABSCREEN:
-					- kills with primary, secondary, throwable, melee, sentry
+					- kills with primary, secondary, throwable, melee, sentry/tripmine
 					- accuracy
 					- jokers w/ killcounts- "guiding lines" to their onscreen positions
 					- Lobby Player Info compatibility
@@ -48,11 +48,6 @@ DEVELOPMENT:
 				fire burn deaths count as 2 kills on killcounter
 				non-focused weapon icon is not properly resized on setting the icon image
 				player equipment alignment code centers improperly (spacing for secondary amounts eg tripmines)
-				objective amount does not update on completion
-				flatscreen workspace is not hidden:
-					compass remains visible in custody/preplanning screen
-					interaction text (eg "press f to view camera" remains visible in camera view
-					- fix this by using a vanilla panel instead of creating a new workspace
 				"put on mask" prompt is still visible and may clip
 				
 =========== MENU STRUCTURING: hoo boy this is indeed rough ===========
@@ -166,7 +161,8 @@ DEVELOPMENT:
 			QOL:
 				Dim digital display counters when empty (eg. weapon ammo, deployable/equipment counts)
 				button prompts next to HUD (eg. switch equipment button, weapon selector)
-				Player concealment indicator
+				Player concealment indicator (stealth)
+				Player silencer indicator (stealth)
 
 		RESEARCH:
 			updater should work when paused?
@@ -213,6 +209,7 @@ CARTOGRAPHER CHECKLIST
 		No Mercy
 		
 		Art Gallery
+		Bank Heist (check variants)
 		Breakin' Feds
 		Election Day (1,2,3)
 		Firestarter (1,2,3)
@@ -224,7 +221,6 @@ CARTOGRAPHER CHECKLIST
 		
 	NOT DONE:
 	-bain:
-		Bank Heist (check variants)
 		Car Shop
 		Cook Off (check variants)
 		Diamond Store
@@ -299,7 +295,6 @@ CARTOGRAPHER CHECKLIST
 		San Martín Bank
 		Santa's Workshop
 		Stealing Xmas
-		Ukrainian Job (check variant)
 		White Xmas
 	--misc:
 		Safe House
@@ -2384,6 +2379,27 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		return
 	end
 	
+	local debug_rect_visible = false
+	local function make_blur(parent)
+		return parent:bitmap({
+			name = parent:name() .. "_blur",
+			texture = "guis/textures/test_blur_df",
+			layer = -1,
+			render_template = "VertexColorTexturedBlur3D",
+			valign = "grow",
+			w = parent:w(),
+			h = parent:h()
+		}),parent:rect({
+			name = parent:name() .. "_blur_bg",
+			color = Color.black,
+			alpha = 0.25,
+			layer = -2,
+			valign = "grow",
+			w = parent:w(),
+			h = parent:h()
+		})
+	end
+	
 	
 	managers.mission:add_global_event_listener("khud_add_global_event_listener_pager_answered", {
 			"player_answer_pager"
@@ -2499,22 +2515,25 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 	self._stats_panel = panel
 	
 	local mission_info_panel = panel:panel({
-		name = "mission_info_panel"
+		name = "mission_info_panel",
+		w = 400,
+		h = 300
 	})
-	self.make_debug_rect(mission_info_panel)
+	self.make_debug_rect(mission_info_panel,0.1,Color.red,debug_rect_visible)
+	local mission_info_blur = make_blur(mission_info_panel)
 	
 	local mission_name = mission_info_panel:text({ --from cs or from normal
 		name = "mission_name",
 		text = mission_level_text,
 		y = 0,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 48
 	})
 	local crimespree_level = mission_info_panel:text({
 		name = "crimespree_level",
 		text = cs_tier_text,
 		y = 30,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	
@@ -2522,7 +2541,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		name = "mission_day",
 		text = days_text,
 		y = 45,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local ghostable_icon = mission_info_panel:bitmap({
@@ -2548,7 +2567,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		name = "difficulty_name",
 		text = difficulty_string,
 		y = 80,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	difficulty_name:set_range_color(difficulty_string_len,math.huge,tweak_data.screen_colors.one_down)
@@ -2557,7 +2576,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		name = "mission_payout",
 		text = payout_text,
 		y = 100,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	
@@ -2568,7 +2587,8 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		x = 400,
 		y = 0
 	})
-	self.make_debug_rect(stealth_info):show()
+	self.make_debug_rect(stealth_info,0.1,Color.green,debug_rect_visible)
+	local stealth_blur = make_blur(stealth_info)
 	
 	local bodybags_icon = stealth_info:bitmap({
 		name = "bodybags_icon",
@@ -2583,7 +2603,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = bodybags_label_string,
 		x = 16,
 		y = 0,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local bodybags_amount = stealth_info:text({
@@ -2591,7 +2611,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = bodybags_amount_string,
 		x = 0,
 		y = 32,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	
@@ -2608,7 +2628,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = pagers_used_label_string,
 		x = pagers_used_icon:right(),
 		y = 64,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	
@@ -2617,7 +2637,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = pagers_used_amount_string,
 		y = 96,
 		X = 32 + 4,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	
@@ -2625,27 +2645,32 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		name = "objectives_panel",
 		w = 100,
 		h = 50,
-		y = 120
+		y = 400
 	})
-	self.make_debug_rect(objectives_panel)
+	self.make_debug_rect(objectives_panel,Color.purple,debug_rect_visible)
+	local objectives_blur = make_blur(objectives_panel)
 	--objectives are generated
 	
 	local converts_panel = panel:panel({
 		name = "converts_panel",
 		w = 100,
-		h = 50
+		h = 50,
+		x = 200,
+		y = 400
 	})
-	self.make_debug_rect(converts_panel):show()
+	self.make_debug_rect(converts_panel,Color.yellow,debug_rect_visible)
+	local converts_blur = make_blur(converts_panel)
 	--converts are generated
 	
 	local bags_panel = panel:panel({
 		name = "bags_panel",
 		x = 0,
-		y = 200,
+		y = 400,
 		w = 200,
 		h = 200
 	})
-	self.make_debug_rect(bags_panel):show()
+	self.make_debug_rect(bags_panel,Color.cyan,debug_rect_visible)
+	local bags_blur = make_blur(bags_panel)
 	
 	local bags_secured_icon = bags_panel:bitmap({
 		name = "bags_secured_icon",
@@ -2658,7 +2683,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		name = "bags_secured_label",
 		text = bags_secured_label_string,
 		x = bags_secured_icon:right() + 4,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local bags_secured_count = bags_panel:text({
@@ -2666,7 +2691,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = bags_secured_count_string,
 		x = 0,
 		y = 40,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local bags_value_label = bags_panel:text({
@@ -2674,7 +2699,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = bags_value_string,
 		x = bags_secured_icon:right() + 4,
 		y = 40,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local instant_cash_label = bags_panel:text({
@@ -2682,7 +2707,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = instant_cash_label_string,
 		x = 0,
 		y = 80,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 	local instant_cash_value = bags_panel:text({
@@ -2690,7 +2715,7 @@ function KineticHUD:CreateStatsPanel(selected_parent_panel)
 		text = instant_cash_string,
 		x = 0,
 		y = 128,
-		font = self._fonts.syke,
+		font = self._fonts.alt_mono,
 		font_size = 32
 	})
 end
@@ -2844,7 +2869,7 @@ function KineticHUD:CreateInteractPanel()
 		color = self.color_data.red,
 		visible = false
 	})
---	self.make_debug_rect(interaction_panel):show()
+--	self.make_debug_rect(interaction_panel,Color.red,debug_rect_visible)
 	
 	
 	local interaction_circle = interaction_panel:bitmap({
