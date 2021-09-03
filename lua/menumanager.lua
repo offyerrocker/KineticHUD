@@ -14,6 +14,9 @@ DEVELOPMENT:
 					* see old khud organization
 
 			HUD:
+				ASSAULT:
+					* "infinite assault" banner
+					* BAI support
 				PLAYER:
 					- Stamina indicator
 					* ExPres
@@ -213,8 +216,10 @@ CARTOGRAPHER CHECKLIST
 		Breakin' Feds
 		Election Day (1,2,3)
 		Firestarter (1,2,3)
+		Four Stores
 		Framing Frame (1,2,3)
 		Jewelry Store
+		Rats (1,2,3)
 		Safe House Nightmare
 		Shadow Raid
 		The Yacht Heist
@@ -240,7 +245,6 @@ CARTOGRAPHER CHECKLIST
 		Prison Nightmare
 	
 	-hector:
-		Rats (1,2,3)
 		Watchdogs (1,2)
 	
 	-jimmy:
@@ -251,7 +255,7 @@ CARTOGRAPHER CHECKLIST
 		Dragon Heist
 		The Ukrainian Prisoner
 	
-	locke:
+	-locke:
 		Alaskan Deal
 		Beneath the Mountain
 		Birth of Sky
@@ -287,7 +291,6 @@ CARTOGRAPHER CHECKLIST
 	-vlad:
 		Aftershock
 		Buluc's Mansion
-		Four Stores
 		Goat Simulator (1,2)
 		Mallcrasher
 		Meltdown
@@ -298,6 +301,7 @@ CARTOGRAPHER CHECKLIST
 		White Xmas
 	--misc:
 		Safe House
+		Safe House (new)
 		Safe House Raid
 		Escape (Cafe)
 		Escape (Garage)
@@ -337,19 +341,6 @@ ASSETS
 		SFPD faction?
 	
 HUD SEGMENTS
-	COMPASS:
-		- Top
-		* Linear style?
-		* Circular icon style?
-	
-	OBJECTIVE
-		- Top right
-		
-		* Title
-		* Description
-		
-	
-	
 	CRIMINALS:
 		- Teammates (3)
 			* Name
@@ -373,12 +364,6 @@ HUD SEGMENTS
 	
 	HINT:
 		* Top right, below assault/objective
-		
-	CHAT:
-		- Bottom left?
-	
-	INTERACTION
-		* something good i hope
 	DETECTION:
 		* Enemy detection icon animations instead of simple exclamation points appearing? (cool lightning bolts crown!)
 		* Replace the boring DETECTED text
