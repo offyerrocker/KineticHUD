@@ -617,7 +617,14 @@ function KineticHUD:Setup()
 	
 	if managers.job then 
 		local stage_data = managers.job:current_stage_data()
-		local id = stage_data and stage_data.level_id --eg moon
+		local level_id = stage_data and stage_data.level_id --eg moon
+		local level_data = managers.job:current_level_data()
+		
+		local id = level_id
+		if level_data and false then
+			--if is escape
+			id = level_data.name_id
+		end
 	--[[
 		
 		
@@ -2191,10 +2198,6 @@ function KineticHUD:CreateCompassPanel()
 	
 	local compass_panel = selected_parent_panel:panel({
 		name = "compass_panel",
-		x = compass_x,
-		y = compass_y,
-		w = compass_w,
-		h = compass_h,
 		layer = -1
 	})
 	self._compass_panel = compass_panel
@@ -2213,15 +2216,18 @@ function KineticHUD:CreateCompassPanel()
 		font_size = 32,
 		font = self._fonts.syke,
 		align = "center",
-		vertical = "top"
+		vertical = "top",
+		y = 40
 	})
 	
 	--acts as a mask for the compass itself to stay contained within a small panel
 	--this part stays still, and its size can change by settings
 	local compass_window = compass_panel:panel({
-		name = "compass_window"
-		--inherit w from parent
---		w = 400
+		name = "compass_window",
+		x = compass_x,
+		y = compass_y,
+		w = compass_w,
+		h = compass_h
 	})
 	
 	local compass_gradient_bg = compass_window:gradient({
@@ -2247,7 +2253,7 @@ function KineticHUD:CreateCompassPanel()
 		font = self._fonts.alt_mono_shadow,
 		font_size = arrow_font_size,
 --		x = compass_window:x() + (compass_window:w() / 2),
-		y = compass_window:y()
+		y = compass_window:bottom()
 	})
 	center_text(compass_indicator,compass_window:x() + (compass_window:w() / 2))
 	

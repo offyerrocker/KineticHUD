@@ -1,4 +1,9 @@
 
+Hooks:PreHook(HUDManager,"init_finalize","khud_hudmanager_initfinialize",function(self)
+	if self:alive("guis/mask_off_hud") then
+		self:script("guis/mask_off_hud").mask_on_text:set_y(72)
+	end
+end)
 
 
 Hooks:PostHook(HUDManager,"add_waypoint","khud_hudmanager_addwaypoint",function(self,id,data)
