@@ -5,14 +5,21 @@ DEVELOPMENT:
 		track joker data in cache
 ******* BEFORE RELEASE: ********
 			GENERAL:
-				
+				SYSTEMIC: REWRITE WORKSPACE SYSTEM
+					- New workspace for each individual HUD element
+					- Allow flatscreen or world workspaces
+					- Allow changing of position/rotation/distance
+					- Allow changing of GUI size
+					- Allow changing of workspace size
 			INTERFACE:
 				functional customization menus
 				Down Counter compat
 				
 				* allow intuitive menu enabling/disabling of buffs
 					* see old khud organization
-
+				* accessibility menu
+					- change color_data colors; load from settings file
+					- disable flashing animations 
 			HUD:
 				ASSAULT:
 					* "infinite assault" banner
@@ -26,7 +33,6 @@ DEVELOPMENT:
 
 					- Revives bg?
 				TEAMMATE:
-					- numerical health/armor?
 					- implement team mission equipments
 				TABSCREEN:
 					- kills with primary, secondary, throwable, melee, sentry/tripmine
@@ -45,6 +51,7 @@ DEVELOPMENT:
 					- format (eg. MMHHSS)
 				HIT DIRECTION:
 					- design + implement
+					- enter/exit animations
 					
 			BUGS:
 				resize mission equipments after menu settings change (AnimateLayoutPlayerMissionEquipment(true))
@@ -110,6 +117,7 @@ DEVELOPMENT:
 			Player underbarrel weapon
 			Player Health Lost chunking animation
 			Teammate Revives/BPM in tabscreen
+			Teammate kills in tabscreen
 			
 			Cartographer:
 				- do compass offsets
