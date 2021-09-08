@@ -147,6 +147,7 @@ Here are some naming conventions and notes for the way I have made the location 
 - Where possible, I will use the names that Bain/Locke or the preplanning map refer to them as, for consistency. Since OVERKILL does not use the preplanning system very much anymore, this isn't available on every map, though.
 
 
+
 Heist: Undercover
 	"khud_cartographer_location_man_4" : "South Exit",
 	"khud_cartographer_location_man_5" : "S Stairwell 1F",
@@ -208,6 +209,8 @@ Note: This location is found if the player fails the jump and falls through the 
 	"khud_cartographer_location_man_148" : "S Basement",
 	"khud_cartographer_location_man_165" : "Roof",
 	
+	
+	
 Heist: Panic Room
 Note: Many of these location names are already in the game, so this list is very short since it only contains the unnamed locations.
 	"khud_cartographer_location_flat_40" : "Roof",
@@ -221,6 +224,8 @@ Note: Many of these location names are already in the game, so this list is very
 	"khud_cartographer_location_flat_307" : "Alley",
 	"khud_cartographer_location_flat_308" : "Alley",
 	"khud_cartographer_location_flat_310" : "Floor 2",
+	
+	
 	
 Heist: Shadow Raid
 Note: These location names mostly follow the names on the preplanning map.
@@ -245,6 +250,8 @@ Note: These location names mostly follow the names on the preplanning map.
 	"khud_cartographer_location_kosugi_backup_power" : "Backup Power Systems",
 	"khud_cartographer_location_kosugi_server_room" : "IT/Server Management",
 
+
+
 Heist: Jewelry Store
 Note: These locations are shared with Ukrainian Job, since they are effectively the same map.
 	"khud_cartographer_location_heist_jewelry_store_entrance" : "Outside Store",
@@ -260,6 +267,8 @@ Note: These locations are shared with Ukrainian Job, since they are effectively 
 	"khud_cartographer_location_heist_jewelry_store_vantage_point" : "On Vantage Point",
 	"khud_cartographer_location_heist_jewelry_store_east_alley" : "In East Alley",
 
+
+
 Heist: Election Day (day 1)
 	"khud_cartographer_location_election_day_1_spawn" : "At Spawn",
 	"khud_cartographer_location_election_day_1_entrance" : "At Entrance",
@@ -269,6 +278,8 @@ Heist: Election Day (day 1)
 	"khud_cartographer_location_election_day_1_yard" : "In Yard",
 	"khud_cartographer_location_election_day_1_crates" : "In Yard",
 	"khud_cartographer_location_election_day_1_loading_zone" : "At Loading Zone",
+	
+	
 	
 Heist: Election Day (day 2)
 	"khud_cartographer_location_election_day_2_escape_van" : "At Escape Van",
@@ -303,6 +314,8 @@ Heist: Election Day (day 2)
 	"khud_cartographer_location_election_day_2_cage_7" : "Cage 7",
 	"khud_cartographer_location_election_day_2_cage_8" : "Cage 8",
 	
+	
+	
 Heist: Election Day (day 3)
 	"khud_cartographer_location_election_day_3_skip1_north_entrance" : "At North Entrance",
 	"khud_cartographer_location_election_day_3_skip1_south_entrance" : "At South Entrance",
@@ -325,6 +338,7 @@ Heist: Election Day (day 3)
 	"khud_cartographer_location_election_day_3_skip1_bank_tellers" : "At Bank Lobby",
 	
 	
+	
 Heist: Framing Frame (day 1)
 Note: These locations are shared with Art Gallery, since they are effectively the same map.
 	"khud_cartographer_location_framing_frame_1_spawn" : "Spawn",
@@ -342,6 +356,8 @@ Note: These locations are shared with Art Gallery, since they are effectively th
 	"khud_cartographer_location_framing_frame_1_bathroom" : "Toilets",
 	"khud_cartographer_location_framing_frame_1_access_corridor_a" : "Access Corridor A",
 	"khud_cartographer_location_framing_frame_1_access_corridor_e" : "Access Corridor E",
+	
+	
 	
 Heist: Framing Frame (day 2)
 	"khud_cartographer_location_framing_frame_2_van_entrance" : "Drop-Off",
@@ -368,6 +384,8 @@ Heist: Framing Frame (day 2)
 	"khud_cartographer_location_framing_frame_2_warehouse_room_south_2" : "Warehouse",
 	"khud_cartographer_location_framing_frame_2_escape_street" : "Escape Street",
 	"khud_cartographer_location_framing_frame_2_van_escape" : "Escape Van",
+	
+	
 	
 Heist: Framing Frame (day 3)
 	"khud_cartographer_location_framing_frame_3_spawn" : "Maintenance Roof Area",
@@ -402,6 +420,8 @@ Heist: Framing Frame (day 3)
 	"khud_cartographer_location_framing_frame_3_staircase_east" : "East Staircase",
 	"khud_cartographer_location_framing_frame_3_terrace" : "Terrace",
 
+
+
 Heist: Safe House Nightmare
 	"khud_cartographer_location_haunted_basement_entrance" : "Basement Entrance",
 	"khud_cartographer_location_haunted_basement_main" : "Basement",
@@ -420,6 +440,8 @@ Heist: Safe House Nightmare
 	"khud_cartographer_location_haunted_laundromat_exit" : "Laundromat Hallway",
 	"khud_cartographer_location_haunted_kitchen" : "Kitchen",
 	"khud_cartographer_location_haunted_storage_room_2" : "Storage Room",
+	
+	
 	
 Heist: First World Bank
 Note: These location names mostly follow those from PAYDAY: The Heist.
@@ -442,6 +464,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_red2_office_space_north" : "In North Office Space.",
 	"khud_cartographer_location_red2_office_space_south" : "In South Office Space.",
 	"khud_cartographer_location_red2_office_space_side" : "In Side Office.",
+	
+	
 	
 Heist: Diamond Heist (aka Garnet Group)
 Note: These location names mostly follow those from PAYDAY: The Heist.
@@ -479,6 +503,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_dah_meeting_room_jade" : "In Jade Room.",
 	"khud_cartographer_location_dah_meeting_room_glitter" : "In Jade Room.",
 	"khud_cartographer_location_dah_meeting_rooms_1f" : "In Meeting Rooms.",
+
+
 
 Heist: No Mercy
 Note: These location names mostly follow those from PAYDAY: The Heist.
@@ -536,6 +562,8 @@ Note: This room is revealed when cops blow up two wall segments from the Laundry
 	"khud_cartographer_location_nmh_basement_main" : "Basement",
 	"khud_cartographer_location_nmh_basement_morgue" : "Morgue",
 
+
+
 Heist: Counterfeit
 Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_pal_street_keel" : "On Keel St.",
@@ -559,6 +587,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_pal_printer_room" : "In Shelter",
 	"khud_cartographer_location_pal_sewer" : "In Sewer",
 
+
+
 Heist: Green Bridge
 Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_glace_convoy" : "At Convoy.",
@@ -566,6 +596,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_glace_construction" : "At Construction.",
 	"khud_cartographer_location_glace_scaffolding" : "On Scaffolding.",
 	"khud_cartographer_location_glace_escape" : "At Escape.",
+
+
 
 Heist: Heat Street
 Note: These location names mostly follow those from PAYDAY: The Heist.
@@ -581,6 +613,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_run_jakes_parking" : "At Jake's Parking.",
 	"khud_cartographer_location_run_back_alley" : "In Back Alley.",
 	"khud_cartographer_location_run_street_armitage" : "On Armitage Ave.",
+
+
 
 Heist: Slaughterhouse
 Note: These location names mostly follow those from PAYDAY: The Heist.
@@ -603,6 +637,8 @@ Note: These location names mostly follow those from PAYDAY: The Heist.
 	"khud_cartographer_location_dinner_slaughterhouse_yard" : "On the yard.",
 	"khud_cartographer_location_dinner_slaughterhouse_containers" : "In the container area.",
 
+
+
 Heist: The Yacht Heist
 	"khud_cartographer_location_fish_deck_lower" : "Lower Deck",
 	"khud_cartographer_location_fish_deck_main" : "Main Deck",
@@ -617,6 +653,8 @@ Heist: The Yacht Heist
 	"khud_cartographer_location_fish_kitchen" : "Lower Deck Kitchen",
 	"khud_cartographer_location_fish_servers" : "Lower Deck Server Room",
 	"khud_cartographer_location_fish_party" : "Main Deck Gala",
+	
+	
 	
 Heist: Breakin' Feds
 	"khud_cartographer_location_tag_wing_east_server_room" : "East Wing Server Room",
@@ -648,6 +686,8 @@ Heist: Breakin' Feds
 	"khud_cartographer_location_tag_wing_north_kitchen" : "North Wing Kitchen",
 	"khud_cartographer_location_tag_elevators_outside" : "By Elevators",
 
+
+
 Heist: Bank Heist (and variants, including Deposit, Gold, Cash, Random, and Firestarter Day 3)
 Note: I made up these street names by roughly geolocating the heist from the real-life map based on the location of the Capitol Building, which is visible in the skybox of this heist.
 	1st Street, C Street, and D street are all real streets in Washington D.C. near the Capitol Building, but their layout is quite different from this one.
@@ -677,6 +717,8 @@ Note: I made up these street names by roughly geolocating the heist from the rea
 	"khud_cartographer_location_branchbank_bank_stairs_back" : "At Roof Access.",
 	"khud_cartographer_location_branchbank_bank_power" : "At Breaker.",
 	
+	
+	
 Heist: Firestarter (day 1)
 	"khud_cartographer_location_firestarter_1_street" : "At Street.",
 	"khud_cartographer_location_firestarter_1_hangar_1" : "In Hangar 1.",
@@ -696,6 +738,8 @@ Heist: Firestarter (day 1)
 	"khud_cartographer_location_firestarter_1_hill" : "On Hill.",
 	"khud_cartographer_location_firestarter_1_overlook" : "On Overlook.",
 	
+	
+	
 Heist: Firestarter (day 2)
 	"khud_cartographer_location_firestarter_2_escape_van" : "At Van.",
 	"khud_cartographer_location_firestarter_2_street" : "At Street.",
@@ -709,6 +753,8 @@ Heist: Firestarter (day 2)
 	"khud_cartographer_location_firestarter_2_head_office_2f" : "In Office Floor 2.",
 	"khud_cartographer_location_firestarter_2_kitchen" : "In Break Room Floor 2.",
 	"khud_cartographer_location_firestarter_2_restroom_entrance" : "Restroom Entrance.",
+
+
 
 Heist: Four Stores
 	"khud_cartographer_location_four_stores_street_maple" : "On Maple St.",
@@ -728,6 +774,8 @@ Heist: Four Stores
 	"khud_cartographer_location_four_stores_alley_north" : "In North Alley.",
 	"khud_cartographer_location_four_stores_alley_south" : "In South Alley.",
 	
+	
+	
 Heist: Rats day 1
 	"khud_cartographer_location_alex_1_vantage_point" : "On Vantage Point.",
 	"khud_cartographer_location_alex_1_2f_main" : "On Floor 2.",
@@ -745,6 +793,8 @@ Heist: Rats day 1
 	"khud_cartographer_location_alex_1_shed_back_inside" : "In Back Shed.",
 	"khud_cartographer_location_alex_1_shed_front_inside" : "In Front Shed.",
 	"khud_cartographer_location_alex_1_basement" : "In Basement.",
+
+
 
 Heist: Rats day 2
 	"khud_cartographer_location_alex_2_escape_van" : "At Van.",
@@ -768,11 +818,15 @@ Heist: Rats day 2
 	"khud_cartographer_location_alex_2_yard_back" : "At Back Yard.",
 	"khud_cartographer_location_alex_2_dealer_truck" : "At Dealer's Yard.",
 
+
+
 Heist: Rats day 3
 	"khud_cartographer_location_alex_3_bridge_east" : "On Bridge East.",
 	"khud_cartographer_location_alex_3_bridge_west" : "On Bridge West.",
 	"khud_cartographer_location_alex_3_bus_outside" : "At Bus.",
 	"khud_cartographer_location_alex_3_bus_inside" : "In Bus.",
+
+
 
 Heist: Nightclub
 	"khud_cartographer_location_nightclub_alley_tasteful" : "At Tasteful Alley.",
@@ -798,6 +852,52 @@ Heist: Nightclub
 	"khud_cartographer_location_nightclub_tasteful_staff_office" : "At Manager's Office.",
 	"khud_cartographer_location_nightclub_tasteful_staff_basement" : "In Basement.",
 	"khud_cartographer_location_nightclub_tasteful_dj_booth" : "At DJ's Booth.",
+	
+	
+	
+Heist: Mallcrasher
+	"khud_cartographer_location_mallcrasher_street" : "Outside Mall Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_side" : "At Side Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_garage" : "At Garage Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_outside" : "Outside Mall Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_inside" : "At Mall Entrance.",
+
+Like most of the other location names, I decided to use the in-universe store names where applicable.
+"Sparkle & Spirits" is the wine store.
+The Jewelry Shop does not have a name that I can see, so it is just called "Jewelry Shop."
+"Falcogini" is the name of the automobile brand in the PAYDAY universe.
+"Pear Store" is the electronics store.
+"Gym" technically has a name, but I did not choose to use it, as it was too long and obfuscated the type of store it was, so I simply named it "Gym".
+"MissWe" is the luggage/bags store. It's unclear if the stylization includes a space between "Miss" and "We", or if it's a quirk of the kerning in the sign.
+"Rated T" is the casual t-shirt store. 
+"DC" is the name of the fashionable/formal wear store next door.
+"Cosmetics" seems to be the actual name of the makeup/cosmetics store.
+"PerfectFits" is the shoe store.
+The Pottery Store does not have a name that I can see, so it is just called "Pottery Store". It may in fact be an antiques store, but the vases inside are more immediately recognizable.
+"Shear Harmony" is the hair salon. 
+"Time Out!" is the name of the cafe at the entrance of the mall. 
+	"khud_cartographer_location_mallcrasher_store_wine" : "At Sparkle & Spirits Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_jewelry" : "At Jewelry Shop Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_car" : "At Falcogini Dealer Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_tech" : "At Pear Store Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_gym" : "At Gym Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_bags" : "At MissWe Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_shirts" : "At Rated T Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_fashion" : "At DC Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_cosmetics" : "At Cosmetics Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_shoes" : "At PerfectFits Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_pottery" : "At Pottery Store Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_hairsalon" : "At Shear Harmony Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_cafe" : "At Time Out!",
+
+	"khud_cartographer_location_mallcrasher_1f_main" : "On Floor 1.",
+	"khud_cartographer_location_mallcrasher_2f_main" : "On Floor 2.",
+	"khud_cartographer_location_mallcrasher_stairs_west" : "At Stairs West.",
+	"khud_cartographer_location_mallcrasher_stairs_north" : "At Stairs North.",
+	"khud_cartographer_location_mallcrasher_stairs_south" : "At Stairs South.",
+	"khud_cartographer_location_mallcrasher_atms" : "At ATMs.",
+	
+	
 	
 Note: This location name is used for any location that is inaccessible to the player under any normal circumstances, on any heist. 
 	"khud_cartographer_location_generic_out_of_bounds" : "Out of Bounds"

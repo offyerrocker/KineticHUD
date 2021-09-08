@@ -726,7 +726,30 @@
 	"khud_cartographer_location_nightclub_tasteful_staff_basement" : "In Basement.",
 	"khud_cartographer_location_nightclub_tasteful_dj_booth" : "At DJ's Booth.",
 	
-	
+	"khud_cartographer_location_mallcrasher_street" : "Outside Mall Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_side" : "At Side Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_garage" : "At Garage Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_outside" : "Outside Mall Entrance.",
+	"khud_cartographer_location_mallcrasher_entrance_inside" : "At Mall Entrance.",
+	"khud_cartographer_location_mallcrasher_store_wine" : "At Sparkle & Spirits Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_jewelry" : "At Jewelry Shop Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_car" : "At Falcogini Dealer Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_tech" : "At Pear Store Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_gym" : "At Gym Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_bags" : "At MissWe Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_shirts" : "At Rated T Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_fashion" : "At DC Floor 2.",
+	"khud_cartographer_location_mallcrasher_store_cosmetics" : "At Cosmetics Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_shoes" : "At PerfectFits Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_pottery" : "At Pottery Store Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_hairsalon" : "At Shear Harmony Floor 1.",
+	"khud_cartographer_location_mallcrasher_store_cafe" : "At Time Out!",
+	"khud_cartographer_location_mallcrasher_1f_main" : "On Floor 1.",
+	"khud_cartographer_location_mallcrasher_2f_main" : "On Floor 2.",
+	"khud_cartographer_location_mallcrasher_stairs_west" : "At Stairs West.",
+	"khud_cartographer_location_mallcrasher_stairs_north" : "At Stairs North.",
+	"khud_cartographer_location_mallcrasher_stairs_south" : "At Stairs South.",
+	"khud_cartographer_location_mallcrasher_atms" : "At ATMs.",
 	
 	"khud_cartographer_location_generic_out_of_bounds" : "Out of Bounds"
 	
