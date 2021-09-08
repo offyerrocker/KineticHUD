@@ -1,6 +1,6 @@
 Here you will find a guide for localization strings and their uses/meanings,
 so that you can better create a translation to another language, if you so choose.
-
+This guide is just for your use- it is not used by the mod itself.
 
 These are debugs, you don't need to include them:
 	"kinetichud" : "KineticHUD", 
@@ -773,7 +773,31 @@ Heist: Rats day 3
 	"khud_cartographer_location_alex_3_bridge_west" : "On Bridge West.",
 	"khud_cartographer_location_alex_3_bus_outside" : "At Bus.",
 	"khud_cartographer_location_alex_3_bus_inside" : "In Bus.",
-	
+
+Heist: Nightclub
+	"khud_cartographer_location_nightclub_alley_tasteful" : "At Tasteful Alley.",
+	"khud_cartographer_location_nightclub_alley_tfn" : "At TFN Alley.",
+	"khud_cartographer_location_nightclub_alley_sushi" : "At Raw Deal Alley.",
+	"khud_cartographer_location_nightclub_escape_zone" : "At Escape.",
+	"khud_cartographer_location_nightclub_street" : "At Street.",
+	"khud_cartographer_location_nightclub_tasteful_entrance" : "At Front Entrance.",
+	"khud_cartographer_location_nightclub_tasteful_rear" : "At Rear Entrance.",
+	"khud_cartographer_location_nightclub_tasteful_reception" : "At Reception.",
+	"khud_cartographer_location_nightclub_tasteful_dancefloor" : "On the Dance Floor!",
+	"khud_cartographer_location_nightclub_tasteful_restroom" : "In Restroom.",
+	"khud_cartographer_location_nightclub_tasteful_2f_stairs" : "At Stairs.",
+	"khud_cartographer_location_nightclub_tasteful_2f_balcony_east" : "At Balcony Floor 2.",
+	"khud_cartographer_location_nightclub_tasteful_2f_balcony_west" : "At Roof Top Bar.",
+	"khud_cartographer_location_nightclub_tasteful_2f_main" : "On Floor 2.",
+	"khud_cartographer_location_nightclub_tasteful_1f_main" : "On Floor 1.",
+	"khud_cartographer_location_nightclub_tasteful_2f_office" : "At Office Floor 2.",
+	"khud_cartographer_location_nightclub_tasteful_staff_poker" : "At Private Back Room.",
+	"khud_cartographer_location_nightclub_tasteful_staff_kitchen" : "At Kitchen.",
+	"khud_cartographer_location_nightclub_tasteful_staff_main" : "At Staff-Only Area.",
+	"khud_cartographer_location_nightclub_tasteful_staff_management" : "At Management.",
+	"khud_cartographer_location_nightclub_tasteful_staff_office" : "At Manager's Office.",
+	"khud_cartographer_location_nightclub_tasteful_staff_basement" : "In Basement.",
+	"khud_cartographer_location_nightclub_tasteful_dj_booth" : "At DJ's Booth.",
 	
 Note: This location name is used for any location that is inaccessible to the player under any normal circumstances, on any heist. 
 	"khud_cartographer_location_generic_out_of_bounds" : "Out of Bounds"
