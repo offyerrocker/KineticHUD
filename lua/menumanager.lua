@@ -2,7 +2,11 @@
 
 DEVELOPMENT:
 	CURRENT TODO:
-		track joker data in cache
+		Polish stats screen
+		sentries/trip mines in stats screen
+		interaction circle re-centering when interaction center not defined
+		- Hostages count
+		Cartographer: move files into saves, copy into saves folder on startup after version number check, add version number txt in folder to prevent overriding/adding unneeded files
 ******* BEFORE RELEASE: ********
 			GENERAL:
 				SYSTEMIC: REWRITE WORKSPACE SYSTEM
@@ -59,6 +63,7 @@ DEVELOPMENT:
 				non-focused weapon icon is not properly resized on setting the icon image
 				player equipment alignment code centers improperly (spacing for secondary amounts eg tripmines)
 				"put on mask" prompt is still visible and may clip
+				mission objective amount does not disappear when objective is complete
 				
 =========== MENU STRUCTURING: hoo boy this is indeed rough ===========
 				* HUD Layout
@@ -227,6 +232,8 @@ CARTOGRAPHER CHECKLIST
 		Four Stores
 		Framing Frame (1,2,3)
 		Jewelry Store
+		Mallcrasher
+		Nightclub
 		Rats (1,2,3)
 		Safe House Nightmare
 		Shadow Raid
@@ -300,9 +307,7 @@ CARTOGRAPHER CHECKLIST
 		Aftershock
 		Buluc's Mansion
 		Goat Simulator (1,2)
-		Mallcrasher
 		Meltdown
-		Nightclub
 		San Martín Bank
 		Santa's Workshop
 		Stealing Xmas
@@ -562,6 +567,11 @@ end
 --Arguments: none
 --Returns: nil
 function KineticHUD:HideHUD(force)
+--[[
+	for id,panel in pairs(self._panels) do 
+		panel:hide()
+	end
+	--]]
 	for id,ws in pairs(self._workspaces) do 
 		if alive(ws) then 
 			if force or not self.hud_values.world_panels[id].unhidable then 
@@ -591,6 +601,14 @@ function KineticHUD:Setup()
 	managers.dyn_resource:load(Idstring("font"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 	managers.dyn_resource:load(Idstring("texture"), Idstring("fonts/font_digital"), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 
+	local font_ids = Idstring("font")
+	local dyn_pkg = DynamicResourceManager.DYN_RESOURCES_PACKAGE
+	local font_resources_ready = managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.digital),dyn_pkg)
+		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.syke),dyn_pkg)
+		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.tommy_bold),dyn_pkg)
+		
+
+
 	if managers.network:session() then 
 		self._cache.local_peer_id = managers.network:session():local_peer():id()
 	end
@@ -598,7 +616,7 @@ function KineticHUD:Setup()
 	self._gui = World:newgui()
 	self:CreateWorldPanels()
 --	self:CreateFlatHUD(parent_panel)
-	self:CreateWorldHUD()
+	self:CreateWorldHUD(font_resources_ready)
 	
 	BeardLib:AddUpdater("kinetichud_update",callback(self,self,"Update"))
 	
@@ -727,6 +745,7 @@ end
 
 --Links world panels created from CreateWorldPanels() to the player camera object.
 --If successfully attempted to link at least one panel, returns true. Else, returns false.
+--Can be called every frame.
 --Returns: bool
 function KineticHUD:LinkWS(link_target_object)
 	local done_any = false
@@ -937,14 +956,7 @@ end
 --Creates the main HUD elements, using the in-world HUD panels.
 --Safe to call multiple times, as it removes preexisting duplicate HUD elements.
 --Returns: nil
-function KineticHUD:CreateWorldHUD()
-		
-	local font_ids = Idstring("font")
-	local dyn_pkg = DynamicResourceManager.DYN_RESOURCES_PACKAGE
-	local font_resources_ready = managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.digital),dyn_pkg)
-		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.syke),dyn_pkg)
-		and managers.dyn_resource:is_resource_ready(font_ids,Idstring(self._fonts.tommy_bold),dyn_pkg)
-
+function KineticHUD:CreateWorldHUD(font_resources_ready)
 
 	self:CreatePlayerVitalsPanel(font_resources_ready)
 	self:CreatePlayerWeaponsPanel(font_resources_ready)
@@ -1241,6 +1253,7 @@ end
 --Arguments: skip_layout [bool]. If true, skips the positioning step after creation.
 --Returns: nil
 function KineticHUD:CreatePlayerWeaponsPanel(skip_layout)
+
 	local layout_settings = self.layout_settings
 	local selected_parent_panel = self._world_panels[layout_settings.player_weapons_panel_location]
 	if not alive(selected_parent_panel) then 
@@ -2198,7 +2211,11 @@ function KineticHUD:CreateCompassPanel()
 	
 	local compass_waypoints = compass_panel:panel({
 		name = "compass_waypoints",
-		layer = 2
+		layer = 2,
+		x = compass_x,
+		y = compass_y,
+		w = compass_w,
+		h = compass_h
 	})
 	
 	
