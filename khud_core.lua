@@ -1610,7 +1610,7 @@ function KineticHUD.CloneGuiObject(source,new_parent,params)
 				params.blend_mode = params.blend_mode --no getter
 				
 				if alive(existing_gui_obj) and not params.force_recreate then 
-					existing_gui_obj:set_texture(params.texture)
+					existing_gui_obj:set_image(params.texture)
 					existing_gui_obj:set_color(params.color)
 					existing_gui_obj:set_render_template(params.render_template)
 					existing_gui_obj:set_blend_mode(params.blend_mode)
