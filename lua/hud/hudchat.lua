@@ -133,17 +133,33 @@ Hooks:PostHook(HUDChat,"init","khud_init_hudchat",function(self,ws,hud)
 		visible = false
 	})
 	
+	local input_bg_col = Color.white
 	self._input_panel:child("input_bg"):set_gradient_points({
 		0,
-		Color.white:with_alpha(0),
+		input_bg_col:with_alpha(0),
 		0.8, --formerly 0.2
-		Color.white:with_alpha(0.25),
+		input_bg_col:with_alpha(0.25),
 		1,
-		Color.white:with_alpha(0)
+		input_bg_col:with_alpha(0)
 	})
 --	local show_debug = KineticHUD:IsDebugEnabled()
 	
-	local debug_output = self._panel:child("output_panel"):rect({
+	local output_bg_col = Color.black
+	local output_panel = self._panel:child("output_panel")
+	local output_bg = output_panel:child("output_bg")
+	local output_bg_blend_mode = "normal"
+	output_bg:set_gradient_points({
+		0,
+		output_bg_col:with_alpha(0),
+		0.2,
+		output_bg_col:with_alpha(0.25),
+		1,
+		output_bg_col:with_alpha(0)
+	})
+	output_bg:set_blend_mode(output_bg_blend_mode)
+	
+	
+	local debug_output = output_panel:rect({
 		name = "debug_output",
 		color = Color.green:with_alpha(0.3),
 		visible = false
