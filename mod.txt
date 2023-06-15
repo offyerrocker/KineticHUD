@@ -1,7 +1,7 @@
 {
 	"name" : "KineticHUD: Revengeance",
 	"description" : "Tabulsa Rasa.",
-	"author" : "Offyerrocker"
+	"author" : "Offyerrocker",
 	"contact" : "Discord: Offyerrocker#3878",
 	"version" : "TR-1",
 	"blt_version" : 2,
